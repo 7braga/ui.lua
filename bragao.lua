@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB - UI CUSTOM CON TABS (v2.1 - FIXED)
+-- BRAGAO HUB - UI v3 (Watermark draggable + Sound + Refinado)
 -- ═══════════════════════════════════════════════════════════
 
 local Players          = game:GetService("Players")
@@ -10,9 +10,10 @@ local TweenService     = game:GetService("TweenService")
 local Stats            = game:GetService("Stats")
 local CollectionService= game:GetService("CollectionService")
 local VirtualUser      = game:GetService("VirtualUser")
+local SoundService     = game:GetService("SoundService")
 local lp               = Players.LocalPlayer
 
-print("[Bragao Hub] Iniciando...")
+print("[Bragao Hub] Iniciando v3...")
 
 -- ═══════════════════════════════════════════════════════════
 -- CONFIG / STATE
@@ -50,7 +51,25 @@ pcall(function()
 end)
 
 -- ═══════════════════════════════════════════════════════════
--- FUNCIONES BASE
+-- SONIDO SUTIL DE CLICK
+-- ═══════════════════════════════════════════════════════════
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://6895079853" -- soft click
+clickSound.Volume = 0.35
+clickSound.PlaybackSpeed = 1.05
+clickSound.Parent = SoundService
+
+local function playClick()
+    pcall(function()
+        local clone = clickSound:Clone()
+        clone.Parent = SoundService
+        clone:Play()
+        task.delay(1, function() clone:Destroy() end)
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- FUNCIONES BASE (gameplay)
 -- ═══════════════════════════════════════════════════════════
 local function getHRP()
     local char = lp.Character
@@ -337,7 +356,7 @@ local function setupAntiAFK()
 end
 
 -- ═══════════════════════════════════════════════════════════
--- UI v2.1
+-- UI v3
 -- ═══════════════════════════════════════════════════════════
 
 local T = {
@@ -347,13 +366,14 @@ local T = {
     ELEMENT     = Color3.fromRGB(20, 20, 20),
     ELEMENT_HOV = Color3.fromRGB(30, 30, 30),
     ELEMENT_ACT = Color3.fromRGB(38, 38, 38),
-    BORDER      = Color3.fromRGB(60, 60, 60),
-    BORDER_HL   = Color3.fromRGB(105, 105, 105),
+    BORDER      = Color3.fromRGB(55, 55, 55),
+    BORDER_SOFT = Color3.fromRGB(40, 40, 40),
+    BORDER_HL   = Color3.fromRGB(115, 115, 115),
     TEXT        = Color3.fromRGB(255, 255, 255),
     TEXT_DIM    = Color3.fromRGB(150, 150, 150),
     ON          = Color3.fromRGB(70, 200, 110),
-    OFF         = Color3.fromRGB(60, 60, 70),
-    CLOSE_HOV   = Color3.fromRGB(175, 45, 45),
+    OFF         = Color3.fromRGB(55, 55, 65),
+    CLOSE_HOV   = Color3.fromRGB(230, 70, 70),
     MIN_HOV     = Color3.fromRGB(55, 55, 55),
 }
 
@@ -375,10 +395,12 @@ local function corner(p, r)
     return new("UICorner", { CornerRadius = UDim.new(0, r or 6) }, p)
 end
 
-local function stroke(p, c, th)
+-- stroke con transparencia para borde más sutil
+local function stroke(p, c, th, transparency)
     return new("UIStroke", {
         Color = c or T.BORDER,
         Thickness = th or 1,
+        Transparency = transparency or 0,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
     }, p)
 end
@@ -391,7 +413,7 @@ local screenGui = new("ScreenGui", {
     IgnoreGuiInset = true,
 }, lp:WaitForChild("PlayerGui"))
 
--- Main Frame (pequeña 500x380)
+-- Main Frame
 local mainFrame = new("Frame", {
     Name = "MainFrame",
     Size = UDim2.fromOffset(500, 380),
@@ -402,7 +424,7 @@ local mainFrame = new("Frame", {
     ClipsDescendants = true,
 }, screenGui)
 corner(mainFrame, 10)
-stroke(mainFrame, T.BORDER_HL, 1)
+stroke(mainFrame, T.BORDER_HL, 1, 0.15)
 
 -- TitleBar
 local titleBar = new("Frame", {
@@ -419,7 +441,7 @@ new("Frame", {
     BorderSizePixel = 0,
 }, titleBar)
 new("Frame", {
-    BackgroundColor3 = T.BORDER,
+    BackgroundColor3 = T.BORDER_SOFT,
     Size = UDim2.new(1, 0, 0, 1),
     Position = UDim2.new(0, 0, 1, -1),
     BorderSizePixel = 0,
@@ -431,35 +453,40 @@ new("TextLabel", {
     Position = UDim2.new(0, 46, 0, 0),
     Size = UDim2.new(0, 300, 1, 0),
     Font = FONT_SEMI,
-    Text = "◆  BRAGAO HUB",
+    Text = "BRAGAO HUB",
     TextColor3 = Color3.fromRGB(255, 200, 0),
     TextSize = 14,
     TextXAlignment = Enum.TextXAlignment.Left,
 }, titleBar)
 
--- Botón cerrar
+-- Botón cerrar — solo X, sin cuadro
 local closeBtn = new("TextButton", {
-    BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(1, -36, 0, 8),
-    Size = UDim2.fromOffset(26, 20),
-    Font = FONT_SEMI, Text = "✕",
-    TextColor3 = T.TEXT, TextSize = 12,
+    BackgroundTransparency = 1,
+    Position = UDim2.new(1, -34, 0, 8),
+    Size = UDim2.fromOffset(24, 20),
+    Font = FONT_SEMI, Text = "X",
+    TextColor3 = T.TEXT_DIM, TextSize = 15,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
-corner(closeBtn, 4)
-stroke(closeBtn, T.BORDER, 1)
+
+closeBtn.MouseEnter:Connect(function()
+    tw(closeBtn, { TextColor3 = T.CLOSE_HOV }, 0.15)
+end)
+closeBtn.MouseLeave:Connect(function()
+    tw(closeBtn, { TextColor3 = T.TEXT_DIM }, 0.15)
+end)
 
 -- Botón minimizar
 local minBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(1, -68, 0, 8),
+    Position = UDim2.new(1, -66, 0, 8),
     Size = UDim2.fromOffset(26, 20),
     Font = FONT_SEMI, Text = "—",
     TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(minBtn, 4)
-stroke(minBtn, T.BORDER, 1)
+stroke(minBtn, T.BORDER_SOFT, 1, 0.2)
 
 -- Botón sidebar
 local menuBtn = new("TextButton", {
@@ -471,14 +498,12 @@ local menuBtn = new("TextButton", {
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(menuBtn, 4)
-stroke(menuBtn, T.BORDER, 1)
+stroke(menuBtn, T.BORDER_SOFT, 1, 0.2)
 
 menuBtn.MouseEnter:Connect(function()  tw(menuBtn,  { BackgroundColor3 = T.MIN_HOV })   end)
 menuBtn.MouseLeave:Connect(function()  tw(menuBtn,  { BackgroundColor3 = T.ELEMENT })   end)
 minBtn.MouseEnter:Connect(function()   tw(minBtn,   { BackgroundColor3 = T.MIN_HOV })   end)
 minBtn.MouseLeave:Connect(function()   tw(minBtn,   { BackgroundColor3 = T.ELEMENT })   end)
-closeBtn.MouseEnter:Connect(function() tw(closeBtn, { BackgroundColor3 = T.CLOSE_HOV }) end)
-closeBtn.MouseLeave:Connect(function() tw(closeBtn, { BackgroundColor3 = T.ELEMENT })   end)
 
 -- Body
 local body = new("Frame", {
@@ -497,7 +522,7 @@ local sidebar = new("Frame", {
     BorderSizePixel = 0,
 }, body)
 new("Frame", {
-    BackgroundColor3 = T.BORDER,
+    BackgroundColor3 = T.BORDER_SOFT,
     Size = UDim2.new(0, 1, 1, 0),
     Position = UDim2.new(1, -1, 0, 0),
     BorderSizePixel = 0,
@@ -526,7 +551,7 @@ local content = new("Frame", {
     Size = UDim2.new(1, -sideW, 1, 0),
 }, body)
 
--- Drag
+-- Drag ventana
 local dragStart, startPos
 titleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -555,6 +580,7 @@ end)
 -- Toggle sidebar
 local sidebarOpen = true
 menuBtn.MouseButton1Click:Connect(function()
+    playClick()
     sidebarOpen = not sidebarOpen
     if sidebarOpen then
         sidebar.Visible = true
@@ -571,6 +597,7 @@ end)
 local minimized = false
 local savedSize = mainFrame.Size
 minBtn.MouseButton1Click:Connect(function()
+    playClick()
     minimized = not minimized
     if minimized then
         savedSize = mainFrame.Size
@@ -584,6 +611,7 @@ end)
 
 -- Close
 closeBtn.MouseButton1Click:Connect(function()
+    playClick()
     screenGui:Destroy()
 end)
 
@@ -618,37 +646,46 @@ local function createTab(title)
         Size = UDim2.new(1, 0, 0, 32),
         Font = FONT,
         Text = "  " .. title,
-        TextColor3 = T.TEXT,
+        TextColor3 = T.TEXT_DIM,
         TextSize = 12,
         AutoButtonColor = false,
         BorderSizePixel = 0,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, tabList)
     corner(tab.Button, 5)
-    local s = stroke(tab.Button, T.BORDER, 1)
+    local s = stroke(tab.Button, T.BORDER_SOFT, 1, 0.15)
 
     tab.Button.MouseEnter:Connect(function()
         if activeTab ~= tab then
             tw(tab.Button, { BackgroundColor3 = T.ELEMENT_HOV })
+            tw(tab.Button, { TextColor3 = T.TEXT })
         end
     end)
     tab.Button.MouseLeave:Connect(function()
         if activeTab ~= tab then
             tw(tab.Button, { BackgroundColor3 = T.ELEMENT })
+            tw(tab.Button, { TextColor3 = T.TEXT_DIM })
         end
     end)
 
     tab.Button.MouseButton1Click:Connect(function()
+        playClick()
         if activeTab then
             activeTab.Content.Visible = false
             tw(activeTab.Button, { BackgroundColor3 = T.ELEMENT })
+            tw(activeTab.Button, { TextColor3 = T.TEXT_DIM })
             local oldS = activeTab.Button:FindFirstChildOfClass("UIStroke")
-            if oldS then oldS.Color = T.BORDER end
+            if oldS then
+                oldS.Color = T.BORDER_SOFT
+                oldS.Transparency = 0.15
+            end
         end
         activeTab = tab
         tab.Content.Visible = true
         tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT })
-        s.Color = T.TEXT
+        tw(tab.Button, { TextColor3 = T.TEXT })
+        s.Color = T.BORDER_HL
+        s.Transparency = 0
     end)
 
     table.insert(tabs, tab)
@@ -656,7 +693,9 @@ local function createTab(title)
         tab.Content.Visible = true
         activeTab = tab
         tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT })
-        s.Color = T.TEXT
+        tw(tab.Button, { TextColor3 = T.TEXT })
+        s.Color = T.BORDER_HL
+        s.Transparency = 0
     end
     return tab
 end
@@ -669,7 +708,7 @@ local function section(tab, title)
         BorderSizePixel = 0,
     }, tab.Content)
     corner(sec, 6)
-    stroke(sec, T.BORDER_HL, 1)
+    stroke(sec, T.BORDER_HL, 1, 0.35)
     new("TextLabel", {
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 12, 0, 0),
@@ -683,7 +722,7 @@ local function section(tab, title)
     return sec
 end
 
--- Toggle
+-- Toggle (más pequeño: 36x18)
 local function toggle(tab, cfg)
     cfg = cfg or {}
     local hasDesc = cfg.Desc and cfg.Desc ~= ""
@@ -693,12 +732,12 @@ local function toggle(tab, cfg)
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6)
-    stroke(c, T.BORDER, 1)
+    stroke(c, T.BORDER_SOFT, 1, 0.15)
 
     new("TextLabel", {
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 12, 0, hasDesc and 6 or 0),
-        Size = UDim2.new(1, -100, 0, hasDesc and 15 or 38),
+        Size = UDim2.new(1, -90, 0, hasDesc and 15 or 38),
         Font = FONT_SEMI,
         Text = cfg.Title or "Toggle",
         TextColor3 = T.TEXT,
@@ -710,7 +749,7 @@ local function toggle(tab, cfg)
         new("TextLabel", {
             BackgroundTransparency = 1,
             Position = UDim2.new(0, 12, 0, 22),
-            Size = UDim2.new(1, -100, 0, 13),
+            Size = UDim2.new(1, -90, 0, 13),
             Font = FONT,
             Text = cfg.Desc,
             TextColor3 = T.TEXT_DIM,
@@ -719,23 +758,25 @@ local function toggle(tab, cfg)
         }, c)
     end
 
+    -- Switch más pequeño: 36 x 18
     local switch = new("Frame", {
         BackgroundColor3 = cfg.Value and T.ON or T.OFF,
-        Position = UDim2.new(1, -58, 0.5, 0),
+        Position = UDim2.new(1, -48, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.fromOffset(44, 22),
+        Size = UDim2.fromOffset(36, 18),
         BorderSizePixel = 0,
     }, c)
-    corner(switch, 11)
-    stroke(switch, T.BORDER, 1)
+    corner(switch, 9)
+    stroke(switch, T.BORDER_SOFT, 1, 0.25)
 
+    -- Knob 14x14
     local knob = new("Frame", {
         BackgroundColor3 = T.TEXT,
-        Position = cfg.Value and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2),
-        Size = UDim2.fromOffset(18, 18),
+        Position = cfg.Value and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2),
+        Size = UDim2.fromOffset(14, 14),
         BorderSizePixel = 0,
     }, switch)
-    corner(knob, 9)
+    corner(knob, 7)
 
     local btn = new("TextButton", {
         BackgroundTransparency = 1,
@@ -747,8 +788,9 @@ local function toggle(tab, cfg)
     local state = cfg.Value or false
     btn.MouseButton1Click:Connect(function()
         state = not state
+        playClick()
         tw(switch, { BackgroundColor3 = state and T.ON or T.OFF }, 0.2)
-        tw(knob, { Position = state and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
+        tw(knob, { Position = state and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
         if cfg.Callback then cfg.Callback(state) end
     end)
     return btn
@@ -764,7 +806,7 @@ local function input(tab, cfg)
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6)
-    stroke(c, T.BORDER, 1)
+    stroke(c, T.BORDER_SOFT, 1, 0.15)
 
     new("TextLabel", {
         BackgroundTransparency = 1,
@@ -798,7 +840,7 @@ local function input(tab, cfg)
         BorderSizePixel = 0,
     }, c)
     corner(box, 5)
-    stroke(box, T.BORDER, 1)
+    stroke(box, T.BORDER_SOFT, 1, 0.2)
 
     local tb = new("TextBox", {
         BackgroundTransparency = 1,
@@ -821,32 +863,60 @@ local function input(tab, cfg)
 end
 
 -- ═══════════════════════════════════════════════════════════
--- WATERMARK
+-- WATERMARK (ahora arrastrable)
 -- ═══════════════════════════════════════════════════════════
 local watermarkEnabled = false
 local wmFrame = new("Frame", {
     Name = "Watermark",
     BackgroundColor3 = T.BG,
     BackgroundTransparency = 0.15,
-    Size = UDim2.fromOffset(220, 24),
-    Position = UDim2.new(1, -230, 0, 8),
+    Size = UDim2.fromOffset(230, 24),
+    Position = UDim2.new(1, -240, 0, 8),
     Visible = false,
     BorderSizePixel = 0,
+    Active = true,
 }, screenGui)
 corner(wmFrame, 5)
-stroke(wmFrame, T.BORDER, 1)
+stroke(wmFrame, T.BORDER_SOFT, 1, 0.2)
 
 local wmLabel = new("TextLabel", {
     BackgroundTransparency = 1,
     Size = UDim2.new(1, -10, 1, 0),
     Position = UDim2.new(0, 5, 0, 0),
     Font = FONT_SEMI,
-    Text = "◆  BRAGAO HUB  |  FPS: --  |  -- ms",
+    Text = "BRAGAO HUB  |  FPS: --  |  -- ms",
     TextColor3 = T.TEXT,
     TextSize = 12,
     TextXAlignment = Enum.TextXAlignment.Center,
 }, wmFrame)
 
+-- Drag watermark
+local wmDragStart, wmStartPos
+wmFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        wmDragStart = input.Position
+        wmStartPos = wmFrame.Position
+        local c
+        c = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                wmDragStart = nil
+                c:Disconnect()
+            end
+        end)
+    end
+end)
+UIS.InputChanged:Connect(function(input)
+    if wmDragStart and (input.UserInputType == Enum.UserInputType.MouseMovement
+    or input.UserInputType == Enum.UserInputType.Touch) then
+        local d = input.Position - wmDragStart
+        wmFrame.Position = UDim2.new(
+            wmStartPos.X.Scale, wmStartPos.X.Offset + d.X,
+            wmStartPos.Y.Scale, wmStartPos.Y.Offset + d.Y)
+    end
+end)
+
+-- FPS counter
 local fpsCount, fpsTime, currentFPS = 0, 0, 60
 RunService.RenderStepped:Connect(function(dt)
     fpsCount = fpsCount + 1
@@ -866,7 +936,7 @@ task.spawn(function()
             pcall(function()
                 ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
             end)
-            wmLabel.Text = string.format("◆  BRAGAO HUB  |  FPS: %d  |  %d ms", currentFPS, ping)
+            wmLabel.Text = string.format("BRAGAO HUB  |  FPS: %d  |  %d ms", currentFPS, ping)
         end
     end
 end)
@@ -995,7 +1065,7 @@ toggle(tabUtils, {
 section(tabUtils, "Interfaz")
 toggle(tabUtils, {
     Title = "Watermark",
-    Desc = "Muestra FPS y Ping en pantalla",
+    Desc = "Muestra FPS y Ping (arrastrable)",
     Value = false,
     Callback = function(v)
         watermarkEnabled = v
@@ -1006,5 +1076,4 @@ toggle(tabUtils, {
 -- ═══════════════════════════════════════════════════════════
 -- FINAL
 -- ═══════════════════════════════════════════════════════════
-print("[Bragao Hub] UI cargada correctamente")
-print("Tabs: Combat | Aim | Movement | Visual | Utils")
+print("[Bragao Hub] UI v3 cargada")
