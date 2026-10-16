@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB - UI v3 (Watermark draggable + Sound + Refinado)
+-- BRAGAO HUB - UI v4 (Accent + Notifs + Active + Float + Compact)
 -- ═══════════════════════════════════════════════════════════
 
 local Players          = game:GetService("Players")
@@ -13,34 +13,23 @@ local VirtualUser      = game:GetService("VirtualUser")
 local SoundService     = game:GetService("SoundService")
 local lp               = Players.LocalPlayer
 
-print("[Bragao Hub] Iniciando v3...")
+print("[Bragao Hub] Iniciando v4...")
 
 -- ═══════════════════════════════════════════════════════════
 -- CONFIG / STATE
 -- ═══════════════════════════════════════════════════════════
 local Config = {
-    SilentAimPlayers = false,
-    SilentAimNPCs = false,
-    Prediction = false,
-    PredictionAmount = 0.1,
-    AutoKen = false,
-    ESP = false,
-    InfiniteJump = false,
-    WalkSpeed = 16,
-    AntiAFK = false,
+    SilentAimPlayers = false, SilentAimNPCs = false,
+    Prediction = false, PredictionAmount = 0.1,
+    AutoKen = false, ESP = false, InfiniteJump = false,
+    WalkSpeed = 16, AntiAFK = false,
 }
-
 local State = {
-    silentInstalled = false,
-    autoKenRunning = false,
-    infJumpConn = nil,
-    PlayersPosition = nil,
-    NPCPosition = nil,
-    maxRange = 500,
-    antiAFKRunning = false,
+    silentInstalled = false, autoKenRunning = false,
+    infJumpConn = nil, PlayersPosition = nil, NPCPosition = nil,
+    maxRange = 500, antiAFKRunning = false,
 }
 
--- Remotes
 local CommE, CommF
 pcall(function()
     local remotes = ReplicatedStorage:WaitForChild("Remotes", 5)
@@ -51,172 +40,137 @@ pcall(function()
 end)
 
 -- ═══════════════════════════════════════════════════════════
--- SONIDO SUTIL DE CLICK
+-- SONIDO
 -- ═══════════════════════════════════════════════════════════
 local clickSound = Instance.new("Sound")
-clickSound.SoundId = "rbxassetid://6895079853" -- soft click
+clickSound.SoundId = "rbxassetid://6895079853"
 clickSound.Volume = 0.35
 clickSound.PlaybackSpeed = 1.05
 clickSound.Parent = SoundService
 
 local function playClick()
     pcall(function()
-        local clone = clickSound:Clone()
-        clone.Parent = SoundService
-        clone:Play()
-        task.delay(1, function() clone:Destroy() end)
+        local c = clickSound:Clone()
+        c.Parent = SoundService
+        c:Play()
+        task.delay(1, function() c:Destroy() end)
     end)
 end
 
 -- ═══════════════════════════════════════════════════════════
--- FUNCIONES BASE (gameplay)
+-- GAMEPLAY (igual que antes)
 -- ═══════════════════════════════════════════════════════════
-local function getHRP()
-    local char = lp.Character
-    return char and char:FindFirstChild("HumanoidRootPart")
-end
+local function getHRP() local c = lp.Character; return c and c:FindFirstChild("HumanoidRootPart") end
+local function getHum() local c = lp.Character; return c and c:FindFirstChildOfClass("Humanoid") end
 
-local function getHum()
-    local char = lp.Character
-    return char and char:FindFirstChildOfClass("Humanoid")
-end
-
-local function isEnemy(targetPlayer)
-    if not targetPlayer or targetPlayer == lp then return false end
-    local myTeam = lp.Team
-    local targetTeam = targetPlayer.Team
-    if myTeam and targetTeam then
-        if myTeam.Name == "Pirates" and targetTeam.Name == "Marines" then return true end
-        if myTeam.Name == "Marines" and targetTeam.Name == "Pirates" then return true end
+local function isEnemy(t)
+    if not t or t == lp then return false end
+    local a, b = lp.Team, t.Team
+    if a and b then
+        if a.Name == "Pirates" and b.Name == "Marines" then return true end
+        if a.Name == "Marines" and b.Name == "Pirates" then return true end
     end
     return true
 end
 
 local function getPredictedPosition(hrp)
     if not hrp then return nil end
-    local humanoid = hrp.Parent:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return hrp.Position end
-    if not Config.Prediction or humanoid.WalkSpeed < 5 then return hrp.Position end
+    local h = hrp.Parent:FindFirstChildOfClass("Humanoid")
+    if not h then return hrp.Position end
+    if not Config.Prediction or h.WalkSpeed < 5 then return hrp.Position end
     return hrp.Position + (hrp.AssemblyLinearVelocity * Config.PredictionAmount)
 end
 
 local function getClosestPlayer()
-    local hrp = getHRP()
-    if not hrp then return nil end
-    local closest, closestDist = nil, State.maxRange
+    local hrp = getHRP(); if not hrp then return nil end
+    local best, bd = nil, State.maxRange
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= lp and isEnemy(p) and p.Character then
-            local hum = p.Character:FindFirstChildOfClass("Humanoid")
-            local eHRP = p.Character:FindFirstChild("HumanoidRootPart")
-            if hum and hum.Health > 0 and eHRP then
-                local dist = (eHRP.Position - hrp.Position).Magnitude
-                if dist < closestDist then closestDist = dist; closest = p end
+            local h = p.Character:FindFirstChildOfClass("Humanoid")
+            local e = p.Character:FindFirstChild("HumanoidRootPart")
+            if h and h.Health > 0 and e then
+                local d = (e.Position - hrp.Position).Magnitude
+                if d < bd then bd = d; best = p end
             end
         end
     end
-    return closest
+    return best
 end
 
 local function getClosestNPC()
-    local hrp = getHRP()
-    if not hrp then return nil end
-    local closest, closestDist = nil, State.maxRange
-    local enemies = workspace:FindFirstChild("Enemies")
-    if not enemies then return nil end
+    local hrp = getHRP(); if not hrp then return nil end
+    local best, bd = nil, State.maxRange
+    local enemies = workspace:FindFirstChild("Enemies"); if not enemies then return nil end
     for _, v in ipairs(enemies:GetChildren()) do
-        local eHRP = v:FindFirstChild("HumanoidRootPart")
-        local hum = v:FindFirstChildOfClass("Humanoid")
-        if eHRP and hum and hum.Health > 0 then
-            local dist = (eHRP.Position - hrp.Position).Magnitude
-            if dist < closestDist then closestDist = dist; closest = v end
+        local e = v:FindFirstChild("HumanoidRootPart")
+        local h = v:FindFirstChildOfClass("Humanoid")
+        if e and h and h.Health > 0 then
+            local d = (e.Position - hrp.Position).Magnitude
+            if d < bd then bd = d; best = v end
         end
     end
-    return closest
+    return best
 end
 
--- ═══════════════════════════════════════════════════════════
--- SILENT AIM
--- ═══════════════════════════════════════════════════════════
 local function installSilentAim()
     if State.silentInstalled then return end
     State.silentInstalled = true
-    print("[Silent Aim] Instalado")
-
     RunService.Heartbeat:Connect(function()
         if not Config.SilentAimPlayers and not Config.SilentAimNPCs then
             State.PlayersPosition = nil; State.NPCPosition = nil; return
         end
         if Config.SilentAimPlayers then
-            local enemy = getClosestPlayer()
-            if enemy and enemy.Character then
-                local eHRP = enemy.Character:FindFirstChild("HumanoidRootPart")
-                State.PlayersPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else State.PlayersPosition = nil end
+            local e = getClosestPlayer()
+            local eH = e and e.Character and e.Character:FindFirstChild("HumanoidRootPart")
+            State.PlayersPosition = eH and getPredictedPosition(eH) or nil
         else State.PlayersPosition = nil end
         if Config.SilentAimNPCs then
-            local npc = getClosestNPC()
-            if npc then
-                local eHRP = npc:FindFirstChild("HumanoidRootPart")
-                State.NPCPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else State.NPCPosition = nil end
+            local n = getClosestNPC()
+            local eH = n and n:FindFirstChild("HumanoidRootPart")
+            State.NPCPosition = eH and getPredictedPosition(eH) or nil
         else State.NPCPosition = nil end
     end)
-
     pcall(function()
-        local ok, hookMeta = pcall(getrawmetatable, game)
-        if ok and hookMeta and hookmetamethod and getnamecallmethod and setreadonly then
-            setreadonly(hookMeta, false)
-            local OldHook
-            OldHook = hookmetamethod(game, "__namecall", function(self, V1, V2, ...)
-                local Method = getnamecallmethod():lower()
-                if tostring(self) == "RemoteEvent" and Method == "fireserver" then
-                    if typeof(V1) == "Vector3" then
-                        if Config.SilentAimPlayers and State.PlayersPosition then
-                            return OldHook(self, State.PlayersPosition, V2, ...)
-                        elseif Config.SilentAimNPCs and State.NPCPosition then
-                            return OldHook(self, State.NPCPosition, V2, ...)
-                        end
+        local ok, hm = pcall(getrawmetatable, game)
+        if ok and hm and hookmetamethod and getnamecallmethod and setreadonly then
+            setreadonly(hm, false)
+            local Old
+            Old = hookmetamethod(game, "__namecall", function(self, V1, V2, ...)
+                local m = getnamecallmethod():lower()
+                if tostring(self) == "RemoteEvent" and m == "fireserver" and typeof(V1) == "Vector3" then
+                    if Config.SilentAimPlayers and State.PlayersPosition then
+                        return Old(self, State.PlayersPosition, V2, ...)
+                    elseif Config.SilentAimNPCs and State.NPCPosition then
+                        return Old(self, State.NPCPosition, V2, ...)
                     end
                 end
-                return OldHook(self, V1, V2, ...)
+                return Old(self, V1, V2, ...)
             end)
-            setreadonly(hookMeta, true)
+            setreadonly(hm, true)
         end
     end)
 end
 
--- ═══════════════════════════════════════════════════════════
--- AUTO KEN
--- ═══════════════════════════════════════════════════════════
 local function startAutoKenLoop()
     if State.autoKenRunning then return end
     State.autoKenRunning = true
-    print("[Auto Ken] Iniciado")
     task.spawn(function()
         while Config.AutoKen do
             task.wait(0.1)
             pcall(function()
-                local char = lp.Character
-                if not char then return end
-                if CollectionService:HasTag(char, "Ken") then
-                    if CommE then CommE:FireServer("Ken", true) end
-                end
+                local c = lp.Character; if not c then return end
+                if CollectionService:HasTag(c, "Ken") and CommE then CommE:FireServer("Ken", true) end
             end)
         end
         State.autoKenRunning = false
     end)
 end
 
--- ═══════════════════════════════════════════════════════════
 -- ESP
--- ═══════════════════════════════════════════════════════════
 local ESPs = {}
-local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
-if not espFolder then
-    espFolder = Instance.new("Folder")
-    espFolder.Name = "GlobalESP"
-    espFolder.Parent = game.CoreGui
-end
+local espFolder = game.CoreGui:FindFirstChild("GlobalESP") or (function()
+    local f = Instance.new("Folder"); f.Name = "GlobalESP"; f.Parent = game.CoreGui; return f
+end)()
 
 local function getESPColor(p)
     if p == lp then return Color3.fromRGB(0, 255, 0) end
@@ -224,124 +178,84 @@ local function getESPColor(p)
     return Color3.fromRGB(0, 255, 0)
 end
 
-local function createESP(targetPlayer)
-    if ESPs[targetPlayer] then return end
-    local char = targetPlayer.Character
-    if not char then return end
-    local head = char:FindFirstChild("Head")
-    if not head then return end
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = targetPlayer.Name
-    billboard.Adornee = head
-    billboard.Size = UDim2.fromOffset(220, 50)
-    billboard.AlwaysOnTop = true
-    billboard.StudsOffset = Vector3.new(0, 3, 0)
-    billboard.Parent = espFolder
-
-    local levelLabel = Instance.new("TextLabel")
-    levelLabel.Name = "LevelLabel"
-    levelLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    levelLabel.BackgroundTransparency = 1
-    levelLabel.Text = "Lv. ???"
-    levelLabel.TextColor3 = Color3.fromRGB(0, 170, 255)
-    levelLabel.TextStrokeTransparency = 0.2
-    levelLabel.Font = Enum.Font.SourceSansBold
-    levelLabel.TextSize = 14
-    levelLabel.Parent = billboard
-
-    local mainLabel = Instance.new("TextLabel")
-    mainLabel.Name = "MainLabel"
-    mainLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    mainLabel.Position = UDim2.new(0, 0, 0.5, 0)
-    mainLabel.BackgroundTransparency = 1
-    mainLabel.Text = "[0] " .. targetPlayer.DisplayName .. " (0m)"
-    mainLabel.TextColor3 = getESPColor(targetPlayer)
-    mainLabel.TextStrokeTransparency = 0.2
-    mainLabel.Font = Enum.Font.SourceSansBold
-    mainLabel.TextSize = 16
-    mainLabel.Parent = billboard
-
-    ESPs[targetPlayer] = billboard
+local function createESP(tp)
+    if ESPs[tp] then return end
+    local c = tp.Character; if not c then return end
+    local head = c:FindFirstChild("Head"); if not head then return end
+    local b = Instance.new("BillboardGui")
+    b.Name = tp.Name; b.Adornee = head; b.Size = UDim2.fromOffset(220, 50)
+    b.AlwaysOnTop = true; b.StudsOffset = Vector3.new(0, 3, 0); b.Parent = espFolder
+    local l = Instance.new("TextLabel")
+    l.Name = "LevelLabel"; l.Size = UDim2.new(1, 0, 0.5, 0); l.BackgroundTransparency = 1
+    l.Text = "Lv. ???"; l.TextColor3 = Color3.fromRGB(0, 170, 255)
+    l.TextStrokeTransparency = 0.2; l.Font = Enum.Font.SourceSansBold
+    l.TextSize = 14; l.Parent = b
+    local m = Instance.new("TextLabel")
+    m.Name = "MainLabel"; m.Size = UDim2.new(1, 0, 0.5, 0)
+    m.Position = UDim2.new(0, 0, 0.5, 0); m.BackgroundTransparency = 1
+    m.Text = "[0] " .. tp.DisplayName .. " (0m)"; m.TextColor3 = getESPColor(tp)
+    m.TextStrokeTransparency = 0.2; m.Font = Enum.Font.SourceSansBold
+    m.TextSize = 16; m.Parent = b
+    ESPs[tp] = b
 end
 
 RunService.Heartbeat:Connect(function()
     if not Config.ESP then
-        for _, gui in pairs(ESPs) do
-            if gui then gui.Enabled = false end
-        end
+        for _, g in pairs(ESPs) do if g then g.Enabled = false end end
         return
     end
-    for _, targetPlayer in pairs(Players:GetPlayers()) do
-        if targetPlayer ~= lp then
-            if not ESPs[targetPlayer] then createESP(targetPlayer) end
-            local gui = ESPs[targetPlayer]
-            if gui then
-                local char = targetPlayer.Character
-                local head = char and char:FindFirstChild("Head")
-                local hrp  = char and char:FindFirstChild("HumanoidRootPart")
-                local hum  = char and char:FindFirstChildOfClass("Humanoid")
-                local myHRP= lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-                if char and head and hrp and hum and myHRP then
-                    gui.Adornee = head
-                    gui.Enabled = true
-                    local dist = (myHRP.Position - hrp.Position).Magnitude
-                    local nameLabel = gui:FindFirstChild("MainLabel")
-                    local levelLabel= gui:FindFirstChild("LevelLabel")
-                    if levelLabel then
-                        local dataFolder = targetPlayer:FindFirstChild("Data")
-                        local levelValue = dataFolder and dataFolder:FindFirstChild("Level")
-                        levelLabel.Text = levelValue and ("Lv. " .. levelValue.Value) or "Lv. ???"
+    for _, tp in pairs(Players:GetPlayers()) do
+        if tp ~= lp then
+            if not ESPs[tp] then createESP(tp) end
+            local g = ESPs[tp]
+            if g then
+                local c = tp.Character
+                local h = c and c:FindFirstChild("Head")
+                local r = c and c:FindFirstChild("HumanoidRootPart")
+                local hu = c and c:FindFirstChildOfClass("Humanoid")
+                local mr = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+                if c and h and r and hu and mr then
+                    g.Adornee = h; g.Enabled = true
+                    local d = (mr.Position - r.Position).Magnitude
+                    local ml = g:FindFirstChild("MainLabel")
+                    local ll = g:FindFirstChild("LevelLabel")
+                    if ll then
+                        local df = tp:FindFirstChild("Data")
+                        local lv = df and df:FindFirstChild("Level")
+                        ll.Text = lv and ("Lv. " .. lv.Value) or "Lv. ???"
                     end
-                    if nameLabel then
-                        nameLabel.Text = "[" .. math.floor(hum.Health) .. "] " .. targetPlayer.DisplayName .. " (" .. math.floor(dist) .. "m)"
-                        nameLabel.TextColor3 = getESPColor(targetPlayer)
+                    if ml then
+                        ml.Text = "[" .. math.floor(hu.Health) .. "] " .. tp.DisplayName .. " (" .. math.floor(d) .. "m)"
+                        ml.TextColor3 = getESPColor(tp)
                     end
-                else
-                    gui.Enabled = false
-                end
+                else g.Enabled = false end
             end
         end
     end
 end)
 
--- ═══════════════════════════════════════════════════════════
--- INFINITE JUMP
--- ═══════════════════════════════════════════════════════════
 local function setupInfiniteJump()
     if Config.InfiniteJump and not State.infJumpConn then
-        print("[Infinite Jump] ON")
-        State.infJumpConn = UIS.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if input.KeyCode == Enum.KeyCode.Space then
-                local hum = getHum()
-                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+        State.infJumpConn = UIS.InputBegan:Connect(function(i, gp)
+            if gp then return end
+            if i.KeyCode == Enum.KeyCode.Space then
+                local h = getHum(); if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
             end
         end)
     elseif not Config.InfiniteJump and State.infJumpConn then
-        print("[Infinite Jump] OFF")
-        State.infJumpConn:Disconnect()
-        State.infJumpConn = nil
+        State.infJumpConn:Disconnect(); State.infJumpConn = nil
     end
 end
 
--- ═══════════════════════════════════════════════════════════
--- WALK SPEED
--- ═══════════════════════════════════════════════════════════
 RunService.Heartbeat:Connect(function()
     if Config.WalkSpeed > 16 then
-        local hum = getHum()
-        if hum then hum.WalkSpeed = Config.WalkSpeed end
+        local h = getHum(); if h then h.WalkSpeed = Config.WalkSpeed end
     end
 end)
 
--- ═══════════════════════════════════════════════════════════
--- ANTI AFK
--- ═══════════════════════════════════════════════════════════
 local function setupAntiAFK()
     if Config.AntiAFK and not State.antiAFKRunning then
         State.antiAFKRunning = true
-        print("[Anti-AFK] ON")
         task.spawn(function()
             while Config.AntiAFK do
                 task.wait(60)
@@ -356,7 +270,9 @@ local function setupAntiAFK()
 end
 
 -- ═══════════════════════════════════════════════════════════
--- UI v3
+-- ═══════════════════════════════════════════════════════════
+--                     UI v4
+-- ═══════════════════════════════════════════════════════════
 -- ═══════════════════════════════════════════════════════════
 
 local T = {
@@ -368,7 +284,9 @@ local T = {
     ELEMENT_ACT = Color3.fromRGB(38, 38, 38),
     BORDER      = Color3.fromRGB(55, 55, 55),
     BORDER_SOFT = Color3.fromRGB(40, 40, 40),
-    BORDER_HL   = Color3.fromRGB(115, 115, 115),
+    BORDER_HL   = Color3.fromRGB(255, 200, 0), -- accent (amarillo por defecto)
+    ACCENT      = Color3.fromRGB(255, 200, 0),
+    ACCENT_DIM  = Color3.fromRGB(160, 125, 0),
     TEXT        = Color3.fromRGB(255, 255, 255),
     TEXT_DIM    = Color3.fromRGB(150, 150, 150),
     ON          = Color3.fromRGB(70, 200, 110),
@@ -377,203 +295,193 @@ local T = {
     MIN_HOV     = Color3.fromRGB(55, 55, 55),
 }
 
-local FONT      = Enum.Font.SourceSans
-local FONT_SEMI = Enum.Font.SourceSansBold
-
-local function tw(i, p, t)
-    TweenService:Create(i, TweenInfo.new(t or 0.15), p):Play()
+local FONT, FONT_SEMI = Enum.Font.SourceSans, Enum.Font.SourceSansBold
+local function tw(i, p, t) TweenService:Create(i, TweenInfo.new(t or 0.15), p):Play() end
+local function new(c, p, parent)
+    local i = Instance.new(c); for k, v in pairs(p or {}) do i[k] = v end
+    if parent then i.Parent = parent end; return i
+end
+local function corner(p, r) return new("UICorner", { CornerRadius = UDim.new(0, r or 6) }, p) end
+local function stroke(p, c, th, tr)
+    return new("UIStroke", { Color = c or T.BORDER, Thickness = th or 1,
+        Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
 end
 
-local function new(class, props, parent)
-    local i = Instance.new(class)
-    for k, v in pairs(props or {}) do i[k] = v end
-    if parent then i.Parent = parent end
-    return i
-end
-
-local function corner(p, r)
-    return new("UICorner", { CornerRadius = UDim.new(0, r or 6) }, p)
-end
-
--- stroke con transparencia para borde más sutil
-local function stroke(p, c, th, transparency)
-    return new("UIStroke", {
-        Color = c or T.BORDER,
-        Thickness = th or 1,
-        Transparency = transparency or 0,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-    }, p)
-end
-
--- Screen
+-- ═══════════════════════════════════════════════════════════
+-- SCREEN + MAIN
+-- ═══════════════════════════════════════════════════════════
 local screenGui = new("ScreenGui", {
-    Name = "BragaoHub",
-    ResetOnSpawn = false,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    IgnoreGuiInset = true,
+    Name = "BragaoHub", ResetOnSpawn = false,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling, IgnoreGuiInset = true,
 }, lp:WaitForChild("PlayerGui"))
 
--- Main Frame
+-- ═══════════════════════════════════════════════════════════
+-- SISTEMA DE NOTIFICACIONES (feature #3)
+-- ═══════════════════════════════════════════════════════════
+local notifHolder = new("Frame", {
+    Name = "Notifs", BackgroundTransparency = 1,
+    Size = UDim2.fromOffset(280, 0), AutomaticSize = Enum.AutomaticSize.Y,
+    Position = UDim2.new(1, -300, 0, 60),
+}, screenGui)
+new("UIListLayout", {
+    Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Right,
+    VerticalAlignment = Enum.VerticalAlignment.Top,
+    SortOrder = Enum.SortOrder.LayoutOrder,
+}, notifHolder)
+
+local function notify(title, content, color)
+    color = color or T.ACCENT
+    local card = new("Frame", {
+        BackgroundColor3 = T.PANEL, BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, content and 52 or 36),
+        BorderSizePixel = 0,
+    }, notifHolder)
+    corner(card, 6)
+    stroke(card, T.BORDER_SOFT, 1, 0.15)
+
+    local accentBar = new("Frame", {
+        BackgroundColor3 = color, Size = UDim2.new(0, 3, 1, 0),
+        BorderSizePixel = 0,
+    }, card)
+
+    local titleLbl = new("TextLabel", {
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
+        Size = UDim2.new(1, -20, 0, 16), Font = FONT_SEMI,
+        Text = title, TextColor3 = T.TEXT, TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    }, card)
+
+    local contentLbl
+    if content then
+        contentLbl = new("TextLabel", {
+            BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 24),
+            Size = UDim2.new(1, -20, 0, 20), Font = FONT,
+            Text = content, TextColor3 = T.TEXT_DIM, TextSize = 10,
+            TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true,
+        }, card)
+    end
+
+    -- Fade in
+    tw(card, { BackgroundTransparency = 0 }, 0.15)
+    tw(titleLbl, { TextTransparency = 0 }, 0.15)
+    if contentLbl then tw(contentLbl, { TextTransparency = 0 }, 0.15) end
+    tw(accentBar, { BackgroundTransparency = 0 }, 0.15)
+
+    -- Fade out
+    task.delay(2.2, function()
+        if not card.Parent then return end
+        tw(card, { BackgroundTransparency = 1 }, 0.25)
+        tw(titleLbl, { TextTransparency = 1 }, 0.25)
+        if contentLbl then tw(contentLbl, { TextTransparency = 1 }, 0.25) end
+        tw(accentBar, { BackgroundTransparency = 1 }, 0.25)
+        task.wait(0.3)
+        card:Destroy()
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- MAIN FRAME (con animación fade-in/scale — feature #10)
+-- ═══════════════════════════════════════════════════════════
 local mainFrame = new("Frame", {
-    Name = "MainFrame",
-    Size = UDim2.fromOffset(500, 380),
+    Name = "MainFrame", Size = UDim2.fromOffset(500, 380),
     Position = UDim2.new(0.5, -250, 0.5, -190),
-    BackgroundColor3 = T.BG,
-    BorderSizePixel = 0,
-    Active = true,
-    ClipsDescendants = true,
+    BackgroundColor3 = T.BG, BorderSizePixel = 0,
+    Active = true, ClipsDescendants = true,
 }, screenGui)
 corner(mainFrame, 10)
 stroke(mainFrame, T.BORDER_HL, 1, 0.15)
 
--- TitleBar
+-- TITLEBAR
 local titleBar = new("Frame", {
-    Name = "TitleBar",
-    Size = UDim2.new(1, 0, 0, 36),
-    BackgroundColor3 = T.TITLEBAR,
-    BorderSizePixel = 0,
+    Name = "TitleBar", Size = UDim2.new(1, 0, 0, 36),
+    BackgroundColor3 = T.TITLEBAR, BorderSizePixel = 0,
 }, mainFrame)
 corner(titleBar, 10)
-new("Frame", {
-    BackgroundColor3 = T.TITLEBAR,
-    Size = UDim2.new(1, 0, 0, 14),
-    Position = UDim2.new(0, 0, 1, -14),
-    BorderSizePixel = 0,
-}, titleBar)
-new("Frame", {
-    BackgroundColor3 = T.BORDER_SOFT,
-    Size = UDim2.new(1, 0, 0, 1),
-    Position = UDim2.new(0, 0, 1, -1),
-    BorderSizePixel = 0,
-}, titleBar)
+new("Frame", { BackgroundColor3 = T.TITLEBAR, Size = UDim2.new(1, 0, 0, 14),
+    Position = UDim2.new(0, 0, 1, -14), BorderSizePixel = 0 }, titleBar)
+new("Frame", { BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(1, 0, 0, 1),
+    Position = UDim2.new(0, 0, 1, -1), BorderSizePixel = 0 }, titleBar)
 
--- Título
-new("TextLabel", {
-    BackgroundTransparency = 1,
-    Position = UDim2.new(0, 46, 0, 0),
-    Size = UDim2.new(0, 300, 1, 0),
-    Font = FONT_SEMI,
-    Text = "BRAGAO HUB",
-    TextColor3 = Color3.fromRGB(255, 200, 0),
-    TextSize = 14,
+local titleLbl = new("TextLabel", {
+    BackgroundTransparency = 1, Position = UDim2.new(0, 46, 0, 0),
+    Size = UDim2.new(0, 300, 1, 0), Font = FONT_SEMI,
+    Text = "◆  BRAGAO HUB", TextColor3 = T.ACCENT, TextSize = 14,
     TextXAlignment = Enum.TextXAlignment.Left,
 }, titleBar)
 
--- Botón cerrar — solo X, sin cuadro
+-- Close X
 local closeBtn = new("TextButton", {
-    BackgroundTransparency = 1,
-    Position = UDim2.new(1, -34, 0, 8),
-    Size = UDim2.fromOffset(24, 20),
-    Font = FONT_SEMI, Text = "X",
+    BackgroundTransparency = 1, Position = UDim2.new(1, -34, 0, 8),
+    Size = UDim2.fromOffset(24, 20), Font = FONT_SEMI, Text = "X",
     TextColor3 = T.TEXT_DIM, TextSize = 15,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
+closeBtn.MouseEnter:Connect(function() tw(closeBtn, { TextColor3 = T.CLOSE_HOV }) end)
+closeBtn.MouseLeave:Connect(function() tw(closeBtn, { TextColor3 = T.TEXT_DIM }) end)
 
-closeBtn.MouseEnter:Connect(function()
-    tw(closeBtn, { TextColor3 = T.CLOSE_HOV }, 0.15)
-end)
-closeBtn.MouseLeave:Connect(function()
-    tw(closeBtn, { TextColor3 = T.TEXT_DIM }, 0.15)
-end)
-
--- Botón minimizar
+-- Minimize
 local minBtn = new("TextButton", {
-    BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(1, -66, 0, 8),
-    Size = UDim2.fromOffset(26, 20),
-    Font = FONT_SEMI, Text = "—",
+    BackgroundColor3 = T.ELEMENT, Position = UDim2.new(1, -66, 0, 8),
+    Size = UDim2.fromOffset(26, 20), Font = FONT_SEMI, Text = "—",
     TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
-corner(minBtn, 4)
-stroke(minBtn, T.BORDER_SOFT, 1, 0.2)
+corner(minBtn, 4); stroke(minBtn, T.BORDER_SOFT, 1, 0.2)
 
--- Botón sidebar
+-- Sidebar toggle
 local menuBtn = new("TextButton", {
-    BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(0, 10, 0, 8),
-    Size = UDim2.fromOffset(26, 20),
-    Font = FONT_SEMI, Text = "≡",
+    BackgroundColor3 = T.ELEMENT, Position = UDim2.new(0, 10, 0, 8),
+    Size = UDim2.fromOffset(26, 20), Font = FONT_SEMI, Text = "≡",
     TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
-corner(menuBtn, 4)
-stroke(menuBtn, T.BORDER_SOFT, 1, 0.2)
+corner(menuBtn, 4); stroke(menuBtn, T.BORDER_SOFT, 1, 0.2)
 
-menuBtn.MouseEnter:Connect(function()  tw(menuBtn,  { BackgroundColor3 = T.MIN_HOV })   end)
-menuBtn.MouseLeave:Connect(function()  tw(menuBtn,  { BackgroundColor3 = T.ELEMENT })   end)
-minBtn.MouseEnter:Connect(function()   tw(minBtn,   { BackgroundColor3 = T.MIN_HOV })   end)
-minBtn.MouseLeave:Connect(function()   tw(minBtn,   { BackgroundColor3 = T.ELEMENT })   end)
+menuBtn.MouseEnter:Connect(function() tw(menuBtn, { BackgroundColor3 = T.MIN_HOV }) end)
+menuBtn.MouseLeave:Connect(function() tw(menuBtn, { BackgroundColor3 = T.ELEMENT }) end)
+minBtn.MouseEnter:Connect(function() tw(minBtn, { BackgroundColor3 = T.MIN_HOV }) end)
+minBtn.MouseLeave:Connect(function() tw(minBtn, { BackgroundColor3 = T.ELEMENT }) end)
 
--- Body
 local body = new("Frame", {
-    Name = "Body",
-    BackgroundTransparency = 1,
-    Position = UDim2.new(0, 0, 0, 36),
-    Size = UDim2.new(1, 0, 1, -36),
+    Name = "Body", BackgroundTransparency = 1,
+    Position = UDim2.new(0, 0, 0, 36), Size = UDim2.new(1, 0, 1, -36),
 }, mainFrame)
 
--- Sidebar
-local sideW = 140
+local sideW = 145
 local sidebar = new("Frame", {
-    Name = "Sidebar",
-    BackgroundColor3 = T.PANEL,
-    Size = UDim2.new(0, sideW, 1, 0),
-    BorderSizePixel = 0,
+    Name = "Sidebar", BackgroundColor3 = T.PANEL,
+    Size = UDim2.new(0, sideW, 1, 0), BorderSizePixel = 0,
 }, body)
-new("Frame", {
-    BackgroundColor3 = T.BORDER_SOFT,
-    Size = UDim2.new(0, 1, 1, 0),
-    Position = UDim2.new(1, -1, 0, 0),
-    BorderSizePixel = 0,
-}, sidebar)
+new("Frame", { BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(0, 1, 1, 0),
+    Position = UDim2.new(1, -1, 0, 0), BorderSizePixel = 0 }, sidebar)
 
 local tabList = new("ScrollingFrame", {
-    BackgroundTransparency = 1,
-    Size = UDim2.new(1, -12, 1, -12),
-    Position = UDim2.new(0, 6, 0, 6),
-    BorderSizePixel = 0,
-    ScrollBarThickness = 3,
-    ScrollBarImageColor3 = T.BORDER,
-    CanvasSize = UDim2.new(0, 0, 0, 0),
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    BackgroundTransparency = 1, Size = UDim2.new(1, -12, 1, -12),
+    Position = UDim2.new(0, 6, 0, 6), BorderSizePixel = 0,
+    ScrollBarThickness = 3, ScrollBarImageColor3 = T.BORDER,
+    CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
 }, sidebar)
-new("UIListLayout", {
-    Padding = UDim.new(0, 6),
-    SortOrder = Enum.SortOrder.LayoutOrder,
-}, tabList)
+new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, tabList)
 
--- Content
 local content = new("Frame", {
-    Name = "Content",
-    BackgroundTransparency = 1,
-    Position = UDim2.new(0, sideW, 0, 0),
-    Size = UDim2.new(1, -sideW, 1, 0),
+    Name = "Content", BackgroundTransparency = 1,
+    Position = UDim2.new(0, sideW, 0, 0), Size = UDim2.new(1, -sideW, 1, 0),
 }, body)
 
 -- Drag ventana
-local dragStart, startPos
-titleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
-        dragStart = input.Position
-        startPos = mainFrame.Position
-        local c
-        c = input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragStart = nil
-                c:Disconnect()
-            end
+local dStart, sPos
+titleBar.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        dStart = i.Position; sPos = mainFrame.Position
+        local c; c = i.Changed:Connect(function()
+            if i.UserInputState == Enum.UserInputState.End then dStart = nil; c:Disconnect() end
         end)
     end
 end)
-UIS.InputChanged:Connect(function(input)
-    if dragStart and (input.UserInputType == Enum.UserInputType.MouseMovement
-    or input.UserInputType == Enum.UserInputType.Touch) then
-        local d = input.Position - dragStart
-        mainFrame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + d.X,
-            startPos.Y.Scale, startPos.Y.Offset + d.Y)
+UIS.InputChanged:Connect(function(i)
+    if dStart and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - dStart
+        mainFrame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y)
     end
 end)
 
@@ -584,24 +492,20 @@ menuBtn.MouseButton1Click:Connect(function()
     sidebarOpen = not sidebarOpen
     if sidebarOpen then
         sidebar.Visible = true
-        content.Position = UDim2.new(0, sideW, 0, 0)
-        content.Size = UDim2.new(1, -sideW, 1, 0)
+        content.Position = UDim2.new(0, sideW, 0, 0); content.Size = UDim2.new(1, -sideW, 1, 0)
     else
         sidebar.Visible = false
-        content.Position = UDim2.new(0, 0, 0, 0)
-        content.Size = UDim2.new(1, 0, 1, 0)
+        content.Position = UDim2.new(0, 0, 0, 0); content.Size = UDim2.new(1, 0, 1, 0)
     end
 end)
 
 -- Minimize
-local minimized = false
-local savedSize = mainFrame.Size
+local minimized, savedSize = false, mainFrame.Size
 minBtn.MouseButton1Click:Connect(function()
     playClick()
     minimized = not minimized
     if minimized then
-        savedSize = mainFrame.Size
-        body.Visible = false
+        savedSize = mainFrame.Size; body.Visible = false
         tw(mainFrame, { Size = UDim2.fromOffset(260, 36) }, 0.2)
     else
         body.Visible = true
@@ -609,47 +513,126 @@ minBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Close
+-- ═══════════════════════════════════════════════════════════
+-- BOTÓN FLOTANTE (feature #1)
+-- ═══════════════════════════════════════════════════════════
+local floatBtn = new("TextButton", {
+    Name = "FloatButton", BackgroundColor3 = T.BG,
+    Size = UDim2.fromOffset(130, 34), Position = UDim2.new(0, 20, 0, 20),
+    Font = FONT_SEMI, Text = "◆  BRAGAO HUB", TextColor3 = T.ACCENT,
+    TextSize = 12, AutoButtonColor = false, BorderSizePixel = 0,
+    Visible = false, ZIndex = 50,
+}, screenGui)
+corner(floatBtn, 8)
+local floatStroke = stroke(floatBtn, T.ACCENT, 1, 0.1)
+local floatGlow = new("UIStroke", {
+    Color = T.ACCENT, Thickness = 2, Transparency = 0.85,
+    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+}, floatBtn)
+
+floatBtn.MouseEnter:Connect(function() tw(floatGlow, { Transparency = 0.5 }) end)
+floatBtn.MouseLeave:Connect(function() tw(floatGlow, { Transparency = 0.85 }) end)
+
+-- Función abrir/cerrar UI con animación
+local function animateOpen()
+    mainFrame.Visible = true
+    local goalSize = savedSize
+    mainFrame.Size = UDim2.fromOffset(goalSize.X.Offset * 0.85, goalSize.Y.Offset * 0.85)
+    mainFrame.BackgroundTransparency = 1
+    tw(mainFrame, { Size = goalSize, BackgroundTransparency = 0 }, 0.22)
+end
+
+local function animateClose()
+    local goalSize = mainFrame.Size
+    tw(mainFrame, {
+        Size = UDim2.fromOffset(goalSize.X.Offset * 0.85, goalSize.Y.Offset * 0.85),
+        BackgroundTransparency = 1,
+    }, 0.18)
+    task.delay(0.2, function()
+        mainFrame.Visible = false
+        mainFrame.BackgroundTransparency = 0
+        mainFrame.Size = savedSize
+    end)
+end
+
+floatBtn.MouseButton1Click:Connect(function()
+    playClick()
+    floatBtn.Visible = false
+    animateOpen()
+end)
+
 closeBtn.MouseButton1Click:Connect(function()
     playClick()
-    screenGui:Destroy()
+    animateClose()
+    task.delay(0.25, function()
+        floatBtn.Visible = true
+        notify("UI cerrada", "Click el botón para reabrir", T.ACCENT_DIM)
+    end)
+end)
+
+-- Drag botón flotante
+local fD, fS
+floatBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        fD = i.Position; fS = floatBtn.Position
+        local c; c = i.Changed:Connect(function()
+            if i.UserInputState == Enum.UserInputState.End then fD = nil; c:Disconnect() end
+        end)
+    end
+end)
+UIS.InputChanged:Connect(function(i)
+    if fD and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - fD
+        floatBtn.Position = UDim2.new(fS.X.Scale, fS.X.Offset + d.X, fS.Y.Scale, fS.Y.Offset + d.Y)
+    end
 end)
 
 -- ═══════════════════════════════════════════════════════════
--- SISTEMA DE TABS
+-- SISTEMA DE ACCENT COLOR (feature #13)
 -- ═══════════════════════════════════════════════════════════
-local tabs = {}
-local activeTab = nil
+local accentRefreshers = {}
 
-local function createTab(title)
+local function registerAccent(fn)
+    table.insert(accentRefreshers, fn)
+end
+
+local function setAccent(color)
+    T.ACCENT = color
+    T.BORDER_HL = color
+    T.ACCENT_DIM = Color3.new(color.R * 0.6, color.G * 0.6, color.B * 0.6)
+    for _, fn in ipairs(accentRefreshers) do pcall(fn) end
+end
+
+-- Register: título
+registerAccent(function() titleLbl.TextColor3 = T.ACCENT end)
+registerAccent(function() floatBtn.TextColor3 = T.ACCENT end)
+registerAccent(function() floatStroke.Color = T.ACCENT end)
+registerAccent(function() floatGlow.Color = T.ACCENT end)
+
+-- ═══════════════════════════════════════════════════════════
+-- SISTEMA DE TABS (con iconos lineales — feature #6)
+-- ═══════════════════════════════════════════════════════════
+local tabs, activeTab = {}, nil
+local tabAccentRefreshers = {}
+
+local function createTab(icon, title)
     local tab = { Title = title, Content = nil, Button = nil }
 
     tab.Content = new("ScrollingFrame", {
-        Name = title,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -20, 1, -20),
-        Position = UDim2.new(0, 10, 0, 10),
-        BorderSizePixel = 0,
-        ScrollBarThickness = 4,
+        Name = title, BackgroundTransparency = 1,
+        Size = UDim2.new(1, -20, 1, -20), Position = UDim2.new(0, 10, 0, 10),
+        BorderSizePixel = 0, ScrollBarThickness = 4,
         ScrollBarImageColor3 = T.BORDER,
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
         Visible = false,
     }, content)
-    new("UIListLayout", {
-        Padding = UDim.new(0, 8),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-    }, tab.Content)
+    new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, tab.Content)
 
     tab.Button = new("TextButton", {
-        BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, 32),
-        Font = FONT,
-        Text = "  " .. title,
-        TextColor3 = T.TEXT_DIM,
-        TextSize = 12,
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
+        BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 32),
+        Font = FONT, Text = "  " .. icon .. "   " .. title,
+        TextColor3 = T.TEXT_DIM, TextSize = 12,
+        AutoButtonColor = false, BorderSizePixel = 0,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, tabList)
     corner(tab.Button, 5)
@@ -657,14 +640,12 @@ local function createTab(title)
 
     tab.Button.MouseEnter:Connect(function()
         if activeTab ~= tab then
-            tw(tab.Button, { BackgroundColor3 = T.ELEMENT_HOV })
-            tw(tab.Button, { TextColor3 = T.TEXT })
+            tw(tab.Button, { BackgroundColor3 = T.ELEMENT_HOV, TextColor3 = T.TEXT })
         end
     end)
     tab.Button.MouseLeave:Connect(function()
         if activeTab ~= tab then
-            tw(tab.Button, { BackgroundColor3 = T.ELEMENT })
-            tw(tab.Button, { TextColor3 = T.TEXT_DIM })
+            tw(tab.Button, { BackgroundColor3 = T.ELEMENT, TextColor3 = T.TEXT_DIM })
         end
     end)
 
@@ -672,187 +653,217 @@ local function createTab(title)
         playClick()
         if activeTab then
             activeTab.Content.Visible = false
-            tw(activeTab.Button, { BackgroundColor3 = T.ELEMENT })
-            tw(activeTab.Button, { TextColor3 = T.TEXT_DIM })
-            local oldS = activeTab.Button:FindFirstChildOfClass("UIStroke")
-            if oldS then
-                oldS.Color = T.BORDER_SOFT
-                oldS.Transparency = 0.15
-            end
+            tw(activeTab.Button, { BackgroundColor3 = T.ELEMENT, TextColor3 = T.TEXT_DIM })
+            local oS = activeTab.Button:FindFirstChildOfClass("UIStroke")
+            if oS then oS.Color = T.BORDER_SOFT; oS.Transparency = 0.15 end
         end
         activeTab = tab
         tab.Content.Visible = true
-        tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT })
-        tw(tab.Button, { TextColor3 = T.TEXT })
-        s.Color = T.BORDER_HL
-        s.Transparency = 0
+        tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT, TextColor3 = T.TEXT })
+        s.Color = T.ACCENT; s.Transparency = 0
+    end)
+
+    registerAccent(function()
+        if activeTab == tab then s.Color = T.ACCENT end
     end)
 
     table.insert(tabs, tab)
     if #tabs == 1 then
-        tab.Content.Visible = true
-        activeTab = tab
-        tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT })
-        tw(tab.Button, { TextColor3 = T.TEXT })
-        s.Color = T.BORDER_HL
-        s.Transparency = 0
+        tab.Content.Visible = true; activeTab = tab
+        tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT, TextColor3 = T.TEXT })
+        s.Color = T.ACCENT; s.Transparency = 0
     end
     return tab
 end
 
--- Section
+-- ═══════════════════════════════════════════════════════════
+-- ACTIVE FEATURES TRACKER (feature #9)
+-- ═══════════════════════════════════════════════════════════
+local activeList = {} -- { [name] = true }
+local activeUI = nil  -- se inicializa en tabUtils
+local function refreshActiveUI()
+    if not activeUI then return end
+    for _, c in ipairs(activeUI:GetChildren()) do
+        if c:IsA("TextLabel") or c:IsA("Frame") then c:Destroy() end
+    end
+    local count = 0
+    for name, state in pairs(activeList) do
+        if state then
+            count = count + 1
+            local row = new("Frame", {
+                BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 22),
+                BorderSizePixel = 0,
+            }, activeUI)
+            corner(row, 4)
+            stroke(row, T.BORDER_SOFT, 1, 0.2)
+            new("Frame", {
+                BackgroundColor3 = T.ON, Size = UDim2.fromOffset(6, 6),
+                Position = UDim2.new(0, 10, 0.5, -3), BorderSizePixel = 0,
+            }, row)
+            new("TextLabel", {
+                BackgroundTransparency = 1, Position = UDim2.new(0, 24, 0, 0),
+                Size = UDim2.new(1, -30, 1, 0), Font = FONT,
+                Text = name, TextColor3 = T.TEXT, TextSize = 11,
+                TextXAlignment = Enum.TextXAlignment.Left,
+            }, row)
+        end
+    end
+    if count == 0 then
+        local empty = new("TextLabel", {
+            BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 22),
+            Font = FONT, Text = "  Ninguna opción activa",
+            TextColor3 = T.TEXT_DIM, TextSize = 11,
+            TextXAlignment = Enum.TextXAlignment.Left,
+        }, activeUI)
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- COMPONENTES
+-- ═══════════════════════════════════════════════════════════
+local compactMode = false
+
 local function section(tab, title)
     local sec = new("Frame", {
-        BackgroundColor3 = T.PANEL,
-        Size = UDim2.new(1, 0, 0, 26),
+        BackgroundColor3 = T.PANEL, Size = UDim2.new(1, 0, 0, 26),
         BorderSizePixel = 0,
     }, tab.Content)
     corner(sec, 6)
     stroke(sec, T.BORDER_HL, 1, 0.35)
     new("TextLabel", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 12, 0, 0),
-        Size = UDim2.new(1, -20, 1, 0),
-        Font = FONT_SEMI,
-        Text = title,
-        TextColor3 = T.TEXT,
-        TextSize = 11,
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 0),
+        Size = UDim2.new(1, -20, 1, 0), Font = FONT_SEMI,
+        Text = title, TextColor3 = T.TEXT, TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, sec)
-    return sec
 end
 
--- Toggle (más pequeño: 36x18)
 local function toggle(tab, cfg)
     cfg = cfg or {}
     local hasDesc = cfg.Desc and cfg.Desc ~= ""
+    local H = hasDesc and 48 or 38
     local c = new("Frame", {
-        BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, hasDesc and 48 or 38),
+        BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, H),
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6)
     stroke(c, T.BORDER_SOFT, 1, 0.15)
 
-    new("TextLabel", {
+    -- Dot indicador (feature #8)
+    local dot = new("Frame", {
+        BackgroundColor3 = T.ON, Size = UDim2.fromOffset(6, 6),
+        Position = UDim2.new(0, 10, hasDesc and 0 or 0.5, hasDesc and 12 or -3),
+        BorderSizePixel = 0, BackgroundTransparency = cfg.Value and 0 or 1,
+    }, c)
+    corner(dot, 3)
+
+    local titleL = new("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 12, 0, hasDesc and 6 or 0),
-        Size = UDim2.new(1, -90, 0, hasDesc and 15 or 38),
-        Font = FONT_SEMI,
-        Text = cfg.Title or "Toggle",
-        TextColor3 = T.TEXT,
-        TextSize = 12,
+        Position = UDim2.new(0, 24, 0, hasDesc and 6 or 0),
+        Size = UDim2.new(1, -100, 0, hasDesc and 15 or H),
+        Font = FONT_SEMI, Text = cfg.Title or "Toggle",
+        TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
 
+    local descL
     if hasDesc then
-        new("TextLabel", {
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0, 12, 0, 22),
-            Size = UDim2.new(1, -90, 0, 13),
-            Font = FONT,
-            Text = cfg.Desc,
-            TextColor3 = T.TEXT_DIM,
-            TextSize = 10,
+        descL = new("TextLabel", {
+            BackgroundTransparency = 1, Position = UDim2.new(0, 24, 0, 22),
+            Size = UDim2.new(1, -100, 0, 13), Font = FONT,
+            Text = cfg.Desc, TextColor3 = T.TEXT_DIM, TextSize = 10,
             TextXAlignment = Enum.TextXAlignment.Left,
         }, c)
     end
 
-    -- Switch más pequeño: 36 x 18
     local switch = new("Frame", {
         BackgroundColor3 = cfg.Value and T.ON or T.OFF,
-        Position = UDim2.new(1, -48, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.fromOffset(36, 18),
-        BorderSizePixel = 0,
+        Position = UDim2.new(1, -48, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+        Size = UDim2.fromOffset(36, 18), BorderSizePixel = 0,
     }, c)
-    corner(switch, 9)
-    stroke(switch, T.BORDER_SOFT, 1, 0.25)
+    corner(switch, 9); stroke(switch, T.BORDER_SOFT, 1, 0.25)
 
-    -- Knob 14x14
     local knob = new("Frame", {
         BackgroundColor3 = T.TEXT,
         Position = cfg.Value and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2),
-        Size = UDim2.fromOffset(14, 14),
-        BorderSizePixel = 0,
+        Size = UDim2.fromOffset(14, 14), BorderSizePixel = 0,
     }, switch)
     corner(knob, 7)
 
     local btn = new("TextButton", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        Text = "",
-        AutoButtonColor = false,
+        BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0),
+        Text = "", AutoButtonColor = false,
     }, c)
 
+    -- Compact mode: ocultar desc
+    if hasDesc then
+        table.insert(compactMode and {} or {}, descL)
+    end
+
     local state = cfg.Value or false
+
     btn.MouseButton1Click:Connect(function()
         state = not state
         playClick()
         tw(switch, { BackgroundColor3 = state and T.ON or T.OFF }, 0.2)
         tw(knob, { Position = state and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
+        tw(dot, { BackgroundTransparency = state and 0 or 1 }, 0.15)
+
+        -- Active features
+        activeList[cfg.Title] = state
+        refreshActiveUI()
+
+        -- Notif
+        notify(state and "Activado" or "Desactivado", cfg.Title,
+            state and T.ON or T.CLOSE_HOV)
+
         if cfg.Callback then cfg.Callback(state) end
     end)
+
+    -- Registrar para compact mode
     return btn
 end
 
--- Input
 local function input(tab, cfg)
     cfg = cfg or {}
     local hasDesc = cfg.Desc and cfg.Desc ~= ""
+    local H = hasDesc and 72 or 58
     local c = new("Frame", {
-        BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, hasDesc and 72 or 58),
+        BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, H),
         BorderSizePixel = 0,
     }, tab.Content)
-    corner(c, 6)
-    stroke(c, T.BORDER_SOFT, 1, 0.15)
+    corner(c, 6); stroke(c, T.BORDER_SOFT, 1, 0.15)
 
     new("TextLabel", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 12, 0, 6),
-        Size = UDim2.new(1, -100, 0, 15),
-        Font = FONT_SEMI,
-        Text = cfg.Title or "Input",
-        TextColor3 = T.TEXT,
-        TextSize = 12,
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
+        Size = UDim2.new(1, -100, 0, 15), Font = FONT_SEMI,
+        Text = cfg.Title or "Input", TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
 
     if hasDesc then
         new("TextLabel", {
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0, 12, 0, 22),
-            Size = UDim2.new(1, -100, 0, 13),
-            Font = FONT,
-            Text = cfg.Desc,
-            TextColor3 = T.TEXT_DIM,
-            TextSize = 10,
+            BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 22),
+            Size = UDim2.new(1, -100, 0, 13), Font = FONT,
+            Text = cfg.Desc, TextColor3 = T.TEXT_DIM, TextSize = 10,
             TextXAlignment = Enum.TextXAlignment.Left,
         }, c)
     end
 
     local boxY = hasDesc and 42 or 28
     local box = new("Frame", {
-        BackgroundColor3 = T.BG,
-        Position = UDim2.new(0, 12, 0, boxY),
-        Size = UDim2.new(1, -24, 0, 24),
-        BorderSizePixel = 0,
+        BackgroundColor3 = T.BG, Position = UDim2.new(0, 12, 0, boxY),
+        Size = UDim2.new(1, -24, 0, 24), BorderSizePixel = 0,
     }, c)
-    corner(box, 5)
-    stroke(box, T.BORDER_SOFT, 1, 0.2)
+    corner(box, 5); stroke(box, T.BORDER_SOFT, 1, 0.2)
 
     local tb = new("TextBox", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 8, 0, 0),
-        Size = UDim2.new(1, -16, 1, 0),
-        Font = FONT,
+        BackgroundTransparency = 1, Position = UDim2.new(0, 8, 0, 0),
+        Size = UDim2.new(1, -16, 1, 0), Font = FONT,
         Text = tostring(cfg.Value or ""),
         PlaceholderText = cfg.Placeholder or "escribe aqui...",
-        PlaceholderColor3 = T.TEXT_DIM,
-        TextColor3 = T.TEXT,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Left,
+        PlaceholderColor3 = T.TEXT_DIM, TextColor3 = T.TEXT,
+        TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left,
         ClearTextOnFocus = false,
     }, box)
 
@@ -862,218 +873,207 @@ local function input(tab, cfg)
     return tb
 end
 
+-- Color picker (feature #13)
+local ACCENT_PRESETS = {
+    { Name = "Amarillo", C = Color3.fromRGB(255, 200, 0) },
+    { Name = "Rojo",     C = Color3.fromRGB(230, 70, 70) },
+    { Name = "Verde",    C = Color3.fromRGB(70, 200, 110) },
+    { Name = "Azul",     C = Color3.fromRGB(80, 160, 255) },
+    { Name = "Morado",   C = Color3.fromRGB(170, 100, 255) },
+    { Name = "Rosa",     C = Color3.fromRGB(255, 120, 180) },
+    { Name = "Cyan",     C = Color3.fromRGB(80, 220, 220) },
+    { Name = "Blanco",   C = Color3.fromRGB(240, 240, 240) },
+}
+
+local function colorPicker(tab, title)
+    local c = new("Frame", {
+        BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 92),
+        BorderSizePixel = 0,
+    }, tab.Content)
+    corner(c, 6); stroke(c, T.BORDER_SOFT, 1, 0.15)
+
+    new("TextLabel", {
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
+        Size = UDim2.new(1, -20, 0, 15), Font = FONT_SEMI,
+        Text = title or "Color de acento", TextColor3 = T.TEXT, TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    }, c)
+
+    local grid = new("Frame", {
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 28),
+        Size = UDim2.new(1, -24, 0, 56), BorderSizePixel = 0,
+    }, c)
+    new("UIGridLayout", {
+        CellSize = UDim2.fromOffset(32, 24), CellPadding = UDim2.fromOffset(8, 8),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+    }, grid)
+
+    for _, preset in ipairs(ACCENT_PRESETS) do
+        local b = new("TextButton", {
+            BackgroundColor3 = preset.C, Size = UDim2.fromOffset(32, 24),
+            Font = FONT_SEMI, Text = "", AutoButtonColor = false,
+            BorderSizePixel = 0,
+        }, grid)
+        corner(b, 5)
+        stroke(b, T.BORDER_SOFT, 1, 0.3)
+        b.MouseEnter:Connect(function() tw(b, { Size = UDim2.fromOffset(34, 26) }, 0.15) end)
+        b.MouseLeave:Connect(function() tw(b, { Size = UDim2.fromOffset(32, 24) }, 0.15) end)
+        b.MouseButton1Click:Connect(function()
+            playClick()
+            setAccent(preset.C)
+            notify("Tema cambiado", preset.Name, preset.C)
+        end)
+    end
+end
+
 -- ═══════════════════════════════════════════════════════════
--- WATERMARK (ahora arrastrable)
+-- WATERMARK
 -- ═══════════════════════════════════════════════════════════
 local watermarkEnabled = false
 local wmFrame = new("Frame", {
-    Name = "Watermark",
-    BackgroundColor3 = T.BG,
-    BackgroundTransparency = 0.15,
-    Size = UDim2.fromOffset(230, 24),
-    Position = UDim2.new(1, -240, 0, 8),
-    Visible = false,
-    BorderSizePixel = 0,
-    Active = true,
+    Name = "Watermark", BackgroundColor3 = T.BG, BackgroundTransparency = 0.15,
+    Size = UDim2.fromOffset(230, 24), Position = UDim2.new(1, -240, 0, 8),
+    Visible = false, BorderSizePixel = 0, Active = true,
 }, screenGui)
-corner(wmFrame, 5)
-stroke(wmFrame, T.BORDER_SOFT, 1, 0.2)
+corner(wmFrame, 5); stroke(wmFrame, T.BORDER_SOFT, 1, 0.2)
 
 local wmLabel = new("TextLabel", {
-    BackgroundTransparency = 1,
-    Size = UDim2.new(1, -10, 1, 0),
-    Position = UDim2.new(0, 5, 0, 0),
-    Font = FONT_SEMI,
+    BackgroundTransparency = 1, Size = UDim2.new(1, -10, 1, 0),
+    Position = UDim2.new(0, 5, 0, 0), Font = FONT_SEMI,
     Text = "BRAGAO HUB  |  FPS: --  |  -- ms",
-    TextColor3 = T.TEXT,
-    TextSize = 12,
+    TextColor3 = T.TEXT, TextSize = 12,
     TextXAlignment = Enum.TextXAlignment.Center,
 }, wmFrame)
 
--- Drag watermark
-local wmDragStart, wmStartPos
-wmFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
-        wmDragStart = input.Position
-        wmStartPos = wmFrame.Position
-        local c
-        c = input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                wmDragStart = nil
-                c:Disconnect()
-            end
+local wD, wS
+wmFrame.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        wD = i.Position; wS = wmFrame.Position
+        local c; c = i.Changed:Connect(function()
+            if i.UserInputState == Enum.UserInputState.End then wD = nil; c:Disconnect() end
         end)
     end
 end)
-UIS.InputChanged:Connect(function(input)
-    if wmDragStart and (input.UserInputType == Enum.UserInputType.MouseMovement
-    or input.UserInputType == Enum.UserInputType.Touch) then
-        local d = input.Position - wmDragStart
-        wmFrame.Position = UDim2.new(
-            wmStartPos.X.Scale, wmStartPos.X.Offset + d.X,
-            wmStartPos.Y.Scale, wmStartPos.Y.Offset + d.Y)
+UIS.InputChanged:Connect(function(i)
+    if wD and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - wD
+        wmFrame.Position = UDim2.new(wS.X.Scale, wS.X.Offset + d.X, wS.Y.Scale, wS.Y.Offset + d.Y)
     end
 end)
 
--- FPS counter
 local fpsCount, fpsTime, currentFPS = 0, 0, 60
 RunService.RenderStepped:Connect(function(dt)
-    fpsCount = fpsCount + 1
-    fpsTime = fpsTime + dt
-    if fpsTime >= 1 then
-        currentFPS = fpsCount
-        fpsCount = 0
-        fpsTime = 0
-    end
+    fpsCount = fpsCount + 1; fpsTime = fpsTime + dt
+    if fpsTime >= 1 then currentFPS = fpsCount; fpsCount = 0; fpsTime = 0 end
 end)
-
 task.spawn(function()
     while true do
         task.wait(0.5)
         if watermarkEnabled then
             local ping = 0
-            pcall(function()
-                ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-            end)
+            pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
             wmLabel.Text = string.format("BRAGAO HUB  |  FPS: %d  |  %d ms", currentFPS, ping)
         end
     end
 end)
 
 -- ═══════════════════════════════════════════════════════════
--- CREAR TABS Y OPCIONES
+-- CREAR TABS
 -- ═══════════════════════════════════════════════════════════
-local tabCombat   = createTab("Combat")
-local tabAim      = createTab("Aim")
-local tabMovement = createTab("Movement")
-local tabVisual   = createTab("Visual")
-local tabUtils    = createTab("Utils")
+local tabCombat   = createTab("◆", "Combat")
+local tabAim      = createTab("◎", "Aim")
+local tabMovement = createTab("▸", "Movement")
+local tabVisual   = createTab("◉", "Visual")
+local tabUtils    = createTab("⚙", "Utils")
 
 -- ── COMBAT ──
 section(tabCombat, "Silent Aim")
-toggle(tabCombat, {
-    Title = "Silent Aim Players",
-    Desc = "Apunta a jugadores enemigos",
-    Value = false,
-    Callback = function(v)
-        Config.SilentAimPlayers = v
-        if v then installSilentAim() end
-    end
-})
-toggle(tabCombat, {
-    Title = "Silent Aim NPCs",
-    Desc = "Apunta a NPCs enemigos",
-    Value = false,
-    Callback = function(v)
-        Config.SilentAimNPCs = v
-        if v then installSilentAim() end
-    end
-})
-toggle(tabCombat, {
-    Title = "Auto Ken",
-    Desc = "Activa Ken automaticamente",
-    Value = false,
-    Callback = function(v)
-        Config.AutoKen = v
-        if v then startAutoKenLoop() end
-    end
-})
+toggle(tabCombat, { Title = "Silent Aim Players", Desc = "Apunta a jugadores enemigos", Value = false,
+    Callback = function(v) Config.SilentAimPlayers = v; if v then installSilentAim() end end })
+toggle(tabCombat, { Title = "Silent Aim NPCs", Desc = "Apunta a NPCs enemigos", Value = false,
+    Callback = function(v) Config.SilentAimNPCs = v; if v then installSilentAim() end end })
+toggle(tabCombat, { Title = "Auto Ken", Desc = "Activa Ken automaticamente", Value = false,
+    Callback = function(v) Config.AutoKen = v; if v then startAutoKenLoop() end end })
 
 -- ── AIM ──
 section(tabAim, "Prediction")
-toggle(tabAim, {
-    Title = "Prediction",
-    Desc = "Predice la posicion del enemigo",
-    Value = false,
-    Callback = function(v)
-        Config.Prediction = v
-    end
-})
-input(tabAim, {
-    Title = "Prediction Amount",
-    Desc = "Multiplicador de prediccion (ej. 0.1)",
-    Value = tostring(Config.PredictionAmount),
-    Placeholder = "0.1",
-    Callback = function(text)
-        local num = tonumber(text)
-        if num then Config.PredictionAmount = num end
-    end
-})
-input(tabAim, {
-    Title = "Max Range",
-    Desc = "Rango maximo del aim (studs)",
-    Value = tostring(State.maxRange),
-    Placeholder = "500",
-    Callback = function(text)
-        local num = tonumber(text)
-        if num then State.maxRange = num end
-    end
-})
+toggle(tabAim, { Title = "Prediction", Desc = "Predice la posicion del enemigo", Value = false,
+    Callback = function(v) Config.Prediction = v end })
+input(tabAim, { Title = "Prediction Amount", Desc = "Multiplicador (ej. 0.1)",
+    Value = tostring(Config.PredictionAmount), Placeholder = "0.1",
+    Callback = function(t) local n = tonumber(t); if n then Config.PredictionAmount = n end end })
+input(tabAim, { Title = "Max Range", Desc = "Rango maximo del aim (studs)",
+    Value = tostring(State.maxRange), Placeholder = "500",
+    Callback = function(t) local n = tonumber(t); if n then State.maxRange = n end end })
 
 -- ── MOVEMENT ──
 section(tabMovement, "Salto")
-toggle(tabMovement, {
-    Title = "Infinite Jump",
-    Desc = "Salto infinito con espacio",
-    Value = false,
-    Callback = function(v)
-        Config.InfiniteJump = v
-        setupInfiniteJump()
-    end
-})
+toggle(tabMovement, { Title = "Infinite Jump", Desc = "Salto infinito con espacio", Value = false,
+    Callback = function(v) Config.InfiniteJump = v; setupInfiniteJump() end })
 
 section(tabMovement, "Velocidad")
-input(tabMovement, {
-    Title = "Walk Speed",
-    Desc = "Velocidad de caminar (16 - 100)",
-    Value = tostring(Config.WalkSpeed),
-    Placeholder = "16",
-    Callback = function(text)
-        local num = tonumber(text)
-        if num then
-            if num < 16 then num = 16 end
-            if num > 100 then num = 100 end
-            Config.WalkSpeed = num
-        end
-    end
-})
+input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 100)",
+    Value = tostring(Config.WalkSpeed), Placeholder = "16",
+    Callback = function(t)
+        local n = tonumber(t)
+        if n then n = math.clamp(n, 16, 100); Config.WalkSpeed = n end
+    end })
 
 -- ── VISUAL ──
 section(tabVisual, "ESP")
-toggle(tabVisual, {
-    Title = "ESP Players",
-    Desc = "Muestra nombre, vida y distancia",
-    Value = false,
-    Callback = function(v)
-        Config.ESP = v
-    end
-})
+toggle(tabVisual, { Title = "ESP Players", Desc = "Muestra nombre, vida y distancia", Value = false,
+    Callback = function(v) Config.ESP = v end })
 
 -- ── UTILS ──
 section(tabUtils, "Utilidades")
-toggle(tabUtils, {
-    Title = "Anti-AFK",
-    Desc = "Evita ser expulsado por inactividad",
-    Value = false,
-    Callback = function(v)
-        Config.AntiAFK = v
-        setupAntiAFK()
-    end
-})
+toggle(tabUtils, { Title = "Anti-AFK", Desc = "Evita ser expulsado por inactividad", Value = false,
+    Callback = function(v) Config.AntiAFK = v; setupAntiAFK() end })
+toggle(tabUtils, { Title = "Watermark", Desc = "Muestra FPS y Ping (arrastrable)", Value = false,
+    Callback = function(v) watermarkEnabled = v; wmFrame.Visible = v end })
 
-section(tabUtils, "Interfaz")
-toggle(tabUtils, {
-    Title = "Watermark",
-    Desc = "Muestra FPS y Ping (arrastrable)",
-    Value = false,
-    Callback = function(v)
-        watermarkEnabled = v
-        wmFrame.Visible = v
+-- Active Features (feature #9)
+section(tabUtils, "Opciones activas")
+activeUI = new("Frame", {
+    BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0),
+    AutomaticSize = Enum.AutomaticSize.Y, BorderSizePixel = 0,
+}, tabUtils.Content)
+new("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, activeUI)
+refreshActiveUI()
+
+-- Color picker (feature #13)
+section(tabUtils, "Apariencia")
+colorPicker(tabUtils, "Color de acento")
+
+-- Modo compact (feature #14)
+local function setCompact(enabled)
+    compactMode = enabled
+    -- Toggle notifica
+    notify(enabled and "Modo Compact ON" or "Modo Compact OFF",
+        enabled and "Descripciones ocultas" or nil, T.ACCENT_DIM)
+    -- Recorremos todos los contenidos de tab y ajustamos alturas
+    for _, tab in ipairs(tabs) do
+        for _, child in ipairs(tab.Content:GetChildren()) do
+            if child:IsA("Frame") then
+                local hasDesc = false
+                for _, sub in ipairs(child:GetChildren()) do
+                    if sub:IsA("TextLabel") and sub.TextSize == 10 then
+                        hasDesc = true
+                        sub.Visible = not enabled
+                    end
+                end
+                if hasDesc then
+                    child.Size = UDim2.new(1, 0, 0, enabled and 38 or 48)
+                end
+            end
+        end
     end
-})
+end
+
+toggle(tabUtils, { Title = "Modo Compact", Desc = "Oculta descripciones", Value = false,
+    Callback = function(v) setCompact(v) end })
 
 -- ═══════════════════════════════════════════════════════════
 -- FINAL
 -- ═══════════════════════════════════════════════════════════
-print("[Bragao Hub] UI v3 cargada")
+notify("Bragao Hub v4", "UI cargada correctamente", T.ACCENT)
+print("[Bragao Hub] v4 
