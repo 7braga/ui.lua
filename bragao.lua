@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v7 - Box ESP + Tracer ESP + Name ESP
+-- BRAGAO HUB v7.1 - Box ESP + Tracer ESP + Name ESP (FIXED)
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -21,9 +21,9 @@ local Config = {
     SilentAimPlayers = false, SilentAimNPCs = false,
     Prediction = false, PredictionAmount = 0.1,
     AutoKen = false,
-    ESP = false,           -- ESP Name & HP (billboard)
-    BoxESP = false,        -- caja 2D
-    TracerESP = false,     -- línea al enemigo
+    ESP = false,
+    BoxESP = false,
+    TracerESP = false,
     InfiniteJump = false,
     WalkSpeed = 16, AntiAFK = false,
 }
@@ -60,9 +60,7 @@ local function playClick()
 end
 print("[4] Sonido OK")
 
--- ═══════════════════════════════════════════════════════════
 -- GAMEPLAY FUNCS
--- ═══════════════════════════════════════════════════════════
 local function getHRP()
     local c = lp.Character
     return c and c:FindFirstChild("HumanoidRootPart")
@@ -176,20 +174,14 @@ end
 -- ESP SYSTEM (Name + Box + Tracer)
 -- ═══════════════════════════════════════════════════════════
 
--- Color según team
 local function getESPColor(p)
     if p == lp then return Color3.fromRGB(0, 255, 0) end
     if isEnemy(p) then return Color3.fromRGB(255, 80, 80) end
     return Color3.fromRGB(0, 255, 0)
 end
 
--- ScreenGui para Box y Tracer (detrás del UI)
-local espScreen = new("ScreenGui", {
-    Name = "BragaoESP", ResetOnSpawn = false,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    IgnoreGuiInset = true, DisplayOrder = -1,
-}, lp:WaitForChild("PlayerGui")) or Instance.new("ScreenGui")
-espScreen = Instance.new("ScreenGui")
+-- ScreenGui para Box y Tracer (Instance.new directo, sin depender de new())
+local espScreen = Instance.new("ScreenGui")
 espScreen.Name = "BragaoESP"
 espScreen.ResetOnSpawn = false
 espScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -197,7 +189,7 @@ espScreen.IgnoreGuiInset = true
 espScreen.DisplayOrder = -1
 espScreen.Parent = lp:WaitForChild("PlayerGui")
 
--- Name ESP (billboard, como antes)
+-- Name ESP
 local ESPs = {}
 local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
 if not espFolder then
@@ -227,7 +219,6 @@ local function createESP(tp)
     ESPs[tp] = b
 end
 
--- Contenedores para Box y Tracer
 local boxFrames = {}
 local tracerFrames = {}
 
@@ -262,7 +253,6 @@ local function getOrCreateTracer(p)
     return tracerFrames[p]
 end
 
--- Loop principal de ESP (Name + Box + Tracer)
 RunService.RenderStepped:Connect(function()
     local vp = cam.ViewportSize
     local cx, cy = vp.X / 2, vp.Y
@@ -277,7 +267,7 @@ RunService.RenderStepped:Connect(function()
 
             local alive = char and head and hrp and hum and hum.Health > 0
 
-            -- ===== NAME & HP ESP =====
+            -- NAME ESP
             if Config.ESP then
                 if not ESPs[tp] then createESP(tp) end
                 local gui = ESPs[tp]
@@ -306,7 +296,7 @@ RunService.RenderStepped:Connect(function()
                 if gui then gui.Enabled = false end
             end
 
-            -- ===== BOX ESP =====
+            -- BOX ESP
             if Config.BoxESP then
                 local boxData = getOrCreateBox(tp)
                 if alive then
@@ -332,7 +322,7 @@ RunService.RenderStepped:Connect(function()
                 if bd then bd.frame.Visible = false end
             end
 
-            -- ===== TRACER ESP =====
+            -- TRACER ESP
             if Config.TracerESP then
                 local trData = getOrCreateTracer(tp)
                 if alive then
@@ -362,7 +352,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Limpiar cuando sale un jugador
 Players.PlayerRemoving:Connect(function(p)
     if ESPs[p] then ESPs[p]:Destroy(); ESPs[p] = nil end
     if boxFrames[p] then boxFrames[p].frame:Destroy(); boxFrames[p] = nil end
@@ -1099,7 +1088,7 @@ input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 10
         if n then n = math.clamp(n, 16, 100); Config.WalkSpeed = n end
     end })
 
--- VISUAL (con los 3 ESPs)
+-- VISUAL
 section(tabVisual, "ESP Name & HP")
 toggle(tabVisual, { Title = "ESP Name & HP", Desc = "Nombre, vida y distancia arriba del jugador", Value = false,
     Callback = function(v) Config.ESP = v end })
@@ -1133,5 +1122,5 @@ section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
 print("[15] Opciones OK")
 
-notify("Bragao Hub v7", "ESP Box + Tracer agregados", T.ACCENT)
+notify("Bragao Hub v7.1", "ESP Box + Tracer funcionando", T.ACCENT)
 print("[16] LISTO")
