@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB - UI PROFESIONAL CON TABS
+-- BRAGAO HUB - UI COMPLETA CON TABS FUNCIONAL
 -- ═══════════════════════════════════════════════════════════
 
 local Players = game:GetService("Players")
@@ -8,7 +8,7 @@ local UIS = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local lp = Players.LocalPlayer
 
-print("[Bragao Hub] ✅ Iniciando UI mejorada...")
+print("[Bragao Hub] ✅ Iniciando...")
 
 -- ═══════════════════════════════════════════════════════════
 -- CONFIGURACIÓN
@@ -33,7 +33,6 @@ local State = {
     NPCPosition = nil,
     maxRange = 500,
     antiAFKRunning = false,
-    uiMinimized = false,
 }
 
 -- Remotes
@@ -313,7 +312,7 @@ local function setupAntiAFK()
 end
 
 -- ═══════════════════════════════════════════════════════════
--- CREAR UI CON TABS
+-- CREAR UI
 -- ═══════════════════════════════════════════════════════════
 
 local screenGui = Instance.new("ScreenGui")
@@ -324,14 +323,15 @@ screenGui.Parent = lp:WaitForChild("PlayerGui")
 -- MAIN FRAME
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 420, 0, 550)
-mainFrame.Position = UDim2.new(0.5, -210, 0.5, -275)
+mainFrame.Size = UDim2.new(0, 500, 0, 600)
+mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-mainFrame.BorderSizePixel = 0
+mainFrame.BorderSizePixel = 2
+mainFrame.BorderColor3 = Color3.fromRGB(60, 120, 200)
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.CornerRadius = UDim.new(0, 15)
 mainCorner.Parent = mainFrame
 
 -- HEADER
@@ -343,17 +343,17 @@ header.BorderSizePixel = 0
 header.Parent = mainFrame
 
 local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.CornerRadius = UDim.new(0, 15)
 headerCorner.Parent = header
 
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Size = UDim2.new(1, -100, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
+title.Position = UDim2.new(0, 15, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "⚡ BRAGAO HUB"
 title.TextColor3 = Color3.fromRGB(255, 200, 0)
-title.TextSize = 18
+title.TextSize = 20
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = header
@@ -361,12 +361,12 @@ title.Parent = header
 -- MINIMIZE BTN
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Name = "MinimizeBtn"
-minimizeBtn.Size = UDim2.new(0, 40, 0, 35)
-minimizeBtn.Position = UDim2.new(1, -90, 0.5, -17)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minimizeBtn.Size = UDim2.new(0, 45, 0, 35)
+minimizeBtn.Position = UDim2.new(1, -100, 0.5, -17)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 180)
 minimizeBtn.BorderSizePixel = 0
 minimizeBtn.Text = "−"
-minimizeBtn.TextSize = 20
+minimizeBtn.TextSize = 22
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.Parent = header
@@ -378,12 +378,12 @@ minimizeCorner.Parent = minimizeBtn
 -- CLOSE BTN
 local closeBtn = Instance.new("TextButton")
 closeBtn.Name = "CloseBtn"
-closeBtn.Size = UDim2.new(0, 40, 0, 35)
-closeBtn.Position = UDim2.new(1, -45, 0.5, -17)
+closeBtn.Size = UDim2.new(0, 45, 0, 35)
+closeBtn.Position = UDim2.new(1, -50, 0.5, -17)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 closeBtn.BorderSizePixel = 0
 closeBtn.Text = "×"
-closeBtn.TextSize = 20
+closeBtn.TextSize = 22
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.Parent = header
@@ -392,109 +392,122 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
 
--- CLOSE BUTTON FUNCTION
+-- CLOSE FUNCTION
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame:Destroy()
 end)
 
--- MINIMIZE BUTTON FUNCTION
+-- MINIMIZE FUNCTION
+local isMinimized = false
 minimizeBtn.MouseButton1Click:Connect(function()
-    State.uiMinimized = not State.uiMinimized
-    if State.uiMinimized then
-        mainFrame.Size = UDim2.new(0, 420, 0, 50)
+    isMinimized = not isMinimized
+    if isMinimized then
+        mainFrame.Size = UDim2.new(0, 500, 0, 50)
         minimizeBtn.Text = "+"
     else
-        mainFrame.Size = UDim2.new(0, 420, 0, 550)
+        mainFrame.Size = UDim2.new(0, 500, 0, 600)
         minimizeBtn.Text = "−"
     end
 end)
 
--- TABS FRAME
-local tabsFrame = Instance.new("Frame")
-tabsFrame.Name = "TabsFrame"
-tabsFrame.Size = UDim2.new(1, 0, 0, 45)
-tabsFrame.Position = UDim2.new(0, 0, 0, 50)
-tabsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-tabsFrame.BorderSizePixel = 0
-tabsFrame.Parent = mainFrame
+-- TABS HEADER
+local tabsHeader = Instance.new("Frame")
+tabsHeader.Name = "TabsHeader"
+tabsHeader.Size = UDim2.new(1, 0, 0, 50)
+tabsHeader.Position = UDim2.new(0, 0, 0, 50)
+tabsHeader.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+tabsHeader.BorderSizePixel = 0
+tabsHeader.Parent = mainFrame
 
 local tabsLayout = Instance.new("UIListLayout")
 tabsLayout.Orientation = Enum.Orientation.Horizontal
 tabsLayout.FillDirection = Enum.FillDirection.Horizontal
-tabsLayout.Padding = UDim.new(0, 2)
+tabsLayout.Padding = UDim.new(0, 3)
 tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabsLayout.Parent = tabsFrame
+tabsLayout.Parent = tabsHeader
+
+local tabsPadding = Instance.new("UIPadding")
+tabsPadding.PaddingLeft = UDim.new(0, 5)
+tabsPadding.PaddingRight = UDim.new(0, 5)
+tabsPadding.PaddingTop = UDim.new(0, 5)
+tabsPadding.PaddingBottom = UDim.new(0, 5)
+tabsPadding.Parent = tabsHeader
 
 -- CONTENT FRAME
 local contentFrame = Instance.new("ScrollingFrame")
 contentFrame.Name = "Content"
-contentFrame.Size = UDim2.new(1, 0, 1, -95)
-contentFrame.Position = UDim2.new(0, 0, 0, 95)
-contentFrame.BackgroundTransparency = 1
+contentFrame.Size = UDim2.new(1, 0, 1, -100)
+contentFrame.Position = UDim2.new(0, 0, 0, 100)
+contentFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 contentFrame.BorderSizePixel = 0
-contentFrame.ScrollBarThickness = 3
+contentFrame.ScrollBarThickness = 4
 contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 contentFrame.Parent = mainFrame
 
 local contentLayout = Instance.new("UIListLayout")
-contentLayout.Padding = UDim.new(0, 8)
+contentLayout.Padding = UDim.new(0, 10)
 contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.Parent = contentFrame
 
 local contentPadding = Instance.new("UIPadding")
-contentPadding.PaddingLeft = UDim.new(0, 10)
-contentPadding.PaddingRight = UDim.new(0, 10)
-contentPadding.PaddingTop = UDim.new(0, 10)
-contentPadding.PaddingBottom = UDim.new(0, 10)
+contentPadding.PaddingLeft = UDim.new(0, 15)
+contentPadding.PaddingRight = UDim.new(0, 15)
+contentPadding.PaddingTop = UDim.new(0, 15)
+contentPadding.PaddingBottom = UDim.new(0, 15)
 contentPadding.Parent = contentFrame
 
 print("[Bragao Hub] ✅ UI Base creada")
 
 -- ═══════════════════════════════════════════════════════════
--- FUNCIONES UI
+-- FUNCIONES PARA CREAR ELEMENTOS
 -- ═══════════════════════════════════════════════════════════
 
 local currentTab = nil
 local tabs = {}
 
-local function createTab(tabName)
+local function createTab(tabName, emoji)
+    local btnName = emoji .. " " .. tabName
     local tabBtn = Instance.new("TextButton")
-    tabBtn.Name = tabName .. "Tab"
+    tabBtn.Name = tabName
     tabBtn.Size = UDim2.new(0, 0, 1, 0)
     tabBtn.AutomaticSize = Enum.AutomaticSize.X
     tabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
     tabBtn.BorderSizePixel = 0
-    tabBtn.Text = "  " .. tabName .. "  "
-    tabBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    tabBtn.TextSize = 12
+    tabBtn.Text = "  " .. btnName .. "  "
+    tabBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+    tabBtn.TextSize = 13
     tabBtn.Font = Enum.Font.GothamBold
-    tabBtn.Parent = tabsFrame
+    tabBtn.Parent = tabsHeader
 
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 5)
-    tabCorner.Parent = tabBtn
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = tabBtn
 
     local tabContent = Instance.new("Frame")
     tabContent.Name = tabName .. "Content"
-    tabContent.Size = UDim2.new(1, 0, 1, 0)
+    tabContent.Size = UDim2.new(1, 0, 0, 0)
     tabContent.BackgroundTransparency = 1
     tabContent.BorderSizePixel = 0
     tabContent.Visible = false
     tabContent.Parent = contentFrame
 
-    local tabContentLayout = Instance.new("UIListLayout")
-    tabContentLayout.Padding = UDim.new(0, 8)
-    tabContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabContentLayout.Parent = tabContent
+    local contentInnerLayout = Instance.new("UIListLayout")
+    contentInnerLayout.Padding = UDim.new(0, 10)
+    contentInnerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    contentInnerLayout.Parent = tabContent
 
     tabBtn.MouseButton1Click:Connect(function()
         if currentTab then
             currentTab.Visible = false
-            local oldBtn = tabsFrame:FindFirstChild(currentTab.Name:gsub("Content", "Tab"))
-            if oldBtn then oldBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55) end
+            local oldBtn = tabsHeader:FindFirstChild(currentTab.Name:gsub("Content", ""))
+            if oldBtn then
+                oldBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+                oldBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+            end
         end
         tabContent.Visible = true
         tabBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+        tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         currentTab = tabContent
     end)
 
@@ -504,39 +517,39 @@ end
 
 local function createToggle(text, callback, parent)
     local toggle = Instance.new("Frame")
-    toggle.Size = UDim2.new(1, 0, 0, 40)
+    toggle.Size = UDim2.new(1, 0, 0, 45)
     toggle.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
     toggle.BorderSizePixel = 0
     toggle.Parent = parent
 
     local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 6)
+    toggleCorner.CornerRadius = UDim.new(0, 8)
     toggleCorner.Parent = toggle
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Size = UDim2.new(1, -65, 1, 0)
     label.BackgroundTransparency = 1
     label.Text = text
     label.TextColor3 = Color3.fromRGB(220, 220, 220)
-    label.TextSize = 12
-    label.Font = Enum.Font.Gotham
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamSemibold
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = toggle
 
     local button = Instance.new("TextButton")
     button.Name = "ToggleButton"
-    button.Size = UDim2.new(0, 45, 0, 24)
-    button.Position = UDim2.new(1, -50, 0.5, -12)
+    button.Size = UDim2.new(0, 50, 0, 28)
+    button.Position = UDim2.new(1, -55, 0.5, -14)
     button.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     button.BorderSizePixel = 0
     button.Text = "OFF"
-    button.TextSize = 10
+    button.TextSize = 11
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Font = Enum.Font.GothamBold
     button.Parent = toggle
 
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 4)
+    buttonCorner.CornerRadius = UDim.new(0, 5)
     buttonCorner.Parent = button
 
     local state = false
@@ -551,31 +564,31 @@ local function createToggle(text, callback, parent)
 end
 
 local function createSlider(title, callback, parent, minVal, maxVal, defaultVal)
-    local sliderContainer = Instance.new("Frame")
-    sliderContainer.Size = UDim2.new(1, 0, 0, 60)
-    sliderContainer.BackgroundTransparency = 1
-    sliderContainer.Parent = parent
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 70)
+    container.BackgroundTransparency = 1
+    container.Parent = parent
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
     label.Text = title
     label.TextColor3 = Color3.fromRGB(220, 220, 220)
-    label.TextSize = 12
+    label.TextSize = 13
     label.Font = Enum.Font.GothamBold
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = sliderContainer
+    label.Parent = container
 
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, 0, 0, 35)
-    sliderFrame.Position = UDim2.new(0, 0, 0, 20)
-    sliderFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-    sliderFrame.BorderSizePixel = 0
-    sliderFrame.Parent = sliderContainer
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Size = UDim2.new(1, 0, 0, 40)
+    inputFrame.Position = UDim2.new(0, 0, 0, 25)
+    inputFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+    inputFrame.BorderSizePixel = 0
+    inputFrame.Parent = container
 
-    local sliderCorner = Instance.new("UICorner")
-    sliderCorner.CornerRadius = UDim.new(0, 6)
-    sliderCorner.Parent = sliderFrame
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 8)
+    frameCorner.Parent = inputFrame
 
     local input = Instance.new("TextBox")
     input.Size = UDim2.new(1, -10, 1, 0)
@@ -583,13 +596,13 @@ local function createSlider(title, callback, parent, minVal, maxVal, defaultVal)
     input.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
     input.TextColor3 = Color3.fromRGB(255, 255, 255)
     input.Text = tostring(defaultVal)
-    input.TextSize = 12
+    input.TextSize = 13
     input.Font = Enum.Font.Gotham
     input.BorderSizePixel = 0
-    input.Parent = sliderFrame
+    input.Parent = inputFrame
 
     local inputCorner = Instance.new("UICorner")
-    inputCorner.CornerRadius = UDim.new(0, 4)
+    inputCorner.CornerRadius = UDim.new(0, 5)
     inputCorner.Parent = input
 
     input.FocusLost:Connect(function()
@@ -603,17 +616,18 @@ local function createSlider(title, callback, parent, minVal, maxVal, defaultVal)
         end
     end)
 
-    return sliderContainer
+    return container
 end
 
-print("[Bragao Hub] ✅ Funciones UI creadas")
+print("[Bragao Hub] ✅ Funciones de UI creadas")
 
 -- ═══════════════════════════════════════════════════════════
 -- CREAR TABS Y OPCIONES
 -- ═══════════════════════════════════════════════════════════
 
 -- TAB COMBAT
-local combatTab = createTab("⚔️ Combat")
+local combatTab = createTab("Combat", "⚔️")
+
 createToggle("Silent Aim Players", function(value)
     Config.SilentAimPlayers = value
     if value then installSilentAim() end
@@ -633,14 +647,16 @@ createToggle("Auto Ken", function(value)
 end, combatTab)
 
 -- TAB AIM
-local aimTab = createTab("🎯 Aim")
+local aimTab = createTab("Aim", "🎯")
+
 createToggle("Prediction", function(value)
     Config.Prediction = value
     print("[Config] Prediction: " .. tostring(value))
 end, aimTab)
 
 -- TAB MOVEMENT
-local movementTab = createTab("🏃 Movement")
+local movementTab = createTab("Movement", "🏃")
+
 createToggle("Infinite Jump", function(value)
     Config.InfiniteJump = value
     setupInfiniteJump()
@@ -653,39 +669,44 @@ createSlider("Walk Speed", function(value)
 end, movementTab, 16, 100, 16)
 
 -- TAB VISUAL
-local visualTab = createTab("👁️ Visual")
+local visualTab = createTab("Visual", "👁️")
+
 createToggle("ESP", function(value)
     Config.ESP = value
     print("[Config] ESP: " .. tostring(value))
 end, visualTab)
 
 -- TAB UTILS
-local utilsTab = createTab("⚙️ Utils")
+local utilsTab = createTab("Utils", "⚙️")
+
 createToggle("Anti-AFK", function(value)
     Config.AntiAFK = value
     setupAntiAFK()
     print("[Config] Anti-AFK: " .. tostring(value))
 end, utilsTab)
 
-print("[Bragao Hub] ✅ Todos los tabs y opciones creados")
+print("[Bragao Hub] ✅ Todos los tabs creados")
 
--- SELECCIONAR TAB POR DEFECTO
-if tabs["⚔️ Combat"] then
-    tabs["⚔️ Combat"].Button:Fire("MouseButton1Click")
+-- SELECT FIRST TAB
+if tabs["Combat"].Button then
+    tabs["Combat"].Button:Fire("MouseButton1Click")
 end
 
--- MENSAJE FINAL
+-- FINAL MESSAGE
 print("")
-print("╔════════════════════════════════════════╗")
-print("║  ✅ BRAGAO HUB UI MEJORADA CARGADO    ║")
-print("╚════════════════════════════════════════╝")
+print("╔══════════════════════════════════════════════════════╗")
+print("║  ✅ BRAGAO HUB UI MEJORADA - CARGADO CORRECTAMENTE  ║")
+print("╚══════════════════════════════════════════════════════╝")
 print("")
-print("📍 FEATURES:")
-print("   ⚔️  Combat Options")
-print("   🎯  Aim Settings")
-print("   🏃  Movement Controls")
-print("   👁️   ESP Visual")
-print("   ⚙️   Utilities")
+print("📍 TABS DISPONIBLES:")
+print("   ⚔️  Combat - Silent Aim Players/NPCs, Auto Ken")
+print("   🎯  Aim - Prediction")
+print("   🏃  Movement - Infinite Jump, Walk Speed")
+print("   👁️   Visual - ESP")
+print("   ⚙️   Utils - Anti-AFK")
 print("")
-print("🎮 Interfaz con tabs, minimizar y cerrar!")
+print("🎮 CONTROLES:")
+print("   − Minimizar UI")
+print("   × Cerrar UI")
+print("   Todos los toggles ON/OFF")
 print("")
