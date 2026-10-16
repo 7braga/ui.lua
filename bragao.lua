@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v9 - FOV Circle + Color Pickers individuales
+-- BRAGAO HUB v10 - Silent Aim filtrado por FOV Circle
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -39,6 +39,16 @@ pcall(function()
     end
 end)
 print("[3] Remotes OK")
+
+-- ═══ FOV Circle (arriba para que el aim lo pueda usar) ═══
+local FOV = {
+    Enabled = false,
+    Size = 160,
+    Thickness = 1.6,
+    Color = Color3.fromRGB(0, 255, 140),
+    FilterAim = true, -- si el aim solo agarra a los que están dentro del círculo
+    HighlightInFOV = false, -- cambia el color del círculo cuando hay un enemigo dentro
+}
 
 local clickSound = Instance.new("Sound")
 clickSound.SoundId = "rbxassetid://6895079853"
@@ -83,6 +93,17 @@ local function getPredictedPosition(hrp)
     if not Config.Prediction or h.WalkSpeed < 5 then return hrp.Position end
     return hrp.Position + (hrp.AssemblyLinearVelocity * Config.PredictionAmount)
 end
+
+-- ═══ FOV CHECK ═══
+local function isInFOV(worldPos)
+    if not FOV.FilterAim then return true end
+    local screenPos, onScreen = cam:WorldToViewportPoint(worldPos)
+    if not onScreen or screenPos.Z <= 0 then return false end
+    local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+    local dist = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+    return dist <= FOV.Size
+end
+
 local function getClosestPlayer()
     local hrp = getHRP(); if not hrp then return nil end
     local best, bd = nil, State.maxRange
@@ -91,13 +112,16 @@ local function getClosestPlayer()
             local h = p.Character:FindFirstChildOfClass("Humanoid")
             local e = p.Character:FindFirstChild("HumanoidRootPart")
             if h and h.Health > 0 and e then
-                local d = (e.Position - hrp.Position).Magnitude
-                if d < bd then bd = d; best = p end
+                if isInFOV(e.Position) then
+                    local d = (e.Position - hrp.Position).Magnitude
+                    if d < bd then bd = d; best = p end
+                end
             end
         end
     end
     return best
 end
+
 local function getClosestNPC()
     local hrp = getHRP(); if not hrp then return nil end
     local best, bd = nil, State.maxRange
@@ -107,8 +131,10 @@ local function getClosestNPC()
         local e = v:FindFirstChild("HumanoidRootPart")
         local h = v:FindFirstChildOfClass("Humanoid")
         if e and h and h.Health > 0 then
-            local d = (e.Position - hrp.Position).Magnitude
-            if d < bd then bd = d; best = v end
+            if isInFOV(e.Position) then
+                local d = (e.Position - hrp.Position).Magnitude
+                if d < bd then bd = d; best = v end
+            end
         end
     end
     return best
@@ -169,7 +195,7 @@ local function startAutoKenLoop()
 end
 
 -- ═══════════════════════════════════════════════════════════
--- ESP + FOV (Drawing API)
+-- ESP + FOV Drawing
 -- ═══════════════════════════════════════════════════════════
 local Drawing = Drawing or (getgenv and getgenv().Drawing)
 local hasDrawing = pcall(function() return Drawing.new("Line") end)
@@ -191,14 +217,6 @@ local ESP = {
 
     TextSize = 14,
     TracerThickness = 1.5,
-}
-
--- FOV Circle
-local FOV = {
-    Enabled = false,
-    Size = 160,
-    Thickness = 1.6,
-    Color = Color3.fromRGB(0, 255, 140),
 }
 
 local FOVCircle
@@ -316,7 +334,6 @@ RunService.RenderStepped:Connect(function()
 
         local pos, onScreen = cam:WorldToViewportPoint(hrp.Position)
 
-        -- Chams
         if ESP.ChamsEnabled then
             if not d.Highlight or not d.Highlight.Parent then
                 local hl = Instance.new("Highlight")
@@ -437,13 +454,41 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- FOV Circle loop
+-- FOV Circle loop (con detección de enemigos dentro)
 RunService.RenderStepped:Connect(function()
     if not hasDrawing or not FOVCircle then return end
-    FOVCircle.Position = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+    local center = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+    FOVCircle.Position = center
     FOVCircle.Radius = FOV.Size
     FOVCircle.Thickness = FOV.Thickness
-    FOVCircle.Color = FOV.Color
+
+    -- Detectar si hay algún enemigo dentro del FOV
+    local anyInFOV = false
+    if FOV.HighlightInFOV then
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= lp and isEnemy(p) and p.Character then
+                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                local hum = p.Character:FindFirstChildOfClass("Humanoid")
+                if hrp and hum and hum.Health > 0 then
+                    local sp, onScreen = cam:WorldToViewportPoint(hrp.Position)
+                    if onScreen and sp.Z > 0 then
+                        local d = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+                        if d <= FOV.Size then
+                            anyInFOV = true
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if FOV.HighlightInFOV and anyInFOV then
+        FOVCircle.Color = Color3.fromRGB(255, 70, 70)
+    else
+        FOVCircle.Color = FOV.Color
+    end
+
     FOVCircle.Visible = FOV.Enabled
 end)
 
@@ -1117,9 +1162,6 @@ local function slider(tab, cfg)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════
--- COLOR PICKER AVANZADO (RGB sliders)
--- ═══════════════════════════════════════════════════════════
 local function colorPickerRGB(tab, title, defaultColor, callback)
     local c = new("Frame", {
         BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 160),
@@ -1134,7 +1176,6 @@ local function colorPickerRGB(tab, title, defaultColor, callback)
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
 
-    -- Preview + Hex
     local preview = new("Frame", {
         BackgroundColor3 = defaultColor,
         Position = UDim2.new(1, -56, 0, 8),
@@ -1281,7 +1322,6 @@ local function colorPicker(tab, title)
 end
 print("[12] Componentes OK")
 
--- WATERMARK
 local watermarkEnabled = false
 local wmFrame = new("Frame", {
     Name = "Watermark", BackgroundColor3 = T.BG, BackgroundTransparency = 0.15,
@@ -1374,9 +1414,7 @@ input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 10
         if n then n = math.clamp(n, 16, 100); Config.WalkSpeed = n end
     end })
 
--- ═══════════════════════════════════════════════════════════
--- VISUAL TAB
--- ═══════════════════════════════════════════════════════════
+-- VISUAL
 section(tabVisual, "ESP Toggles")
 toggle(tabVisual, { Title = "ESP Name + Distance", Desc = "Nombre y distancia arriba del jugador", Value = false,
     Callback = function(v) ESP.NameEnabled = v end })
@@ -1403,7 +1441,6 @@ toggle(tabVisual, { Title = "Limitar distancia ESP", Desc = "Oculta ESPs lejanos
 slider(tabVisual, { Title = "Max Distance", Min = 50, Max = 500, Step = 10, Default = 250,
     Callback = function(v) ESP.MaxDistance = v end })
 
--- ═══ NUEVO: COLORES ESP INDIVIDUALES ═══
 section(tabVisual, "Colores ESP")
 colorPickerRGB(tabVisual, "Name Color", ESP.NameColor, function(c) ESP.NameColor = c end)
 colorPickerRGB(tabVisual, "Tracer Color", ESP.TracerColor, function(c) ESP.TracerColor = c end)
@@ -1411,10 +1448,19 @@ colorPickerRGB(tabVisual, "Box Color", ESP.BoxColor, function(c) ESP.BoxColor = 
 colorPickerRGB(tabVisual, "Skeleton Color", ESP.SkeletonColor, function(c) ESP.SkeletonColor = c end)
 colorPickerRGB(tabVisual, "Chams Color", ESP.ChamsColor, function(c) ESP.ChamsColor = c end)
 
--- ═══ NUEVO: FOV CIRCLE ═══
+-- ═══ FOV CIRCLE con FILTRO ═══
 section(tabVisual, "FOV Circle")
 toggle(tabVisual, { Title = "Mostrar FOV Circle", Desc = "Circulo central para referencia del aim", Value = false,
     Callback = function(v) FOV.Enabled = v end })
+toggle(tabVisual, { Title = "FOV Filter (Silent Aim)", Desc = "Solo apunta a enemigos dentro del FOV", Value = true,
+    Callback = function(v)
+        FOV.FilterAim = v
+        notify(v and "FOV Filter ON" or "FOV Filter OFF",
+            v and "Solo apunta dentro del circulo" or "Apunta a todos",
+            v and T.ON or T.CLOSE_HOV)
+    end })
+toggle(tabVisual, { Title = "Highlight FOV cuando enemigo dentro", Desc = "Circulo se pone rojo si hay enemigo", Value = false,
+    Callback = function(v) FOV.HighlightInFOV = v end })
 slider(tabVisual, { Title = "FOV Size", Min = 40, Max = 400, Step = 1, Default = 160,
     Callback = function(v) FOV.Size = v end })
 slider(tabVisual, { Title = "FOV Thickness", Min = 0.5, Max = 4, Step = 0.1, Default = 1.6,
@@ -1443,5 +1489,5 @@ refreshActiveUI()
 
 print("[15] Opciones OK")
 
-notify("Bragao Hub v9", "FOV Circle + Color Pickers RGB", T.ACCENT)
+notify("Bragao Hub v10", "Silent Aim filtrado por FOV", T.ACCENT)
 print("[16] LISTO")
