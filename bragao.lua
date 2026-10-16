@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v6 - Notifs pequeñas + Animación de txbs
+-- BRAGAO HUB v7 - Box ESP + Tracer ESP + Name ESP
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -13,13 +13,18 @@ local CS = game:GetService("CollectionService")
 local VU = game:GetService("VirtualUser")
 local SS = game:GetService("SoundService")
 local lp = Players.LocalPlayer
+local cam = workspace.CurrentCamera
 print("[2] Servicios OK")
 
 -- CONFIG
 local Config = {
     SilentAimPlayers = false, SilentAimNPCs = false,
     Prediction = false, PredictionAmount = 0.1,
-    AutoKen = false, ESP = false, InfiniteJump = false,
+    AutoKen = false,
+    ESP = false,           -- ESP Name & HP (billboard)
+    BoxESP = false,        -- caja 2D
+    TracerESP = false,     -- línea al enemigo
+    InfiniteJump = false,
     WalkSpeed = 16, AntiAFK = false,
 }
 local State = {
@@ -55,7 +60,9 @@ local function playClick()
 end
 print("[4] Sonido OK")
 
+-- ═══════════════════════════════════════════════════════════
 -- GAMEPLAY FUNCS
+-- ═══════════════════════════════════════════════════════════
 local function getHRP()
     local c = lp.Character
     return c and c:FindFirstChild("HumanoidRootPart")
@@ -165,17 +172,40 @@ local function startAutoKenLoop()
     end)
 end
 
--- ESP
-local ESPs = {}
-local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
-if not espFolder then
-    espFolder = Instance.new("Folder"); espFolder.Name = "GlobalESP"; espFolder.Parent = game.CoreGui
-end
+-- ═══════════════════════════════════════════════════════════
+-- ESP SYSTEM (Name + Box + Tracer)
+-- ═══════════════════════════════════════════════════════════
+
+-- Color según team
 local function getESPColor(p)
     if p == lp then return Color3.fromRGB(0, 255, 0) end
     if isEnemy(p) then return Color3.fromRGB(255, 80, 80) end
     return Color3.fromRGB(0, 255, 0)
 end
+
+-- ScreenGui para Box y Tracer (detrás del UI)
+local espScreen = new("ScreenGui", {
+    Name = "BragaoESP", ResetOnSpawn = false,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+    IgnoreGuiInset = true, DisplayOrder = -1,
+}, lp:WaitForChild("PlayerGui")) or Instance.new("ScreenGui")
+espScreen = Instance.new("ScreenGui")
+espScreen.Name = "BragaoESP"
+espScreen.ResetOnSpawn = false
+espScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+espScreen.IgnoreGuiInset = true
+espScreen.DisplayOrder = -1
+espScreen.Parent = lp:WaitForChild("PlayerGui")
+
+-- Name ESP (billboard, como antes)
+local ESPs = {}
+local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
+if not espFolder then
+    espFolder = Instance.new("Folder")
+    espFolder.Name = "GlobalESP"
+    espFolder.Parent = game.CoreGui
+end
+
 local function createESP(tp)
     if ESPs[tp] then return end
     local c = tp.Character; if not c then return end
@@ -196,39 +226,147 @@ local function createESP(tp)
     m.TextSize = 16; m.Parent = b
     ESPs[tp] = b
 end
-RunService.Heartbeat:Connect(function()
-    if not Config.ESP then
-        for _, g in pairs(ESPs) do if g then g.Enabled = false end end
-        return
-    end
-    for _, tp in pairs(Players:GetPlayers()) do
+
+-- Contenedores para Box y Tracer
+local boxFrames = {}
+local tracerFrames = {}
+
+local function getOrCreateBox(p)
+    if boxFrames[p] then return boxFrames[p] end
+    local f = Instance.new("Frame")
+    f.Name = "Box_" .. p.Name
+    f.BackgroundTransparency = 1
+    f.BorderSizePixel = 0
+    f.Visible = false
+    f.Parent = espScreen
+    local s = Instance.new("UIStroke")
+    s.Color = getESPColor(p)
+    s.Thickness = 1.5
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = f
+    boxFrames[p] = { frame = f, stroke = s }
+    return boxFrames[p]
+end
+
+local function getOrCreateTracer(p)
+    if tracerFrames[p] then return tracerFrames[p] end
+    local f = Instance.new("Frame")
+    f.Name = "Tracer_" .. p.Name
+    f.BackgroundColor3 = getESPColor(p)
+    f.BorderSizePixel = 0
+    f.AnchorPoint = Vector2.new(0, 0.5)
+    f.Visible = false
+    f.ZIndex = 2
+    f.Parent = espScreen
+    tracerFrames[p] = { frame = f }
+    return tracerFrames[p]
+end
+
+-- Loop principal de ESP (Name + Box + Tracer)
+RunService.RenderStepped:Connect(function()
+    local vp = cam.ViewportSize
+    local cx, cy = vp.X / 2, vp.Y
+
+    for _, tp in ipairs(Players:GetPlayers()) do
         if tp ~= lp then
-            if not ESPs[tp] then createESP(tp) end
-            local g = ESPs[tp]
-            if g then
-                local c = tp.Character
-                local h = c and c:FindFirstChild("Head")
-                local r = c and c:FindFirstChild("HumanoidRootPart")
-                local hu = c and c:FindFirstChildOfClass("Humanoid")
-                local mr = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-                if c and h and r and hu and mr then
-                    g.Adornee = h; g.Enabled = true
-                    local d = (mr.Position - r.Position).Magnitude
-                    local ml = g:FindFirstChild("MainLabel")
-                    local ll = g:FindFirstChild("LevelLabel")
-                    if ll then
-                        local df = tp:FindFirstChild("Data")
-                        local lv = df and df:FindFirstChild("Level")
-                        ll.Text = lv and ("Lv. " .. lv.Value) or "Lv. ???"
+            local char = tp.Character
+            local head = char and char:FindFirstChild("Head")
+            local hrp  = char and char:FindFirstChild("HumanoidRootPart")
+            local hum  = char and char:FindFirstChildOfClass("Humanoid")
+            local myHRP = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+
+            local alive = char and head and hrp and hum and hum.Health > 0
+
+            -- ===== NAME & HP ESP =====
+            if Config.ESP then
+                if not ESPs[tp] then createESP(tp) end
+                local gui = ESPs[tp]
+                if gui then
+                    if alive and myHRP then
+                        gui.Adornee = head
+                        gui.Enabled = true
+                        local d = (myHRP.Position - hrp.Position).Magnitude
+                        local ml = gui:FindFirstChild("MainLabel")
+                        local ll = gui:FindFirstChild("LevelLabel")
+                        if ll then
+                            local df = tp:FindFirstChild("Data")
+                            local lv = df and df:FindFirstChild("Level")
+                            ll.Text = lv and ("Lv. " .. lv.Value) or "Lv. ???"
+                        end
+                        if ml then
+                            ml.Text = "[" .. math.floor(hum.Health) .. "] " .. tp.DisplayName .. " (" .. math.floor(d) .. "m)"
+                            ml.TextColor3 = getESPColor(tp)
+                        end
+                    else
+                        gui.Enabled = false
                     end
-                    if ml then
-                        ml.Text = "[" .. math.floor(hu.Health) .. "] " .. tp.DisplayName .. " (" .. math.floor(d) .. "m)"
-                        ml.TextColor3 = getESPColor(tp)
+                end
+            else
+                local gui = ESPs[tp]
+                if gui then gui.Enabled = false end
+            end
+
+            -- ===== BOX ESP =====
+            if Config.BoxESP then
+                local boxData = getOrCreateBox(tp)
+                if alive then
+                    local topPos = head.Position + Vector3.new(0, 0.5, 0)
+                    local botPos = hrp.Position - Vector3.new(0, 3, 0)
+                    local top, onTop = cam:WorldToViewportPoint(topPos)
+                    local bot, onBot = cam:WorldToViewportPoint(botPos)
+                    if onTop and onBot and top.Z > 0 and bot.Z > 0 then
+                        local h = math.abs(top.Y - bot.Y)
+                        local w = h * 0.55
+                        boxData.frame.Visible = true
+                        boxData.frame.Position = UDim2.fromOffset(top.X - w / 2, top.Y)
+                        boxData.frame.Size = UDim2.fromOffset(w, h)
+                        boxData.stroke.Color = getESPColor(tp)
+                    else
+                        boxData.frame.Visible = false
                     end
-                else g.Enabled = false end
+                else
+                    boxData.frame.Visible = false
+                end
+            else
+                local bd = boxFrames[tp]
+                if bd then bd.frame.Visible = false end
+            end
+
+            -- ===== TRACER ESP =====
+            if Config.TracerESP then
+                local trData = getOrCreateTracer(tp)
+                if alive then
+                    local targetPos = head.Position
+                    local sp, onScreen = cam:WorldToViewportPoint(targetPos)
+                    if onScreen and sp.Z > 0 then
+                        local dx = sp.X - cx
+                        local dy = sp.Y - cy
+                        local length = math.sqrt(dx * dx + dy * dy)
+                        local angle = math.deg(math.atan2(dy, dx))
+                        trData.frame.Visible = true
+                        trData.frame.Position = UDim2.fromOffset(cx, cy)
+                        trData.frame.Size = UDim2.fromOffset(length, 1)
+                        trData.frame.Rotation = angle
+                        trData.frame.BackgroundColor3 = getESPColor(tp)
+                    else
+                        trData.frame.Visible = false
+                    end
+                else
+                    trData.frame.Visible = false
+                end
+            else
+                local td = tracerFrames[tp]
+                if td then td.frame.Visible = false end
             end
         end
     end
+end)
+
+-- Limpiar cuando sale un jugador
+Players.PlayerRemoving:Connect(function(p)
+    if ESPs[p] then ESPs[p]:Destroy(); ESPs[p] = nil end
+    if boxFrames[p] then boxFrames[p].frame:Destroy(); boxFrames[p] = nil end
+    if tracerFrames[p] then tracerFrames[p].frame:Destroy(); tracerFrames[p] = nil end
 end)
 
 local function setupInfiniteJump()
@@ -308,7 +446,7 @@ local screenGui = new("ScreenGui", {
 }, lp:WaitForChild("PlayerGui"))
 print("[6] ScreenGui OK")
 
--- NOTIFS (más chico)
+-- NOTIFS
 local notifHolder = new("Frame", {
     Name = "Notifs", BackgroundTransparency = 1,
     Size = UDim2.fromOffset(210, 400),
@@ -483,7 +621,6 @@ UIS.InputChanged:Connect(function(i)
     end
 end)
 
--- SIDEBAR TOGGLE
 local sidebarOpen = true
 menuBtn.MouseButton1Click:Connect(function()
     playClick()
@@ -499,7 +636,6 @@ menuBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- MINIMIZE
 local minimized, savedSize = false, mainFrame.Size
 minBtn.MouseButton1Click:Connect(function()
     playClick()
@@ -549,7 +685,6 @@ closeBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Drag float btn
 local fD, fS
 floatBtn.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -578,7 +713,7 @@ end
 registerAccent(function() winTitle.TextColor3 = T.ACCENT end)
 registerAccent(function() floatBtn.TextColor3 = T.ACCENT end)
 
--- TABS (con animación de apertura)
+-- TABS
 local tabs, activeTab = {}, nil
 local function createTab(title)
     local tab = { Title = title, Content = nil, Button = nil }
@@ -627,7 +762,6 @@ local function createTab(title)
         activeTab = tab
         tab.Content.Visible = true
 
-        -- Animación de entrada del content
         tab.Content.BackgroundTransparency = 1
         tab.Content.Position = UDim2.new(0, 22, 0, 10)
         tw(tab.Content, { Position = UDim2.new(0, 10, 0, 10) }, 0.22)
@@ -965,10 +1099,18 @@ input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 10
         if n then n = math.clamp(n, 16, 100); Config.WalkSpeed = n end
     end })
 
--- VISUAL
-section(tabVisual, "ESP")
-toggle(tabVisual, { Title = "ESP Players", Desc = "Muestra nombre, vida y distancia", Value = false,
+-- VISUAL (con los 3 ESPs)
+section(tabVisual, "ESP Name & HP")
+toggle(tabVisual, { Title = "ESP Name & HP", Desc = "Nombre, vida y distancia arriba del jugador", Value = false,
     Callback = function(v) Config.ESP = v end })
+
+section(tabVisual, "ESP Box")
+toggle(tabVisual, { Title = "ESP Box", Desc = "Caja 2D alrededor del jugador", Value = false,
+    Callback = function(v) Config.BoxESP = v end })
+
+section(tabVisual, "ESP Tracer")
+toggle(tabVisual, { Title = "ESP Tracer", Desc = "Linea desde abajo al enemigo", Value = false,
+    Callback = function(v) Config.TracerESP = v end })
 
 -- UTILS
 section(tabUtils, "Utilidades")
@@ -991,5 +1133,5 @@ section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
 print("[15] Opciones OK")
 
-notify("Bragao Hub v6", "UI cargada correctamente", T.ACCENT)
+notify("Bragao Hub v7", "ESP Box + Tracer agregados", T.ACCENT)
 print("[16] LISTO")
