@@ -1,23 +1,21 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB - UI v4 (Accent + Notifs + Active + Float + Compact)
+-- BRAGAO HUB v5 - Script completo
 -- ═══════════════════════════════════════════════════════════
+print("[1] Iniciando...")
 
-local Players          = game:GetService("Players")
-local RunService       = game:GetService("RunService")
-local UIS              = game:GetService("UserInputService")
-local ReplicatedStorage= game:GetService("ReplicatedStorage")
-local TweenService     = game:GetService("TweenService")
-local Stats            = game:GetService("Stats")
-local CollectionService= game:GetService("CollectionService")
-local VirtualUser      = game:GetService("VirtualUser")
-local SoundService     = game:GetService("SoundService")
-local lp               = Players.LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Stats = game:GetService("Stats")
+local CS = game:GetService("CollectionService")
+local VU = game:GetService("VirtualUser")
+local SS = game:GetService("SoundService")
+local lp = Players.LocalPlayer
+print("[2] Servicios OK")
 
-print("[Bragao Hub] Iniciando v4...")
-
--- ═══════════════════════════════════════════════════════════
--- CONFIG / STATE
--- ═══════════════════════════════════════════════════════════
+-- CONFIG
 local Config = {
     SilentAimPlayers = false, SilentAimNPCs = false,
     Prediction = false, PredictionAmount = 0.1,
@@ -32,37 +30,40 @@ local State = {
 
 local CommE, CommF
 pcall(function()
-    local remotes = ReplicatedStorage:WaitForChild("Remotes", 5)
-    if remotes then
-        CommE = remotes:WaitForChild("CommE", 5)
-        CommF = remotes:WaitForChild("CommF_", 5)
+    local rem = RS:WaitForChild("Remotes", 5)
+    if rem then
+        CommE = rem:WaitForChild("CommE", 5)
+        CommF = rem:WaitForChild("CommF_", 5)
     end
 end)
+print("[3] Remotes OK")
 
--- ═══════════════════════════════════════════════════════════
 -- SONIDO
--- ═══════════════════════════════════════════════════════════
 local clickSound = Instance.new("Sound")
 clickSound.SoundId = "rbxassetid://6895079853"
 clickSound.Volume = 0.35
 clickSound.PlaybackSpeed = 1.05
-clickSound.Parent = SoundService
+clickSound.Parent = SS
 
 local function playClick()
     pcall(function()
         local c = clickSound:Clone()
-        c.Parent = SoundService
+        c.Parent = SS
         c:Play()
         task.delay(1, function() c:Destroy() end)
     end)
 end
+print("[4] Sonido OK")
 
--- ═══════════════════════════════════════════════════════════
--- GAMEPLAY (igual que antes)
--- ═══════════════════════════════════════════════════════════
-local function getHRP() local c = lp.Character; return c and c:FindFirstChild("HumanoidRootPart") end
-local function getHum() local c = lp.Character; return c and c:FindFirstChildOfClass("Humanoid") end
-
+-- GAMEPLAY FUNCS
+local function getHRP()
+    local c = lp.Character
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function getHum()
+    local c = lp.Character
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
 local function isEnemy(t)
     if not t or t == lp then return false end
     local a, b = lp.Team, t.Team
@@ -72,7 +73,6 @@ local function isEnemy(t)
     end
     return true
 end
-
 local function getPredictedPosition(hrp)
     if not hrp then return nil end
     local h = hrp.Parent:FindFirstChildOfClass("Humanoid")
@@ -80,7 +80,6 @@ local function getPredictedPosition(hrp)
     if not Config.Prediction or h.WalkSpeed < 5 then return hrp.Position end
     return hrp.Position + (hrp.AssemblyLinearVelocity * Config.PredictionAmount)
 end
-
 local function getClosestPlayer()
     local hrp = getHRP(); if not hrp then return nil end
     local best, bd = nil, State.maxRange
@@ -96,12 +95,12 @@ local function getClosestPlayer()
     end
     return best
 end
-
 local function getClosestNPC()
     local hrp = getHRP(); if not hrp then return nil end
     local best, bd = nil, State.maxRange
-    local enemies = workspace:FindFirstChild("Enemies"); if not enemies then return nil end
-    for _, v in ipairs(enemies:GetChildren()) do
+    local en = workspace:FindFirstChild("Enemies")
+    if not en then return nil end
+    for _, v in ipairs(en:GetChildren()) do
         local e = v:FindFirstChild("HumanoidRootPart")
         local h = v:FindFirstChildOfClass("Humanoid")
         if e and h and h.Health > 0 then
@@ -159,7 +158,7 @@ local function startAutoKenLoop()
             task.wait(0.1)
             pcall(function()
                 local c = lp.Character; if not c then return end
-                if CollectionService:HasTag(c, "Ken") and CommE then CommE:FireServer("Ken", true) end
+                if CS:HasTag(c, "Ken") and CommE then CommE:FireServer("Ken", true) end
             end)
         end
         State.autoKenRunning = false
@@ -168,16 +167,15 @@ end
 
 -- ESP
 local ESPs = {}
-local espFolder = game.CoreGui:FindFirstChild("GlobalESP") or (function()
-    local f = Instance.new("Folder"); f.Name = "GlobalESP"; f.Parent = game.CoreGui; return f
-end)()
-
+local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
+if not espFolder then
+    espFolder = Instance.new("Folder"); espFolder.Name = "GlobalESP"; espFolder.Parent = game.CoreGui
+end
 local function getESPColor(p)
     if p == lp then return Color3.fromRGB(0, 255, 0) end
     if isEnemy(p) then return Color3.fromRGB(255, 80, 80) end
     return Color3.fromRGB(0, 255, 0)
 end
-
 local function createESP(tp)
     if ESPs[tp] then return end
     local c = tp.Character; if not c then return end
@@ -198,7 +196,6 @@ local function createESP(tp)
     m.TextSize = 16; m.Parent = b
     ESPs[tp] = b
 end
-
 RunService.Heartbeat:Connect(function()
     if not Config.ESP then
         for _, g in pairs(ESPs) do if g then g.Enabled = false end end
@@ -246,13 +243,11 @@ local function setupInfiniteJump()
         State.infJumpConn:Disconnect(); State.infJumpConn = nil
     end
 end
-
 RunService.Heartbeat:Connect(function()
     if Config.WalkSpeed > 16 then
         local h = getHum(); if h then h.WalkSpeed = Config.WalkSpeed end
     end
 end)
-
 local function setupAntiAFK()
     if Config.AntiAFK and not State.antiAFKRunning then
         State.antiAFKRunning = true
@@ -260,100 +255,95 @@ local function setupAntiAFK()
             while Config.AntiAFK do
                 task.wait(60)
                 pcall(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton1(Vector2.new(0, 0))
+                    VU:CaptureController()
+                    VU:ClickButton1(Vector2.new(0, 0))
                 end)
             end
             State.antiAFKRunning = false
         end)
     end
 end
+print("[5] Gameplay funcs OK")
 
 -- ═══════════════════════════════════════════════════════════
+-- UI
 -- ═══════════════════════════════════════════════════════════
---                     UI v4
--- ═══════════════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════════════
-
 local T = {
-    BG          = Color3.fromRGB(8, 8, 8),
-    PANEL       = Color3.fromRGB(14, 14, 14),
-    TITLEBAR    = Color3.fromRGB(12, 12, 12),
-    ELEMENT     = Color3.fromRGB(20, 20, 20),
-    ELEMENT_HOV = Color3.fromRGB(30, 30, 30),
-    ELEMENT_ACT = Color3.fromRGB(38, 38, 38),
-    BORDER      = Color3.fromRGB(55, 55, 55),
-    BORDER_SOFT = Color3.fromRGB(40, 40, 40),
-    BORDER_HL   = Color3.fromRGB(255, 200, 0), -- accent (amarillo por defecto)
-    ACCENT      = Color3.fromRGB(255, 200, 0),
-    ACCENT_DIM  = Color3.fromRGB(160, 125, 0),
-    TEXT        = Color3.fromRGB(255, 255, 255),
-    TEXT_DIM    = Color3.fromRGB(150, 150, 150),
-    ON          = Color3.fromRGB(70, 200, 110),
-    OFF         = Color3.fromRGB(55, 55, 65),
-    CLOSE_HOV   = Color3.fromRGB(230, 70, 70),
-    MIN_HOV     = Color3.fromRGB(55, 55, 55),
+    BG = Color3.fromRGB(8,8,8), PANEL = Color3.fromRGB(14,14,14),
+    TITLEBAR = Color3.fromRGB(12,12,12), ELEMENT = Color3.fromRGB(20,20,20),
+    ELEMENT_HOV = Color3.fromRGB(30,30,30), ELEMENT_ACT = Color3.fromRGB(38,38,38),
+    BORDER = Color3.fromRGB(55,55,55), BORDER_SOFT = Color3.fromRGB(40,40,40),
+    TEXT = Color3.fromRGB(255,255,255), TEXT_DIM = Color3.fromRGB(150,150,150),
+    ON = Color3.fromRGB(70,200,110), OFF = Color3.fromRGB(55,55,65),
+    CLOSE_HOV = Color3.fromRGB(230,70,70), MIN_HOV = Color3.fromRGB(55,55,55),
 }
+T.ACCENT = Color3.fromRGB(255, 200, 0)
+T.ACCENT_DIM = Color3.fromRGB(160, 125, 0)
 
-local FONT, FONT_SEMI = Enum.Font.SourceSans, Enum.Font.SourceSansBold
-local function tw(i, p, t) TweenService:Create(i, TweenInfo.new(t or 0.15), p):Play() end
-local function new(c, p, parent)
-    local i = Instance.new(c); for k, v in pairs(p or {}) do i[k] = v end
-    if parent then i.Parent = parent end; return i
+local FONT = Enum.Font.SourceSans
+local FONT_B = Enum.Font.SourceSansBold
+
+local function tw(i, p, t)
+    TweenService:Create(i, TweenInfo.new(t or 0.15), p):Play()
 end
-local function corner(p, r) return new("UICorner", { CornerRadius = UDim.new(0, r or 6) }, p) end
+local function new(class, props, parent)
+    local i = Instance.new(class)
+    for k, v in pairs(props or {}) do i[k] = v end
+    if parent then i.Parent = parent end
+    return i
+end
+local function corner(p, r)
+    return new("UICorner", { CornerRadius = UDim.new(0, r or 6) }, p)
+end
 local function stroke(p, c, th, tr)
-    return new("UIStroke", { Color = c or T.BORDER, Thickness = th or 1,
-        Transparency = tr or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
+    return new("UIStroke", {
+        Color = c or T.BORDER, Thickness = th or 1, Transparency = tr or 0,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+    }, p)
 end
 
--- ═══════════════════════════════════════════════════════════
--- SCREEN + MAIN
--- ═══════════════════════════════════════════════════════════
 local screenGui = new("ScreenGui", {
     Name = "BragaoHub", ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling, IgnoreGuiInset = true,
 }, lp:WaitForChild("PlayerGui"))
+print("[6] ScreenGui OK")
 
--- ═══════════════════════════════════════════════════════════
--- SISTEMA DE NOTIFICACIONES (feature #3)
--- ═══════════════════════════════════════════════════════════
+-- NOTIFS
 local notifHolder = new("Frame", {
     Name = "Notifs", BackgroundTransparency = 1,
-    Size = UDim2.fromOffset(280, 0), AutomaticSize = Enum.AutomaticSize.Y,
+    Size = UDim2.fromOffset(280, 400),
     Position = UDim2.new(1, -300, 0, 60),
 }, screenGui)
 new("UIListLayout", {
-    Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Right,
+    Padding = UDim.new(0, 6),
+    HorizontalAlignment = Enum.HorizontalAlignment.Right,
     VerticalAlignment = Enum.VerticalAlignment.Top,
     SortOrder = Enum.SortOrder.LayoutOrder,
 }, notifHolder)
 
 local function notify(title, content, color)
     color = color or T.ACCENT
+    local h = content and 52 or 36
     local card = new("Frame", {
         BackgroundColor3 = T.PANEL, BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 0, content and 52 or 36),
-        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, h), BorderSizePixel = 0,
     }, notifHolder)
-    corner(card, 6)
-    stroke(card, T.BORDER_SOFT, 1, 0.15)
+    corner(card, 6); stroke(card, T.BORDER_SOFT, 1, 0.15)
 
-    local accentBar = new("Frame", {
-        BackgroundColor3 = color, Size = UDim2.new(0, 3, 1, 0),
-        BorderSizePixel = 0,
+    local bar = new("Frame", {
+        BackgroundColor3 = color, Size = UDim2.new(0, 3, 1, 0), BorderSizePixel = 0,
     }, card)
 
-    local titleLbl = new("TextLabel", {
+    local tl = new("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
-        Size = UDim2.new(1, -20, 0, 16), Font = FONT_SEMI,
+        Size = UDim2.new(1, -20, 0, 16), Font = FONT_B,
         Text = title, TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, card)
 
-    local contentLbl
+    local cl
     if content then
-        contentLbl = new("TextLabel", {
+        cl = new("TextLabel", {
             BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 24),
             Size = UDim2.new(1, -20, 0, 20), Font = FONT,
             Text = content, TextColor3 = T.TEXT_DIM, TextSize = 10,
@@ -361,27 +351,25 @@ local function notify(title, content, color)
         }, card)
     end
 
-    -- Fade in
     tw(card, { BackgroundTransparency = 0 }, 0.15)
-    tw(titleLbl, { TextTransparency = 0 }, 0.15)
-    if contentLbl then tw(contentLbl, { TextTransparency = 0 }, 0.15) end
-    tw(accentBar, { BackgroundTransparency = 0 }, 0.15)
+    tw(tl, { TextTransparency = 0 }, 0.15)
+    if cl then tw(cl, { TextTransparency = 0 }, 0.15) end
+    tw(bar, { BackgroundTransparency = 0 }, 0.15)
 
-    -- Fade out
-    task.delay(2.2, function()
+    task.spawn(function()
+        task.wait(2.2)
         if not card.Parent then return end
         tw(card, { BackgroundTransparency = 1 }, 0.25)
-        tw(titleLbl, { TextTransparency = 1 }, 0.25)
-        if contentLbl then tw(contentLbl, { TextTransparency = 1 }, 0.25) end
-        tw(accentBar, { BackgroundTransparency = 1 }, 0.25)
+        tw(tl, { TextTransparency = 1 }, 0.25)
+        if cl then tw(cl, { TextTransparency = 1 }, 0.25) end
+        tw(bar, { BackgroundTransparency = 1 }, 0.25)
         task.wait(0.3)
-        card:Destroy()
+        if card.Parent then card:Destroy() end
     end)
 end
+print("[7] Notify OK")
 
--- ═══════════════════════════════════════════════════════════
--- MAIN FRAME (con animación fade-in/scale — feature #10)
--- ═══════════════════════════════════════════════════════════
+-- MAIN
 local mainFrame = new("Frame", {
     Name = "MainFrame", Size = UDim2.fromOffset(500, 380),
     Position = UDim2.new(0.5, -250, 0.5, -190),
@@ -389,50 +377,50 @@ local mainFrame = new("Frame", {
     Active = true, ClipsDescendants = true,
 }, screenGui)
 corner(mainFrame, 10)
-stroke(mainFrame, T.BORDER_HL, 1, 0.15)
+stroke(mainFrame, T.BORDER_SOFT, 1, 0.2)
 
--- TITLEBAR
 local titleBar = new("Frame", {
     Name = "TitleBar", Size = UDim2.new(1, 0, 0, 36),
     BackgroundColor3 = T.TITLEBAR, BorderSizePixel = 0,
 }, mainFrame)
 corner(titleBar, 10)
-new("Frame", { BackgroundColor3 = T.TITLEBAR, Size = UDim2.new(1, 0, 0, 14),
-    Position = UDim2.new(0, 0, 1, -14), BorderSizePixel = 0 }, titleBar)
-new("Frame", { BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(1, 0, 0, 1),
-    Position = UDim2.new(0, 0, 1, -1), BorderSizePixel = 0 }, titleBar)
+new("Frame", {
+    BackgroundColor3 = T.TITLEBAR, Size = UDim2.new(1, 0, 0, 14),
+    Position = UDim2.new(0, 0, 1, -14), BorderSizePixel = 0,
+}, titleBar)
+new("Frame", {
+    BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(1, 0, 0, 1),
+    Position = UDim2.new(0, 0, 1, -1), BorderSizePixel = 0,
+}, titleBar)
 
-local titleLbl = new("TextLabel", {
+local winTitle = new("TextLabel", {
     BackgroundTransparency = 1, Position = UDim2.new(0, 46, 0, 0),
-    Size = UDim2.new(0, 300, 1, 0), Font = FONT_SEMI,
-    Text = "◆  BRAGAO HUB", TextColor3 = T.ACCENT, TextSize = 14,
+    Size = UDim2.new(0, 300, 1, 0), Font = FONT_B,
+    Text = "BRAGAO HUB", TextColor3 = T.ACCENT, TextSize = 14,
     TextXAlignment = Enum.TextXAlignment.Left,
 }, titleBar)
 
--- Close X
 local closeBtn = new("TextButton", {
     BackgroundTransparency = 1, Position = UDim2.new(1, -34, 0, 8),
-    Size = UDim2.fromOffset(24, 20), Font = FONT_SEMI, Text = "X",
+    Size = UDim2.fromOffset(24, 20), Font = FONT_B, Text = "X",
     TextColor3 = T.TEXT_DIM, TextSize = 15,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 closeBtn.MouseEnter:Connect(function() tw(closeBtn, { TextColor3 = T.CLOSE_HOV }) end)
 closeBtn.MouseLeave:Connect(function() tw(closeBtn, { TextColor3 = T.TEXT_DIM }) end)
 
--- Minimize
 local minBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT, Position = UDim2.new(1, -66, 0, 8),
-    Size = UDim2.fromOffset(26, 20), Font = FONT_SEMI, Text = "—",
+    Size = UDim2.fromOffset(26, 20), Font = FONT_B, Text = "—",
     TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(minBtn, 4); stroke(minBtn, T.BORDER_SOFT, 1, 0.2)
 
--- Sidebar toggle
 local menuBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT, Position = UDim2.new(0, 10, 0, 8),
-    Size = UDim2.fromOffset(26, 20), Font = FONT_SEMI, Text = "≡",
-    TextColor3 = T.TEXT, TextSize = 13,
+    Size = UDim2.fromOffset(26, 20), Font = FONT_B, Text = "=",
+    TextColor3 = T.TEXT, TextSize = 14,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(menuBtn, 4); stroke(menuBtn, T.BORDER_SOFT, 1, 0.2)
@@ -452,8 +440,10 @@ local sidebar = new("Frame", {
     Name = "Sidebar", BackgroundColor3 = T.PANEL,
     Size = UDim2.new(0, sideW, 1, 0), BorderSizePixel = 0,
 }, body)
-new("Frame", { BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(0, 1, 1, 0),
-    Position = UDim2.new(1, -1, 0, 0), BorderSizePixel = 0 }, sidebar)
+new("Frame", {
+    BackgroundColor3 = T.BORDER_SOFT, Size = UDim2.new(0, 1, 1, 0),
+    Position = UDim2.new(1, -1, 0, 0), BorderSizePixel = 0,
+}, sidebar)
 
 local tabList = new("ScrollingFrame", {
     BackgroundTransparency = 1, Size = UDim2.new(1, -12, 1, -12),
@@ -461,45 +451,50 @@ local tabList = new("ScrollingFrame", {
     ScrollBarThickness = 3, ScrollBarImageColor3 = T.BORDER,
     CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
 }, sidebar)
-new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, tabList)
+new("UIListLayout", {
+    Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder,
+}, tabList)
 
 local content = new("Frame", {
     Name = "Content", BackgroundTransparency = 1,
     Position = UDim2.new(0, sideW, 0, 0), Size = UDim2.new(1, -sideW, 1, 0),
 }, body)
+print("[8] Frame principal OK")
 
--- Drag ventana
-local dStart, sPos
+-- DRAG
+local dS, sP
 titleBar.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-        dStart = i.Position; sPos = mainFrame.Position
+        dS = i.Position; sP = mainFrame.Position
         local c; c = i.Changed:Connect(function()
-            if i.UserInputState == Enum.UserInputState.End then dStart = nil; c:Disconnect() end
+            if i.UserInputState == Enum.UserInputState.End then dS = nil; c:Disconnect() end
         end)
     end
 end)
 UIS.InputChanged:Connect(function(i)
-    if dStart and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-        local d = i.Position - dStart
-        mainFrame.Position = UDim2.new(sPos.X.Scale, sPos.X.Offset + d.X, sPos.Y.Scale, sPos.Y.Offset + d.Y)
+    if dS and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - dS
+        mainFrame.Position = UDim2.new(sP.X.Scale, sP.X.Offset + d.X, sP.Y.Scale, sP.Y.Offset + d.Y)
     end
 end)
 
--- Toggle sidebar
+-- SIDEBAR TOGGLE
 local sidebarOpen = true
 menuBtn.MouseButton1Click:Connect(function()
     playClick()
     sidebarOpen = not sidebarOpen
     if sidebarOpen then
         sidebar.Visible = true
-        content.Position = UDim2.new(0, sideW, 0, 0); content.Size = UDim2.new(1, -sideW, 1, 0)
+        content.Position = UDim2.new(0, sideW, 0, 0)
+        content.Size = UDim2.new(1, -sideW, 1, 0)
     else
         sidebar.Visible = false
-        content.Position = UDim2.new(0, 0, 0, 0); content.Size = UDim2.new(1, 0, 1, 0)
+        content.Position = UDim2.new(0, 0, 0, 0)
+        content.Size = UDim2.new(1, 0, 1, 0)
     end
 end)
 
--- Minimize
+-- MINIMIZE
 local minimized, savedSize = false, mainFrame.Size
 minBtn.MouseButton1Click:Connect(function()
     playClick()
@@ -513,64 +508,43 @@ minBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ═══════════════════════════════════════════════════════════
--- BOTÓN FLOTANTE (feature #1)
--- ═══════════════════════════════════════════════════════════
+-- FLOAT BUTTON
 local floatBtn = new("TextButton", {
     Name = "FloatButton", BackgroundColor3 = T.BG,
     Size = UDim2.fromOffset(130, 34), Position = UDim2.new(0, 20, 0, 20),
-    Font = FONT_SEMI, Text = "◆  BRAGAO HUB", TextColor3 = T.ACCENT,
+    Font = FONT_B, Text = "BRAGAO HUB", TextColor3 = T.ACCENT,
     TextSize = 12, AutoButtonColor = false, BorderSizePixel = 0,
     Visible = false, ZIndex = 50,
 }, screenGui)
 corner(floatBtn, 8)
-local floatStroke = stroke(floatBtn, T.ACCENT, 1, 0.1)
-local floatGlow = new("UIStroke", {
-    Color = T.ACCENT, Thickness = 2, Transparency = 0.85,
-    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-}, floatBtn)
-
-floatBtn.MouseEnter:Connect(function() tw(floatGlow, { Transparency = 0.5 }) end)
-floatBtn.MouseLeave:Connect(function() tw(floatGlow, { Transparency = 0.85 }) end)
-
--- Función abrir/cerrar UI con animación
-local function animateOpen()
-    mainFrame.Visible = true
-    local goalSize = savedSize
-    mainFrame.Size = UDim2.fromOffset(goalSize.X.Offset * 0.85, goalSize.Y.Offset * 0.85)
-    mainFrame.BackgroundTransparency = 1
-    tw(mainFrame, { Size = goalSize, BackgroundTransparency = 0 }, 0.22)
-end
-
-local function animateClose()
-    local goalSize = mainFrame.Size
-    tw(mainFrame, {
-        Size = UDim2.fromOffset(goalSize.X.Offset * 0.85, goalSize.Y.Offset * 0.85),
-        BackgroundTransparency = 1,
-    }, 0.18)
-    task.delay(0.2, function()
-        mainFrame.Visible = false
-        mainFrame.BackgroundTransparency = 0
-        mainFrame.Size = savedSize
-    end)
-end
+stroke(floatBtn, T.ACCENT, 1, 0.1)
 
 floatBtn.MouseButton1Click:Connect(function()
     playClick()
     floatBtn.Visible = false
-    animateOpen()
+    mainFrame.Visible = true
+    local gs = savedSize
+    mainFrame.Size = UDim2.fromOffset(gs.X.Offset * 0.85, gs.Y.Offset * 0.85)
+    mainFrame.BackgroundTransparency = 1
+    tw(mainFrame, { Size = gs, BackgroundTransparency = 0 }, 0.22)
 end)
 
 closeBtn.MouseButton1Click:Connect(function()
     playClick()
-    animateClose()
-    task.delay(0.25, function()
+    local gs = mainFrame.Size
+    tw(mainFrame, {
+        Size = UDim2.fromOffset(gs.X.Offset * 0.85, gs.Y.Offset * 0.85),
+        BackgroundTransparency = 1,
+    }, 0.18)
+    task.delay(0.22, function()
+        mainFrame.Visible = false
+        mainFrame.BackgroundTransparency = 0
+        mainFrame.Size = savedSize
         floatBtn.Visible = true
-        notify("UI cerrada", "Click el botón para reabrir", T.ACCENT_DIM)
     end)
 end)
 
--- Drag botón flotante
+-- Drag float btn
 local fD, fS
 floatBtn.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -586,36 +560,22 @@ UIS.InputChanged:Connect(function(i)
         floatBtn.Position = UDim2.new(fS.X.Scale, fS.X.Offset + d.X, fS.Y.Scale, fS.Y.Offset + d.Y)
     end
 end)
+print("[9] Float button OK")
 
--- ═══════════════════════════════════════════════════════════
--- SISTEMA DE ACCENT COLOR (feature #13)
--- ═══════════════════════════════════════════════════════════
+-- ACCENT SYSTEM
 local accentRefreshers = {}
-
-local function registerAccent(fn)
-    table.insert(accentRefreshers, fn)
-end
-
+local function registerAccent(fn) table.insert(accentRefreshers, fn) end
 local function setAccent(color)
     T.ACCENT = color
-    T.BORDER_HL = color
     T.ACCENT_DIM = Color3.new(color.R * 0.6, color.G * 0.6, color.B * 0.6)
     for _, fn in ipairs(accentRefreshers) do pcall(fn) end
 end
-
--- Register: título
-registerAccent(function() titleLbl.TextColor3 = T.ACCENT end)
+registerAccent(function() winTitle.TextColor3 = T.ACCENT end)
 registerAccent(function() floatBtn.TextColor3 = T.ACCENT end)
-registerAccent(function() floatStroke.Color = T.ACCENT end)
-registerAccent(function() floatGlow.Color = T.ACCENT end)
 
--- ═══════════════════════════════════════════════════════════
--- SISTEMA DE TABS (con iconos lineales — feature #6)
--- ═══════════════════════════════════════════════════════════
+-- TABS
 local tabs, activeTab = {}, nil
-local tabAccentRefreshers = {}
-
-local function createTab(icon, title)
+local function createTab(title)
     local tab = { Title = title, Content = nil, Button = nil }
 
     tab.Content = new("ScrollingFrame", {
@@ -626,11 +586,13 @@ local function createTab(icon, title)
         CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y,
         Visible = false,
     }, content)
-    new("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder }, tab.Content)
+    new("UIListLayout", {
+        Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder,
+    }, tab.Content)
 
     tab.Button = new("TextButton", {
         BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 32),
-        Font = FONT, Text = "  " .. icon .. "   " .. title,
+        Font = FONT, Text = "  " .. title,
         TextColor3 = T.TEXT_DIM, TextSize = 12,
         AutoButtonColor = false, BorderSizePixel = 0,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -675,12 +637,11 @@ local function createTab(icon, title)
     end
     return tab
 end
+print("[10] createTab OK")
 
--- ═══════════════════════════════════════════════════════════
--- ACTIVE FEATURES TRACKER (feature #9)
--- ═══════════════════════════════════════════════════════════
-local activeList = {} -- { [name] = true }
-local activeUI = nil  -- se inicializa en tabUtils
+-- ACTIVE FEATURES
+local activeList = {}
+local activeUI = nil
 local function refreshActiveUI()
     if not activeUI then return end
     for _, c in ipairs(activeUI:GetChildren()) do
@@ -694,8 +655,7 @@ local function refreshActiveUI()
                 BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 22),
                 BorderSizePixel = 0,
             }, activeUI)
-            corner(row, 4)
-            stroke(row, T.BORDER_SOFT, 1, 0.2)
+            corner(row, 4); stroke(row, T.BORDER_SOFT, 1, 0.2)
             new("Frame", {
                 BackgroundColor3 = T.ON, Size = UDim2.fromOffset(6, 6),
                 Position = UDim2.new(0, 10, 0.5, -3), BorderSizePixel = 0,
@@ -709,30 +669,26 @@ local function refreshActiveUI()
         end
     end
     if count == 0 then
-        local empty = new("TextLabel", {
+        new("TextLabel", {
             BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 22),
-            Font = FONT, Text = "  Ninguna opción activa",
+            Font = FONT, Text = "  Ninguna activa",
             TextColor3 = T.TEXT_DIM, TextSize = 11,
             TextXAlignment = Enum.TextXAlignment.Left,
         }, activeUI)
     end
 end
+print("[11] refreshActiveUI OK")
 
--- ═══════════════════════════════════════════════════════════
 -- COMPONENTES
--- ═══════════════════════════════════════════════════════════
-local compactMode = false
-
 local function section(tab, title)
     local sec = new("Frame", {
         BackgroundColor3 = T.PANEL, Size = UDim2.new(1, 0, 0, 26),
         BorderSizePixel = 0,
     }, tab.Content)
-    corner(sec, 6)
-    stroke(sec, T.BORDER_HL, 1, 0.35)
+    corner(sec, 6); stroke(sec, T.BORDER_SOFT, 1, 0.3)
     new("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 0),
-        Size = UDim2.new(1, -20, 1, 0), Font = FONT_SEMI,
+        Size = UDim2.new(1, -20, 1, 0), Font = FONT_B,
         Text = title, TextColor3 = T.TEXT, TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, sec)
@@ -746,10 +702,8 @@ local function toggle(tab, cfg)
         BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, H),
         BorderSizePixel = 0,
     }, tab.Content)
-    corner(c, 6)
-    stroke(c, T.BORDER_SOFT, 1, 0.15)
+    corner(c, 6); stroke(c, T.BORDER_SOFT, 1, 0.15)
 
-    -- Dot indicador (feature #8)
     local dot = new("Frame", {
         BackgroundColor3 = T.ON, Size = UDim2.fromOffset(6, 6),
         Position = UDim2.new(0, 10, hasDesc and 0 or 0.5, hasDesc and 12 or -3),
@@ -757,18 +711,17 @@ local function toggle(tab, cfg)
     }, c)
     corner(dot, 3)
 
-    local titleL = new("TextLabel", {
+    new("TextLabel", {
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 24, 0, hasDesc and 6 or 0),
         Size = UDim2.new(1, -100, 0, hasDesc and 15 or H),
-        Font = FONT_SEMI, Text = cfg.Title or "Toggle",
+        Font = FONT_B, Text = cfg.Title or "Toggle",
         TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
 
-    local descL
     if hasDesc then
-        descL = new("TextLabel", {
+        new("TextLabel", {
             BackgroundTransparency = 1, Position = UDim2.new(0, 24, 0, 22),
             Size = UDim2.new(1, -100, 0, 13), Font = FONT,
             Text = cfg.Desc, TextColor3 = T.TEXT_DIM, TextSize = 10,
@@ -795,33 +748,18 @@ local function toggle(tab, cfg)
         Text = "", AutoButtonColor = false,
     }, c)
 
-    -- Compact mode: ocultar desc
-    if hasDesc then
-        table.insert(compactMode and {} or {}, descL)
-    end
-
     local state = cfg.Value or false
-
     btn.MouseButton1Click:Connect(function()
         state = not state
         playClick()
         tw(switch, { BackgroundColor3 = state and T.ON or T.OFF }, 0.2)
         tw(knob, { Position = state and UDim2.new(1, -16, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
         tw(dot, { BackgroundTransparency = state and 0 or 1 }, 0.15)
-
-        -- Active features
         activeList[cfg.Title] = state
         refreshActiveUI()
-
-        -- Notif
-        notify(state and "Activado" or "Desactivado", cfg.Title,
-            state and T.ON or T.CLOSE_HOV)
-
+        notify(state and "Activado" or "Desactivado", cfg.Title, state and T.ON or T.CLOSE_HOV)
         if cfg.Callback then cfg.Callback(state) end
     end)
-
-    -- Registrar para compact mode
-    return btn
 end
 
 local function input(tab, cfg)
@@ -836,7 +774,7 @@ local function input(tab, cfg)
 
     new("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
-        Size = UDim2.new(1, -100, 0, 15), Font = FONT_SEMI,
+        Size = UDim2.new(1, -100, 0, 15), Font = FONT_B,
         Text = cfg.Title or "Input", TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
@@ -870,10 +808,8 @@ local function input(tab, cfg)
     tb.FocusLost:Connect(function()
         if cfg.Callback then cfg.Callback(tb.Text) end
     end)
-    return tb
 end
 
--- Color picker (feature #13)
 local ACCENT_PRESETS = {
     { Name = "Amarillo", C = Color3.fromRGB(255, 200, 0) },
     { Name = "Rojo",     C = Color3.fromRGB(230, 70, 70) },
@@ -891,33 +827,27 @@ local function colorPicker(tab, title)
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6); stroke(c, T.BORDER_SOFT, 1, 0.15)
-
     new("TextLabel", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
-        Size = UDim2.new(1, -20, 0, 15), Font = FONT_SEMI,
-        Text = title or "Color de acento", TextColor3 = T.TEXT, TextSize = 12,
+        Size = UDim2.new(1, -20, 0, 15), Font = FONT_B,
+        Text = title, TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, c)
-
     local grid = new("Frame", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 28),
         Size = UDim2.new(1, -24, 0, 56), BorderSizePixel = 0,
     }, c)
     new("UIGridLayout", {
-        CellSize = UDim2.fromOffset(32, 24), CellPadding = UDim2.fromOffset(8, 8),
+        CellSize = UDim2.fromOffset(32, 24),
+        CellPadding = UDim2.fromOffset(8, 8),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, grid)
-
     for _, preset in ipairs(ACCENT_PRESETS) do
         local b = new("TextButton", {
             BackgroundColor3 = preset.C, Size = UDim2.fromOffset(32, 24),
-            Font = FONT_SEMI, Text = "", AutoButtonColor = false,
-            BorderSizePixel = 0,
+            Text = "", AutoButtonColor = false, BorderSizePixel = 0,
         }, grid)
-        corner(b, 5)
-        stroke(b, T.BORDER_SOFT, 1, 0.3)
-        b.MouseEnter:Connect(function() tw(b, { Size = UDim2.fromOffset(34, 26) }, 0.15) end)
-        b.MouseLeave:Connect(function() tw(b, { Size = UDim2.fromOffset(32, 24) }, 0.15) end)
+        corner(b, 5); stroke(b, T.BORDER_SOFT, 1, 0.3)
         b.MouseButton1Click:Connect(function()
             playClick()
             setAccent(preset.C)
@@ -925,10 +855,9 @@ local function colorPicker(tab, title)
         end)
     end
 end
+print("[12] Componentes OK")
 
--- ═══════════════════════════════════════════════════════════
 -- WATERMARK
--- ═══════════════════════════════════════════════════════════
 local watermarkEnabled = false
 local wmFrame = new("Frame", {
     Name = "Watermark", BackgroundColor3 = T.BG, BackgroundTransparency = 0.15,
@@ -936,10 +865,9 @@ local wmFrame = new("Frame", {
     Visible = false, BorderSizePixel = 0, Active = true,
 }, screenGui)
 corner(wmFrame, 5); stroke(wmFrame, T.BORDER_SOFT, 1, 0.2)
-
 local wmLabel = new("TextLabel", {
     BackgroundTransparency = 1, Size = UDim2.new(1, -10, 1, 0),
-    Position = UDim2.new(0, 5, 0, 0), Font = FONT_SEMI,
+    Position = UDim2.new(0, 5, 0, 0), Font = FONT_B,
     Text = "BRAGAO HUB  |  FPS: --  |  -- ms",
     TextColor3 = T.TEXT, TextSize = 12,
     TextXAlignment = Enum.TextXAlignment.Center,
@@ -963,30 +891,35 @@ end)
 
 local fpsCount, fpsTime, currentFPS = 0, 0, 60
 RunService.RenderStepped:Connect(function(dt)
-    fpsCount = fpsCount + 1; fpsTime = fpsTime + dt
-    if fpsTime >= 1 then currentFPS = fpsCount; fpsCount = 0; fpsTime = 0 end
+    fpsCount = fpsCount + 1
+    fpsTime = fpsTime + dt
+    if fpsTime >= 1 then
+        currentFPS = fpsCount; fpsCount = 0; fpsTime = 0
+    end
 end)
 task.spawn(function()
     while true do
         task.wait(0.5)
         if watermarkEnabled then
             local ping = 0
-            pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
+            pcall(function()
+                ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+            end)
             wmLabel.Text = string.format("BRAGAO HUB  |  FPS: %d  |  %d ms", currentFPS, ping)
         end
     end
 end)
+print("[13] Watermark OK")
 
--- ═══════════════════════════════════════════════════════════
--- CREAR TABS
--- ═══════════════════════════════════════════════════════════
-local tabCombat   = createTab("◆", "Combat")
-local tabAim      = createTab("◎", "Aim")
-local tabMovement = createTab("▸", "Movement")
-local tabVisual   = createTab("◉", "Visual")
-local tabUtils    = createTab("⚙", "Utils")
+-- BUILD TABS
+local tabCombat   = createTab("Combat")
+local tabAim      = createTab("Aim")
+local tabMovement = createTab("Movement")
+local tabVisual   = createTab("Visual")
+local tabUtils    = createTab("Utils")
+print("[14] Tabs creadas")
 
--- ── COMBAT ──
+-- COMBAT
 section(tabCombat, "Silent Aim")
 toggle(tabCombat, { Title = "Silent Aim Players", Desc = "Apunta a jugadores enemigos", Value = false,
     Callback = function(v) Config.SilentAimPlayers = v; if v then installSilentAim() end end })
@@ -995,7 +928,7 @@ toggle(tabCombat, { Title = "Silent Aim NPCs", Desc = "Apunta a NPCs enemigos", 
 toggle(tabCombat, { Title = "Auto Ken", Desc = "Activa Ken automaticamente", Value = false,
     Callback = function(v) Config.AutoKen = v; if v then startAutoKenLoop() end end })
 
--- ── AIM ──
+-- AIM
 section(tabAim, "Prediction")
 toggle(tabAim, { Title = "Prediction", Desc = "Predice la posicion del enemigo", Value = false,
     Callback = function(v) Config.Prediction = v end })
@@ -1006,11 +939,10 @@ input(tabAim, { Title = "Max Range", Desc = "Rango maximo del aim (studs)",
     Value = tostring(State.maxRange), Placeholder = "500",
     Callback = function(t) local n = tonumber(t); if n then State.maxRange = n end end })
 
--- ── MOVEMENT ──
+-- MOVEMENT
 section(tabMovement, "Salto")
 toggle(tabMovement, { Title = "Infinite Jump", Desc = "Salto infinito con espacio", Value = false,
     Callback = function(v) Config.InfiniteJump = v; setupInfiniteJump() end })
-
 section(tabMovement, "Velocidad")
 input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 100)",
     Value = tostring(Config.WalkSpeed), Placeholder = "16",
@@ -1019,61 +951,31 @@ input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 10
         if n then n = math.clamp(n, 16, 100); Config.WalkSpeed = n end
     end })
 
--- ── VISUAL ──
+-- VISUAL
 section(tabVisual, "ESP")
 toggle(tabVisual, { Title = "ESP Players", Desc = "Muestra nombre, vida y distancia", Value = false,
     Callback = function(v) Config.ESP = v end })
 
--- ── UTILS ──
+-- UTILS
 section(tabUtils, "Utilidades")
 toggle(tabUtils, { Title = "Anti-AFK", Desc = "Evita ser expulsado por inactividad", Value = false,
     Callback = function(v) Config.AntiAFK = v; setupAntiAFK() end })
 toggle(tabUtils, { Title = "Watermark", Desc = "Muestra FPS y Ping (arrastrable)", Value = false,
     Callback = function(v) watermarkEnabled = v; wmFrame.Visible = v end })
 
--- Active Features (feature #9)
 section(tabUtils, "Opciones activas")
 activeUI = new("Frame", {
     BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0),
     AutomaticSize = Enum.AutomaticSize.Y, BorderSizePixel = 0,
 }, tabUtils.Content)
-new("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder }, activeUI)
+new("UIListLayout", {
+    Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder,
+}, activeUI)
 refreshActiveUI()
 
--- Color picker (feature #13)
 section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
+print("[15] Opciones OK")
 
--- Modo compact (feature #14)
-local function setCompact(enabled)
-    compactMode = enabled
-    -- Toggle notifica
-    notify(enabled and "Modo Compact ON" or "Modo Compact OFF",
-        enabled and "Descripciones ocultas" or nil, T.ACCENT_DIM)
-    -- Recorremos todos los contenidos de tab y ajustamos alturas
-    for _, tab in ipairs(tabs) do
-        for _, child in ipairs(tab.Content:GetChildren()) do
-            if child:IsA("Frame") then
-                local hasDesc = false
-                for _, sub in ipairs(child:GetChildren()) do
-                    if sub:IsA("TextLabel") and sub.TextSize == 10 then
-                        hasDesc = true
-                        sub.Visible = not enabled
-                    end
-                end
-                if hasDesc then
-                    child.Size = UDim2.new(1, 0, 0, enabled and 38 or 48)
-                end
-            end
-        end
-    end
-end
-
-toggle(tabUtils, { Title = "Modo Compact", Desc = "Oculta descripciones", Value = false,
-    Callback = function(v) setCompact(v) end })
-
--- ═══════════════════════════════════════════════════════════
--- FINAL
--- ═══════════════════════════════════════════════════════════
-notify("Bragao Hub v4", "UI cargada correctamente", T.ACCENT)
-print("[Bragao Hub] v4 
+notify("Bragao Hub v5", "UI cargada correctamente", T.ACCENT)
+print("[16] LISTO")
