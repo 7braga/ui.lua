@@ -1,128 +1,54 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local lp = Players.LocalPlayer
 
+print("[bragao Hub] Iniciando carga...")
+
 -- WINDUI PRIMERO
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+print("[bragao Hub] WindUI cargado ✅")
 
 local Window = WindUI:CreateWindow({
-    Title = "braga Hub  |  Blox Fruits",
+    Title = "braga Hub | Blox Fruits",
     Author = "by bragao",
-    Folder = "67",
+    Folder = "BragaoHub",
     Icon = "home",
-    NewElements = true,
 })
 
+print("[bragao Hub] Ventana creada ✅")
+
 -- VARIABLES
-local soruAimEnabled = false
-local infSoruEnabled = false
-local silentAimPlayersEnabled = false
-local silentAimNPCsEnabled = false
-local predictionEnabled = false
-local predictionAmount = 0.1
-local zSkillOrM1 = false
-local zSkillsEnabled = false
-local autoKenEnabled = false
-local autoKenRunning = false
-local espEnabled = false
-local infJumpEnabled = false
-local walkWaterEnabled = false
-local camLockEnabled = false
-local camLockPred = 0.1
-local dashEnabled = false
-local dashLength = 1
-local bunnyHopEnabled = false
-local bunnyHopHooked = false
-local noDodgeCDEnabled = false
-local busoEnabled = false
-local v3Enabled = false
-local v3LoopRunning = false
-local infEnergyEnabled = false
-local fastAttackEnabled = false
-local walkSpeedValue = 16
-local autoV4Enabled = false
-local fruitCheckEnabled = false
-local fruitTeleportEnabled = false
-local targetInfoEnabled = false
-local fpsBoostEnabled = false
-local fpsPingEnabled = false
-local antiAfkEnabled = false
-local maxRange = 500
+local Config = {
+    SilentAimPlayers = false,
+    SilentAimNPCs = false,
+    Prediction = false,
+    PredictionAmount = 0.1,
+    ZSkills = false,
+    AutoKen = false,
+    ESP = false,
+    InfiniteJump = false,
+    WalkSpeed = 16,
+    AntiAFK = false,
+}
 
-local infJumpConn = nil
-local waterPart = nil
-local walkWaterConn = nil
-local camLockConn = nil
-local dashConnection = nil
-local infSoruConn = nil
-local energyConnection = nil
-local fastAttackConn = nil
-local fruitLoop = nil
-local teleportLoop = nil
-local fpsConn = nil
-local fpsBoostConn = nil
-local NoDodgeCoroutine = nil
-local uiConn = nil
-local sizeConn = nil
-local PlayersPosition = nil
-local NPCPosition = nil
-local currentTool = nil
-local characterConnections = {}
-local Booms = {"TAP"}
-local Skills = {"X"}
-local aimlockActive = false
-local nearestZTarget = nil
-local godhumanZActive = false
-local aimRenderConn = nil
-local aimTimeoutTask = nil
-local silentInstalled = false
-local walkSpeedConn = nil
+local State = {
+    silentInstalled = false,
+    autoKenRunning = false,
+    infJumpConn = nil,
+    PlayersPosition = nil,
+    NPCPosition = nil,
+    maxRange = 500,
+}
 
--- Remotes con pcall
+-- Remotes
 local CommE, CommF
 pcall(function() CommE = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommE", 5) end)
 pcall(function() CommF = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommF_", 5) end)
 
 -- ============================================================
--- TEAM CHECK
--- ============================================================
-local function isAllyWithMe(targetPlayer)
-    local myGui = lp:FindFirstChild("PlayerGui")
-    if not myGui then return false end
-    local scrolling = myGui:FindFirstChild("Main")
-        and myGui.Main:FindFirstChild("Allies")
-        and myGui.Main.Allies:FindFirstChild("Container")
-        and myGui.Main.Allies.Container:FindFirstChild("Allies")
-        and myGui.Main.Allies.Container.Allies:FindFirstChild("ScrollingFrame")
-    if scrolling then
-        for _, frame in pairs(scrolling:GetDescendants()) do
-            if frame:IsA("ImageButton") and frame.Name == targetPlayer.Name then return true end
-        end
-    end
-    return false
-end
-
-local function isEnemy(targetPlayer)
-    if not targetPlayer or targetPlayer == lp then return false end
-    local myTeam = lp.Team
-    local targetTeam = targetPlayer.Team
-    if myTeam and targetTeam then
-        if myTeam.Name == "Pirates" and targetTeam.Name == "Marines" then return true
-        elseif myTeam.Name == "Marines" and targetTeam.Name == "Pirates" then return true end
-        if myTeam.Name == "Pirates" and targetTeam.Name == "Pirates" then
-            if isAllyWithMe(targetPlayer) then return false end
-            return true
-        end
-        if myTeam.Name == "Marines" and targetTeam.Name == "Marines" then return false end
-    end
-    return true
-end
-
--- ============================================================
--- BASE FUNCTIONS
+-- FUNCIONES BASE
 -- ============================================================
 local function getHRP()
     local char = lp.Character
@@ -134,18 +60,29 @@ local function getHum()
     return char and char:FindFirstChildOfClass("Humanoid")
 end
 
+local function isEnemy(targetPlayer)
+    if not targetPlayer or targetPlayer == lp then return false end
+    local myTeam = lp.Team
+    local targetTeam = targetPlayer.Team
+    if myTeam and targetTeam then
+        if myTeam.Name == "Pirates" and targetTeam.Name == "Marines" then return true
+        elseif myTeam.Name == "Marines" and targetTeam.Name == "Pirates" then return true end
+    end
+    return true
+end
+
 local function getPredictedPosition(hrp)
     if not hrp then return nil end
     local humanoid = hrp.Parent:FindFirstChildOfClass("Humanoid")
     if not humanoid then return hrp.Position end
-    if not predictionEnabled or humanoid.WalkSpeed < 5 then return hrp.Position end
-    return hrp.Position + (hrp.AssemblyLinearVelocity * predictionAmount)
+    if not Config.Prediction or humanoid.WalkSpeed < 5 then return hrp.Position end
+    return hrp.Position + (hrp.AssemblyLinearVelocity * Config.PredictionAmount)
 end
 
 local function getClosestPlayer()
     local hrp = getHRP()
     if not hrp then return nil end
-    local closest, closestDist = nil, maxRange
+    local closest, closestDist = nil, State.maxRange
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= lp and isEnemy(p) and p.Character then
             local hum = p.Character:FindFirstChildOfClass("Humanoid")
@@ -162,7 +99,7 @@ end
 local function getClosestNPC()
     local hrp = getHRP()
     if not hrp then return nil end
-    local closest, closestDist = nil, maxRange
+    local closest, closestDist = nil, State.maxRange
     local enemies = workspace:FindFirstChild("Enemies")
     if not enemies then return nil end
     for _, v in ipairs(enemies:GetChildren()) do
@@ -176,49 +113,32 @@ local function getClosestNPC()
     return closest
 end
 
-local function GetNearestTarget(maxDist)
-    local char = lp.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-    local hrp = char.HumanoidRootPart
-    local closest, closestDist = nil, maxDist or 100
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= lp and isEnemy(plr) and plr.Character then
-            local otherHRP = plr.Character:FindFirstChild("HumanoidRootPart")
-            local hum = plr.Character:FindFirstChild("Humanoid")
-            if otherHRP and hum and hum.Health > 0 then
-                local dist = (otherHRP.Position - hrp.Position).Magnitude
-                if dist < closestDist then closestDist = dist; closest = plr.Character end
-            end
-        end
-    end
-    return closest
-end
-
 -- ============================================================
--- SILENT AIM (Básico para no fallar)
+-- SILENT AIM
 -- ============================================================
 local function installSilentAim()
-    if silentInstalled then return end
-    silentInstalled = true
+    if State.silentInstalled then return end
+    State.silentInstalled = true
+    print("[Silent Aim] Instalado ✅")
 
     RunService.Heartbeat:Connect(function()
-        if not silentAimPlayersEnabled and not silentAimNPCsEnabled then
-            PlayersPosition = nil; NPCPosition = nil; return
+        if not Config.SilentAimPlayers and not Config.SilentAimNPCs then
+            State.PlayersPosition = nil; State.NPCPosition = nil; return
         end
-        if silentAimPlayersEnabled then
+        if Config.SilentAimPlayers then
             local enemy = getClosestPlayer()
             if enemy and enemy.Character then
                 local eHRP = enemy.Character:FindFirstChild("HumanoidRootPart")
-                PlayersPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else PlayersPosition = nil end
-        else PlayersPosition = nil end
-        if silentAimNPCsEnabled then
+                State.PlayersPosition = eHRP and getPredictedPosition(eHRP) or nil
+            else State.PlayersPosition = nil end
+        else State.PlayersPosition = nil end
+        if Config.SilentAimNPCs then
             local npc = getClosestNPC()
             if npc then
                 local eHRP = npc:FindFirstChild("HumanoidRootPart")
-                NPCPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else NPCPosition = nil end
-        else NPCPosition = nil end
+                State.NPCPosition = eHRP and getPredictedPosition(eHRP) or nil
+            else State.NPCPosition = nil end
+        else State.NPCPosition = nil end
     end)
 
     pcall(function()
@@ -230,8 +150,8 @@ local function installSilentAim()
                 local Method = (getnamecallmethod and getnamecallmethod():lower()) or ""
                 if tostring(self) == "RemoteEvent" and Method == "fireserver" then
                     if typeof(V1) == "Vector3" then
-                        if silentAimPlayersEnabled and PlayersPosition then return OldHook(self, PlayersPosition, V2, ...)
-                        elseif silentAimNPCsEnabled and NPCPosition then return OldHook(self, NPCPosition, V2, ...) end
+                        if Config.SilentAimPlayers and State.PlayersPosition then return OldHook(self, State.PlayersPosition, V2, ...)
+                        elseif Config.SilentAimNPCs and State.NPCPosition then return OldHook(self, State.NPCPosition, V2, ...) end
                     end
                 end
                 return OldHook(self, V1, V2, ...)
@@ -242,40 +162,14 @@ local function installSilentAim()
 end
 
 -- ============================================================
--- Z SKILL AIMLOCK
--- ============================================================
-local function stopAimlock()
-    if not aimlockActive then return end
-    aimlockActive = false; nearestZTarget = nil; godhumanZActive = false
-    if aimRenderConn then pcall(function() aimRenderConn:Disconnect() end); aimRenderConn = nil end
-    if aimTimeoutTask then pcall(function() task.cancel(aimTimeoutTask) end); aimTimeoutTask = nil end
-end
-
-local function startAimlock()
-    if not zSkillsEnabled or aimlockActive then return end
-    nearestZTarget = GetNearestTarget(1000)
-    if not nearestZTarget then return end
-    aimlockActive = true
-    aimRenderConn = RunService.RenderStepped:Connect(function()
-        if not zSkillsEnabled then stopAimlock() return end
-        if aimlockActive and nearestZTarget and nearestZTarget:FindFirstChild("HumanoidRootPart") then
-            local cam = workspace.CurrentCamera
-            if cam then cam.CFrame = CFrame.lookAt(cam.CFrame.Position, nearestZTarget.HumanoidRootPart.Position) end
-        else stopAimlock() end
-    end)
-    aimTimeoutTask = task.delay(1, function()
-        if aimlockActive then stopAimlock() end
-    end)
-end
-
--- ============================================================
 -- AUTO KEN
 -- ============================================================
 local function startAutoKenLoop()
-    if autoKenRunning then return end
-    autoKenRunning = true
+    if State.autoKenRunning then return end
+    State.autoKenRunning = true
+    print("[Auto Ken] Iniciado ✅")
     task.spawn(function()
-        while autoKenEnabled do
+        while Config.AutoKen do
             task.wait(0.1)
             pcall(function()
                 local char = lp.Character
@@ -285,7 +179,7 @@ local function startAutoKenLoop()
                 end
             end)
         end
-        autoKenRunning = false
+        State.autoKenRunning = false
     end)
 end
 
@@ -302,7 +196,6 @@ end
 
 local function getESPColor(p)
     if p == lp then return Color3.fromRGB(0, 255, 0) end
-    if isAllyWithMe(p) then return Color3.fromRGB(0, 255, 0) end
     if isEnemy(p) then return Color3.fromRGB(255, 80, 80) end
     return Color3.fromRGB(0, 255, 0)
 end
@@ -334,7 +227,7 @@ local function createESP(targetPlayer)
 end
 
 RunService.Heartbeat:Connect(function()
-    if not espEnabled then
+    if not Config.ESP then
         for _, gui in pairs(ESPs) do if gui then gui.Enabled = false end end
         return
     end
@@ -369,105 +262,137 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ============================================================
--- UI TABS
+-- INFINITE JUMP
 -- ============================================================
-local CombatTab = Window:CreateTab("Combat", "🗡️")
-local AimTab = Window:CreateTab("Aim", "🎯")
-local MovementTab = Window:CreateTab("Movement", "🏃")
-local UtilsTab = Window:CreateTab("Utils", "⚙️")
-
--- ============================================================
--- COMBAT TAB
--- ============================================================
-CombatTab:CreateToggle("Soru Aim", soruAimEnabled, function(value)
-    soruAimEnabled = value
-end)
-
-CombatTab:CreateToggle("Infinite Soru", infSoruEnabled, function(value)
-    infSoruEnabled = value
-end)
-
-CombatTab:CreateToggle("Auto Ken", autoKenEnabled, function(value)
-    autoKenEnabled = value
-    if value then startAutoKenLoop() end
-end)
-
-CombatTab:CreateToggle("Z Skills (Aimlock)", zSkillsEnabled, function(value)
-    zSkillsEnabled = value
-    if value then startAimlock() else stopAimlock() end
-end)
-
--- ============================================================
--- AIM TAB
--- ============================================================
-AimTab:CreateToggle("Silent Aim Players", silentAimPlayersEnabled, function(value)
-    silentAimPlayersEnabled = value
-    if value then installSilentAim() end
-end)
-
-AimTab:CreateToggle("Silent Aim NPCs", silentAimNPCsEnabled, function(value)
-    silentAimNPCsEnabled = value
-    if value then installSilentAim() end
-end)
-
-AimTab:CreateToggle("Prediction", predictionEnabled, function(value)
-    predictionEnabled = value
-end)
-
-AimTab:CreateSlider("Prediction Amount", 0, 1, 0.1, function(value)
-    predictionAmount = value
-end)
-
--- ============================================================
--- MOVEMENT TAB
--- ============================================================
-MovementTab:CreateToggle("Infinite Jump", infJumpEnabled, function(value)
-    infJumpEnabled = value
-    if value and not infJumpConn then
-        infJumpConn = UIS.InputBegan:Connect(function(input, gameProcessed)
+local function setupInfiniteJump()
+    if Config.InfiniteJump and not State.infJumpConn then
+        print("[Infinite Jump] Activado ✅")
+        State.infJumpConn = UIS.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
             if input.KeyCode == Enum.KeyCode.Space then
                 local hum = getHum()
                 if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
             end
         end)
-    elseif not value and infJumpConn then
-        infJumpConn:Disconnect()
-        infJumpConn = nil
+    elseif not Config.InfiniteJump and State.infJumpConn then
+        print("[Infinite Jump] Desactivado ❌")
+        State.infJumpConn:Disconnect()
+        State.infJumpConn = nil
+    end
+end
+
+-- ============================================================
+-- WALK SPEED
+-- ============================================================
+RunService.Heartbeat:Connect(function()
+    if Config.WalkSpeed > 16 then
+        local hum = getHum()
+        if hum then hum.WalkSpeed = Config.WalkSpeed end
     end
 end)
 
-MovementTab:CreateToggle("Walk on Water", walkWaterEnabled, function(value)
-    walkWaterEnabled = value
-end)
-
-MovementTab:CreateSlider("Walk Speed", 16, 100, 16, function(value)
-    walkSpeedValue = value
-    local hum = getHum()
-    if hum then hum.WalkSpeed = value end
-end)
-
 -- ============================================================
--- UTILS TAB
+-- ANTI AFK
 -- ============================================================
-UtilsTab:CreateToggle("ESP", espEnabled, function(value)
-    espEnabled = value
-end)
-
-UtilsTab:CreateToggle("Anti AFK", antiAfkEnabled, function(value)
-    antiAfkEnabled = value
-    if value then
+local antiAFKRunning = false
+local function setupAntiAFK()
+    if Config.AntiAFK and not antiAFKRunning then
+        antiAFKRunning = true
+        print("[Anti-AFK] Activado ✅")
         task.spawn(function()
-            while antiAfkEnabled do
+            while Config.AntiAFK do
                 task.wait(60)
                 pcall(function()
                     game:GetService("VirtualUser"):CaptureController()
                     game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
                 end)
             end
+            antiAFKRunning = false
         end)
     end
+end
+
+-- ============================================================
+-- CREAR UI - TABS Y OPCIONES
+-- ============================================================
+
+-- TAB 1: COMBAT
+local CombatTab = Window:CreateTab("Combat", "⚔️")
+print("[bragao Hub] Tab Combat creado ✅")
+
+CombatTab:CreateToggle("Silent Aim Players", false, function(value)
+    Config.SilentAimPlayers = value
+    if value then installSilentAim() end
+    print("[Config] Silent Aim Players: " .. tostring(value))
 end)
 
-print("[braga Hub] ✅ Script cargado correctamente")
-print("[braga Hub] Para desactivar: presiona el botón de cerrar en la ventana")
+CombatTab:CreateToggle("Silent Aim NPCs", false, function(value)
+    Config.SilentAimNPCs = value
+    if value then installSilentAim() end
+    print("[Config] Silent Aim NPCs: " .. tostring(value))
+end)
+
+CombatTab:CreateToggle("Auto Ken", false, function(value)
+    Config.AutoKen = value
+    if value then startAutoKenLoop() end
+    print("[Config] Auto Ken: " .. tostring(value))
+end)
+
+-- TAB 2: AIM
+local AimTab = Window:CreateTab("Aim", "🎯")
+print("[bragao Hub] Tab Aim creado ✅")
+
+AimTab:CreateToggle("Prediction", false, function(value)
+    Config.Prediction = value
+    print("[Config] Prediction: " .. tostring(value))
+end)
+
+AimTab:CreateSlider("Prediction Amount", 0, 1, 0.1, function(value)
+    Config.PredictionAmount = value
+    print("[Config] Prediction Amount: " .. tostring(value))
+end)
+
+-- TAB 3: MOVEMENT
+local MovementTab = Window:CreateTab("Movement", "🏃")
+print("[bragao Hub] Tab Movement creado ✅")
+
+MovementTab:CreateToggle("Infinite Jump", false, function(value)
+    Config.InfiniteJump = value
+    setupInfiniteJump()
+    print("[Config] Infinite Jump: " .. tostring(value))
+end)
+
+MovementTab:CreateSlider("Walk Speed", 16, 100, 16, function(value)
+    Config.WalkSpeed = value
+    print("[Config] Walk Speed: " .. tostring(value))
+end)
+
+-- TAB 4: VISUAL
+local VisualTab = Window:CreateTab("Visual", "👁️")
+print("[bragao Hub] Tab Visual creado ✅")
+
+VisualTab:CreateToggle("ESP", false, function(value)
+    Config.ESP = value
+    print("[Config] ESP: " .. tostring(value))
+end)
+
+-- TAB 5: UTILS
+local UtilsTab = Window:CreateTab("Utils", "⚙️")
+print("[bragao Hub] Tab Utils creado ✅")
+
+UtilsTab:CreateToggle("Anti-AFK", false, function(value)
+    Config.AntiAFK = value
+    setupAntiAFK()
+    print("[Config] Anti-AFK: " .. tostring(value))
+end)
+
+print("[bragao Hub] ════════════════════════════════════════")
+print("[bragao Hub] ✅ SCRIPT CARGADO CORRECTAMENTE")
+print("[bragao Hub] ════════════════════════════════════════")
+print("[bragao Hub] Tabs disponibles:")
+print("[bragao Hub]  ⚔️  Combat (Silent Aim, Auto Ken)")
+print("[bragao Hub]  🎯  Aim (Prediction)")
+print("[bragao Hub]  🏃  Movement (Jump, Speed)")
+print("[bragao Hub]  👁️   Visual (ESP)")
+print("[bragao Hub]  ⚙️   Utils (Anti-AFK)")
+print("[bragao Hub] ════════════════════════════════════════")
