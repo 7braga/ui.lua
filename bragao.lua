@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v6 - Notifs pequeñas + Animación de tabs
+-- BRAGAO HUB v6 - Notifs pequeñas + Animación de txbs
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
