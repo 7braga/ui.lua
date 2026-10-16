@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v7.1 - Box ESP + Tracer ESP + Name ESP (FIXED)
+-- BRAGAO HUB v7.2 - Tracer ESP desde el personaje (FIXED)
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -180,7 +180,6 @@ local function getESPColor(p)
     return Color3.fromRGB(0, 255, 0)
 end
 
--- ScreenGui para Box y Tracer (Instance.new directo, sin depender de new())
 local espScreen = Instance.new("ScreenGui")
 espScreen.Name = "BragaoESP"
 espScreen.ResetOnSpawn = false
@@ -264,6 +263,7 @@ RunService.RenderStepped:Connect(function()
             local hrp  = char and char:FindFirstChild("HumanoidRootPart")
             local hum  = char and char:FindFirstChildOfClass("Humanoid")
             local myHRP = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+            local myHead = lp.Character and lp.Character:FindFirstChild("Head")
 
             local alive = char and head and hrp and hum and hum.Health > 0
 
@@ -322,19 +322,20 @@ RunService.RenderStepped:Connect(function()
                 if bd then bd.frame.Visible = false end
             end
 
-            -- TRACER ESP
+            -- TRACER ESP (desde tu personaje hacia el enemigo)
             if Config.TracerESP then
                 local trData = getOrCreateTracer(tp)
-                if alive then
+                if alive and myHRP then
                     local targetPos = head.Position
                     local sp, onScreen = cam:WorldToViewportPoint(targetPos)
-                    if onScreen and sp.Z > 0 then
-                        local dx = sp.X - cx
-                        local dy = sp.Y - cy
+                    local originPos, onOrigin = cam:WorldToViewportPoint(myHead and myHead.Position or myHRP.Position)
+                    if onScreen and sp.Z > 0 and onOrigin and originPos.Z > 0 then
+                        local dx = sp.X - originPos.X
+                        local dy = sp.Y - originPos.Y
                         local length = math.sqrt(dx * dx + dy * dy)
                         local angle = math.deg(math.atan2(dy, dx))
                         trData.frame.Visible = true
-                        trData.frame.Position = UDim2.fromOffset(cx, cy)
+                        trData.frame.Position = UDim2.fromOffset(originPos.X, originPos.Y)
                         trData.frame.Size = UDim2.fromOffset(length, 1)
                         trData.frame.Rotation = angle
                         trData.frame.BackgroundColor3 = getESPColor(tp)
@@ -1098,7 +1099,7 @@ toggle(tabVisual, { Title = "ESP Box", Desc = "Caja 2D alrededor del jugador", V
     Callback = function(v) Config.BoxESP = v end })
 
 section(tabVisual, "ESP Tracer")
-toggle(tabVisual, { Title = "ESP Tracer", Desc = "Linea desde abajo al enemigo", Value = false,
+toggle(tabVisual, { Title = "ESP Tracer", Desc = "Linea desde tu personaje al enemigo", Value = false,
     Callback = function(v) Config.TracerESP = v end })
 
 -- UTILS
@@ -1122,5 +1123,5 @@ section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
 print("[15] Opciones OK")
 
-notify("Bragao Hub v7.1", "ESP Box + Tracer funcionando", T.ACCENT)
+notify("Bragao Hub v7.2", "Tracer desde el personaje", T.ACCENT)
 print("[16] LISTO")
