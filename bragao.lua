@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v8 - ESP con Drawing API (del 4EVR)
+-- BRAGAO HUB v9 - FOV Circle + Color Pickers individuales
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -169,31 +169,47 @@ local function startAutoKenLoop()
 end
 
 -- ═══════════════════════════════════════════════════════════
--- ESP SYSTEM (DRAWING API — del 4EVR, adaptado)
+-- ESP + FOV (Drawing API)
 -- ═══════════════════════════════════════════════════════════
 local Drawing = Drawing or (getgenv and getgenv().Drawing)
 local hasDrawing = pcall(function() return Drawing.new("Line") end)
 
 if not hasDrawing then
-    warn("[Bragao Hub] Tu executor NO soporta Drawing API — ESP deshabilitado")
+    warn("[Bragao Hub] Tu executor NO soporta Drawing API")
 end
 
 local ESP = {
-    NameEnabled = false,
-    TracersEnabled = false,
-    BoxEnabled = false,
-    HealthEnabled = false,
-    ChamsEnabled = false,
-    SkeletonEnabled = false,
-    LimitDistance = false,
-    MaxDistance = 250,
-    NameColor = Color3.fromRGB(255, 255, 255),
-    TracerColor = Color3.fromRGB(0, 255, 140),
-    BoxColor = Color3.fromRGB(0, 255, 140),
+    NameEnabled = false, TracersEnabled = false, BoxEnabled = false,
+    HealthEnabled = false, ChamsEnabled = false, SkeletonEnabled = false,
+    LimitDistance = false, MaxDistance = 250,
+
+    NameColor     = Color3.fromRGB(255, 255, 255),
+    TracerColor   = Color3.fromRGB(0, 255, 140),
+    BoxColor      = Color3.fromRGB(0, 255, 140),
     SkeletonColor = Color3.fromRGB(0, 255, 140),
+    ChamsColor    = Color3.fromRGB(0, 255, 140),
+
     TextSize = 14,
     TracerThickness = 1.5,
 }
+
+-- FOV Circle
+local FOV = {
+    Enabled = false,
+    Size = 160,
+    Thickness = 1.6,
+    Color = Color3.fromRGB(0, 255, 140),
+}
+
+local FOVCircle
+if hasDrawing then
+    FOVCircle = Drawing.new("Circle")
+    FOVCircle.Thickness = FOV.Thickness
+    FOVCircle.NumSides = 64
+    FOVCircle.Filled = false
+    FOVCircle.Transparency = 1
+    FOVCircle.Visible = false
+end
 
 local ESPObjects = {}
 
@@ -272,18 +288,14 @@ local function GetBonePos(char, name)
     return part and part.Position
 end
 
--- Main ESP loop (idéntico al 4EVR)
 RunService.RenderStepped:Connect(function()
     if not hasDrawing then return end
     for player, d in pairs(ESPObjects) do
         local char = player.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then
-            d.Name.Visible = false
-            d.Distance.Visible = false
-            d.Tracer.Visible = false
-            d.Box.Visible = false
-            d.HealthBg.Visible = false
-            d.Health.Visible = false
+            d.Name.Visible = false; d.Distance.Visible = false
+            d.Tracer.Visible = false; d.Box.Visible = false
+            d.HealthBg.Visible = false; d.Health.Visible = false
             if d.Highlight then d.Highlight.Enabled = false end
             for _, line in pairs(d.Skeleton) do line.Visible = false end
             continue
@@ -294,12 +306,9 @@ RunService.RenderStepped:Connect(function()
         local dist3D = (hrp.Position - cam.CFrame.Position).Magnitude
 
         if ESP.LimitDistance and dist3D > ESP.MaxDistance then
-            d.Name.Visible = false
-            d.Distance.Visible = false
-            d.Tracer.Visible = false
-            d.Box.Visible = false
-            d.HealthBg.Visible = false
-            d.Health.Visible = false
+            d.Name.Visible = false; d.Distance.Visible = false
+            d.Tracer.Visible = false; d.Box.Visible = false
+            d.HealthBg.Visible = false; d.Health.Visible = false
             if d.Highlight then d.Highlight.Enabled = false end
             for _, line in pairs(d.Skeleton) do line.Visible = false end
             continue
@@ -311,14 +320,13 @@ RunService.RenderStepped:Connect(function()
         if ESP.ChamsEnabled then
             if not d.Highlight or not d.Highlight.Parent then
                 local hl = Instance.new("Highlight")
-                hl.FillColor = ESP.BoxColor
                 hl.OutlineColor = Color3.new(1,1,1)
                 hl.FillTransparency = 0.5
                 hl.Parent = char
                 d.Highlight = hl
             end
             d.Highlight.Enabled = true
-            d.Highlight.FillColor = ESP.BoxColor
+            d.Highlight.FillColor = ESP.ChamsColor
         else
             if d.Highlight then d.Highlight.Enabled = false end
         end
@@ -330,7 +338,6 @@ RunService.RenderStepped:Connect(function()
             local boxSize = Vector2.new(sizeY * 1.5, sizeY * 2.2)
             local boxPos = Vector2.new(pos.X - boxSize.X/2, pos.Y - boxSize.Y/2)
 
-            -- NAME + DISTANCE
             if ESP.NameEnabled then
                 d.Name.Text = player.Name
                 d.Name.Size = ESP.TextSize
@@ -348,7 +355,6 @@ RunService.RenderStepped:Connect(function()
                 d.Distance.Visible = false
             end
 
-            -- TRACER
             if ESP.TracersEnabled then
                 d.Tracer.From = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y)
                 d.Tracer.To = Vector2.new(pos.X, pos.Y)
@@ -359,7 +365,6 @@ RunService.RenderStepped:Connect(function()
                 d.Tracer.Visible = false
             end
 
-            -- BOX
             if ESP.BoxEnabled then
                 d.Box.Size = boxSize
                 d.Box.Position = boxPos
@@ -369,7 +374,6 @@ RunService.RenderStepped:Connect(function()
                 d.Box.Visible = false
             end
 
-            -- HEALTH BAR
             if ESP.HealthEnabled then
                 local hp = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
                 d.HealthBg.Size = Vector2.new(3, boxSize.Y)
@@ -384,7 +388,6 @@ RunService.RenderStepped:Connect(function()
                 d.Health.Visible = false
             end
 
-            -- SKELETON
             if ESP.SkeletonEnabled then
                 local function scr(p)
                     if not p then return nil end
@@ -426,18 +429,25 @@ RunService.RenderStepped:Connect(function()
                 for _, line in pairs(d.Skeleton) do line.Visible = false end
             end
         else
-            d.Name.Visible = false
-            d.Distance.Visible = false
-            d.Tracer.Visible = false
-            d.Box.Visible = false
-            d.HealthBg.Visible = false
-            d.Health.Visible = false
+            d.Name.Visible = false; d.Distance.Visible = false
+            d.Tracer.Visible = false; d.Box.Visible = false
+            d.HealthBg.Visible = false; d.Health.Visible = false
             for _, line in pairs(d.Skeleton) do line.Visible = false end
         end
     end
 end)
 
-print("[5] ESP (Drawing) OK")
+-- FOV Circle loop
+RunService.RenderStepped:Connect(function()
+    if not hasDrawing or not FOVCircle then return end
+    FOVCircle.Position = Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)
+    FOVCircle.Radius = FOV.Size
+    FOVCircle.Thickness = FOV.Thickness
+    FOVCircle.Color = FOV.Color
+    FOVCircle.Visible = FOV.Enabled
+end)
+
+print("[5] ESP + FOV OK")
 
 local function setupInfiniteJump()
     if Config.InfiniteJump and not State.infJumpConn then
@@ -668,7 +678,6 @@ local content = new("Frame", {
     Position = UDim2.new(0, sideW, 0, 0), Size = UDim2.new(1, -sideW, 1, 0),
 }, body)
 
--- DRAG
 local dS, sP
 titleBar.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -713,7 +722,6 @@ minBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- FLOAT BUTTON
 local floatBtn = new("TextButton", {
     Name = "FloatButton", BackgroundColor3 = T.BG,
     Size = UDim2.fromOffset(130, 34), Position = UDim2.new(0, 20, 0, 20),
@@ -776,7 +784,6 @@ end
 registerAccent(function() winTitle.TextColor3 = T.ACCENT end)
 registerAccent(function() floatBtn.TextColor3 = T.ACCENT end)
 
--- TABS
 local tabs, activeTab = {}, nil
 local function createTab(title)
     local tab = { Title = title, Content = nil, Button = nil }
@@ -824,11 +831,9 @@ local function createTab(title)
         end
         activeTab = tab
         tab.Content.Visible = true
-
         tab.Content.BackgroundTransparency = 1
         tab.Content.Position = UDim2.new(0, 22, 0, 10)
         tw(tab.Content, { Position = UDim2.new(0, 10, 0, 10) }, 0.22)
-
         tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT, TextColor3 = T.TEXT })
         s.Color = T.ACCENT; s.Transparency = 0
     end)
@@ -889,7 +894,9 @@ local function refreshActiveUI()
 end
 print("[11] refreshActiveUI OK")
 
--- ═══════════════ COMPONENTES ═══════════════
+-- ═══════════════════════════════════════════════════════════
+-- COMPONENTES
+-- ═══════════════════════════════════════════════════════════
 local function section(tab, title)
     local sec = new("Frame", {
         BackgroundColor3 = T.PANEL, Size = UDim2.new(1, 0, 0, 26),
@@ -1020,7 +1027,6 @@ local function input(tab, cfg)
     end)
 end
 
--- ═══════════════ SLIDER (NUEVO) ═══════════════
 local function slider(tab, cfg)
     cfg = cfg or {}
     local min = cfg.Min or 0
@@ -1109,6 +1115,123 @@ local function slider(tab, cfg)
         fill.BackgroundColor3 = T.ACCENT
         valLbl.TextColor3 = T.ACCENT
     end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- COLOR PICKER AVANZADO (RGB sliders)
+-- ═══════════════════════════════════════════════════════════
+local function colorPickerRGB(tab, title, defaultColor, callback)
+    local c = new("Frame", {
+        BackgroundColor3 = T.ELEMENT, Size = UDim2.new(1, 0, 0, 160),
+        BorderSizePixel = 0,
+    }, tab.Content)
+    corner(c, 6); stroke(c, T.BORDER_SOFT, 1, 0.15)
+
+    new("TextLabel", {
+        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 10),
+        Size = UDim2.new(1, -70, 0, 15), Font = FONT_B,
+        Text = title, TextColor3 = T.TEXT, TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    }, c)
+
+    -- Preview + Hex
+    local preview = new("Frame", {
+        BackgroundColor3 = defaultColor,
+        Position = UDim2.new(1, -56, 0, 8),
+        Size = UDim2.fromOffset(42, 42),
+        BorderSizePixel = 0,
+    }, c)
+    corner(preview, 5); stroke(preview, T.BORDER_SOFT, 1, 0.4)
+
+    local hexLbl = new("TextLabel", {
+        BackgroundTransparency = 1, Position = UDim2.new(1, -60, 0, 52),
+        Size = UDim2.fromOffset(50, 12), Font = FONT,
+        Text = "#------", TextColor3 = T.TEXT_DIM, TextSize = 9,
+        TextXAlignment = Enum.TextXAlignment.Center,
+    }, c)
+
+    local curR = math.floor(defaultColor.R * 255 + 0.5)
+    local curG = math.floor(defaultColor.G * 255 + 0.5)
+    local curB = math.floor(defaultColor.B * 255 + 0.5)
+
+    local function apply()
+        local col = Color3.fromRGB(curR, curG, curB)
+        preview.BackgroundColor3 = col
+        hexLbl.Text = string.format("#%02X%02X%02X", curR, curG, curB)
+        if callback then callback(col) end
+    end
+
+    local function buildSlider(y, label, initialVal, tint, onChange)
+        new("TextLabel", {
+            BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, y),
+            Size = UDim2.new(0, 20, 0, 16), Font = FONT_B,
+            Text = label, TextColor3 = tint, TextSize = 11,
+            TextXAlignment = Enum.TextXAlignment.Left,
+        }, c)
+
+        local valLbl = new("TextLabel", {
+            BackgroundTransparency = 1, Position = UDim2.new(1, -54, 0, y),
+            Size = UDim2.new(0, 40, 0, 16), Font = FONT_B,
+            Text = tostring(initialVal), TextColor3 = T.TEXT, TextSize = 10,
+            TextXAlignment = Enum.TextXAlignment.Right,
+        }, c)
+
+        local barBg = new("Frame", {
+            BackgroundColor3 = T.OFF, Position = UDim2.new(0, 36, 0, y + 4),
+            Size = UDim2.new(1, -102, 0, 8), BorderSizePixel = 0,
+        }, c)
+        corner(barBg, 4); stroke(barBg, T.BORDER_SOFT, 1, 0.25)
+
+        local pct0 = initialVal / 255
+        local fill = new("Frame", {
+            BackgroundColor3 = tint, Size = UDim2.new(pct0, 0, 1, 0),
+            BorderSizePixel = 0,
+        }, barBg)
+        corner(fill, 4)
+
+        local knob = new("Frame", {
+            BackgroundColor3 = T.TEXT, Size = UDim2.fromOffset(12, 12),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(pct0, 0, 0.5, 0), BorderSizePixel = 0,
+        }, barBg)
+        corner(knob, 6); stroke(knob, T.BORDER_SOFT, 1)
+
+        local dragging = false
+        local function setFromX(x)
+            local abs = barBg.AbsolutePosition.X
+            local w = barBg.AbsoluteSize.X
+            local pct = math.clamp((x - abs) / w, 0, 1)
+            local v = math.floor(pct * 255 + 0.5)
+            fill.Size = UDim2.new(pct, 0, 1, 0)
+            knob.Position = UDim2.new(pct, 0, 0.5, 0)
+            valLbl.Text = tostring(v)
+            onChange(v)
+            apply()
+        end
+
+        barBg.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                setFromX(i.Position.X)
+            end
+        end)
+        UIS.InputChanged:Connect(function(i)
+            if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+                setFromX(i.Position.X)
+            end
+        end)
+        UIS.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+    end
+
+    buildSlider(66, "R", curR, Color3.fromRGB(255, 90, 90), function(v) curR = v end)
+    buildSlider(94, "G", curG, Color3.fromRGB(90, 255, 120), function(v) curG = v end)
+    buildSlider(122, "B", curB, Color3.fromRGB(90, 150, 255), function(v) curB = v end)
+
+    apply()
 end
 
 local ACCENT_PRESETS = {
@@ -1252,7 +1375,7 @@ input(tabMovement, { Title = "Walk Speed", Desc = "Velocidad de caminar (16 - 10
     end })
 
 -- ═══════════════════════════════════════════════════════════
--- VISUAL TAB (nueva, con todos los ESPs del 4EVR)
+-- VISUAL TAB
 -- ═══════════════════════════════════════════════════════════
 section(tabVisual, "ESP Toggles")
 toggle(tabVisual, { Title = "ESP Name + Distance", Desc = "Nombre y distancia arriba del jugador", Value = false,
@@ -1280,7 +1403,25 @@ toggle(tabVisual, { Title = "Limitar distancia ESP", Desc = "Oculta ESPs lejanos
 slider(tabVisual, { Title = "Max Distance", Min = 50, Max = 500, Step = 10, Default = 250,
     Callback = function(v) ESP.MaxDistance = v end })
 
+-- ═══ NUEVO: COLORES ESP INDIVIDUALES ═══
 section(tabVisual, "Colores ESP")
+colorPickerRGB(tabVisual, "Name Color", ESP.NameColor, function(c) ESP.NameColor = c end)
+colorPickerRGB(tabVisual, "Tracer Color", ESP.TracerColor, function(c) ESP.TracerColor = c end)
+colorPickerRGB(tabVisual, "Box Color", ESP.BoxColor, function(c) ESP.BoxColor = c end)
+colorPickerRGB(tabVisual, "Skeleton Color", ESP.SkeletonColor, function(c) ESP.SkeletonColor = c end)
+colorPickerRGB(tabVisual, "Chams Color", ESP.ChamsColor, function(c) ESP.ChamsColor = c end)
+
+-- ═══ NUEVO: FOV CIRCLE ═══
+section(tabVisual, "FOV Circle")
+toggle(tabVisual, { Title = "Mostrar FOV Circle", Desc = "Circulo central para referencia del aim", Value = false,
+    Callback = function(v) FOV.Enabled = v end })
+slider(tabVisual, { Title = "FOV Size", Min = 40, Max = 400, Step = 1, Default = 160,
+    Callback = function(v) FOV.Size = v end })
+slider(tabVisual, { Title = "FOV Thickness", Min = 0.5, Max = 4, Step = 0.1, Default = 1.6,
+    Callback = function(v) FOV.Thickness = v end })
+colorPickerRGB(tabVisual, "FOV Color", FOV.Color, function(c) FOV.Color = c end)
+
+section(tabVisual, "Tema UI")
 colorPicker(tabVisual, "Color de acento")
 
 -- UTILS
@@ -1302,5 +1443,5 @@ refreshActiveUI()
 
 print("[15] Opciones OK")
 
-notify("Bragao Hub v8", "ESP con Drawing API", T.ACCENT)
+notify("Bragao Hub v9", "FOV Circle + Color Pickers RGB", T.ACCENT)
 print("[16] LISTO")
