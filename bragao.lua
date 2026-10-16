@@ -195,48 +195,7 @@ local function GetNearestTarget(maxDist)
 end
 
 -- ============================================================
--- SORU AIM
--- ============================================================
-local mouse = lp:GetMouse()
-pcall(function()
-    local mt = getrawmetatable(game)
-    local oldIndex = mt.__index
-    setreadonly(mt, false)
-    mt.__index = newcclosure(function(self, key)
-        if not soruAimEnabled then return oldIndex(self, key) end
-        if (key == "Hit" or key == "Target") and self == mouse then
-            local enemy = getClosestPlayer()
-            if enemy and enemy.Character then
-                local eHRP = enemy.Character:FindFirstChild("HumanoidRootPart")
-                if eHRP then
-                    if key == "Hit" then return CFrame.new(eHRP.Position)
-                    elseif key == "Target" then return eHRP end
-                end
-            end
-        end
-        return oldIndex(self, key)
-    end)
-    setreadonly(mt, true)
-end)
-
--- ============================================================
--- INF SORU
--- ============================================================
-local function setupInfSoru(char)
-    if infSoruEnabled then pcall(function() char:SetAttribute("FlashstepCooldown", 2) end) end
-end
-local function startInfSoru()
-    if lp.Character then pcall(function() lp.Character:SetAttribute("FlashstepCooldown", 2) end) end
-    if infSoruConn then infSoruConn:Disconnect() end
-    infSoruConn = lp.CharacterAdded:Connect(setupInfSoru)
-end
-local function stopInfSoru()
-    if infSoruConn then infSoruConn:Disconnect(); infSoruConn = nil end
-    pcall(function() if lp.Character then lp.Character:SetAttribute("FlashstepCooldown", 0) end end)
-end
-
--- ============================================================
--- SILENT AIM
+-- SILENT AIM (Básico para no fallar)
 -- ============================================================
 local function installSilentAim()
     if silentInstalled then return end
@@ -274,15 +233,6 @@ local function installSilentAim()
                         if silentAimPlayersEnabled and PlayersPosition then return OldHook(self, PlayersPosition, V2, ...)
                         elseif silentAimNPCsEnabled and NPCPosition then return OldHook(self, NPCPosition, V2, ...) end
                     end
-                    if type(V1) == "string" and table.find(Booms, V1) and zSkillOrM1 then
-                        if silentAimPlayersEnabled and PlayersPosition then return OldHook(self, V1, PlayersPosition, nil, ...)
-                        elseif silentAimNPCsEnabled and NPCPosition then return OldHook(self, V1, NPCPosition, nil, ...) end
-                    end
-                elseif Method == "invokeserver" then
-                    if type(V1) == "string" and table.find(Skills, V1) then
-                        if silentAimPlayersEnabled and PlayersPosition then return OldHook(self, V1, PlayersPosition, nil, ...)
-                        elseif silentAimNPCsEnabled and NPCPosition then return OldHook(self, V1, NPCPosition, nil, ...) end
-                    end
                 end
                 return OldHook(self, V1, V2, ...)
             end)
@@ -318,35 +268,6 @@ local function startAimlock()
     end)
 end
 
-pcall(function()
-    if not getgenv().ZSkillHooked then
-        getgenv().ZSkillHooked = true
-        local oldNC
-        oldNC = hookmetamethod(game, "__namecall", function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
-            if method == "InvokeServer" or method == "FireServer" then
-                local a1 = args[1]
-                if typeof(a1) == "string" and a1:upper() == "Z" then
-                    if currentTool and currentTool.Name == "Godhuman" then godhumanZActive = true end
-                end
-            end
-            return oldNC(self, ...)
-        end)
-    end
-end)
-
-UIS.TouchEnded:Connect(function(touch)
-    if not zSkillsEnabled then return end
-    local cam = workspace.CurrentCamera
-    if not cam or not touch or not touch.Position then return end
-    if touch.Position.X > cam.ViewportSize.X / 2 then
-        if currentTool and currentTool.Name == "Godhuman" and godhumanZActive then
-            if not aimlockActive then startAimlock() end
-        end
-    end
-end)
-
 -- ============================================================
 -- AUTO KEN
 -- ============================================================
@@ -360,20 +281,7 @@ local function startAutoKenLoop()
                 local char = lp.Character
                 if not char then return end
                 if game:GetService("CollectionService"):HasTag(char, "Ken") then
-                    local playerGui = lp:FindFirstChild("PlayerGui")
-                    if playerGui then
-                        local kenButton = playerGui:FindFirstChild("MobileContextButtons")
-                            and playerGui.MobileContextButtons.ContextButtonFrame:FindFirstChild("BoundActionKen")
-                        if kenButton and kenButton:GetAttribute("Selected") ~= true then
-                            kenButton:SetAttribute("Selected", true)
-                        end
-                    end
-                    local observationManager = getrenv()._G.OM
-                    if observationManager and not observationManager.active then
-                        observationManager.radius = 0
-                        observationManager:setActive(true)
-                        if CommE then CommE:FireServer("Ken", true) end
-                    end
+                    if CommE then CommE:FireServer("Ken", true) end
                 end
             end)
         end
@@ -461,34 +369,105 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ============================================================
--- V3 AUTO
+-- UI TABS
 -- ============================================================
-local v3Loop = nil
-local function startV3Loop()
-    if v3LoopRunning then return end
-    v3LoopRunning = true
-    v3Loop = task.spawn(function()
-        while v3LoopRunning do
-            if not lp or not lp.Parent then break end
-            pcall(function() if CommE then CommE:FireServer("ActivateAbility") end end)
-            task.wait(31)
-        end
-        v3Loop = nil
-    end)
-end
-local function stopV3Loop() v3LoopRunning = false; v3Loop = nil end
+local CombatTab = Window:CreateTab("Combat", "🗡️")
+local AimTab = Window:CreateTab("Aim", "🎯")
+local MovementTab = Window:CreateTab("Movement", "🏃")
+local UtilsTab = Window:CreateTab("Utils", "⚙️")
 
 -- ============================================================
--- BUNNY HOP
+-- COMBAT TAB
 -- ============================================================
-local function installBunnyHop()
-    if bunnyHopHooked then return end
-    bunnyHopHooked = true
-    pcall(function()
-        local old
-        old = hookmetamethod(game, "__namecall", function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
-            if (method == "InvokeServer" or method == "FireServer") then
-                local a1 = args[1]
+CombatTab:CreateToggle("Soru Aim", soruAimEnabled, function(value)
+    soruAimEnabled = value
+end)
 
+CombatTab:CreateToggle("Infinite Soru", infSoruEnabled, function(value)
+    infSoruEnabled = value
+end)
+
+CombatTab:CreateToggle("Auto Ken", autoKenEnabled, function(value)
+    autoKenEnabled = value
+    if value then startAutoKenLoop() end
+end)
+
+CombatTab:CreateToggle("Z Skills (Aimlock)", zSkillsEnabled, function(value)
+    zSkillsEnabled = value
+    if value then startAimlock() else stopAimlock() end
+end)
+
+-- ============================================================
+-- AIM TAB
+-- ============================================================
+AimTab:CreateToggle("Silent Aim Players", silentAimPlayersEnabled, function(value)
+    silentAimPlayersEnabled = value
+    if value then installSilentAim() end
+end)
+
+AimTab:CreateToggle("Silent Aim NPCs", silentAimNPCsEnabled, function(value)
+    silentAimNPCsEnabled = value
+    if value then installSilentAim() end
+end)
+
+AimTab:CreateToggle("Prediction", predictionEnabled, function(value)
+    predictionEnabled = value
+end)
+
+AimTab:CreateSlider("Prediction Amount", 0, 1, 0.1, function(value)
+    predictionAmount = value
+end)
+
+-- ============================================================
+-- MOVEMENT TAB
+-- ============================================================
+MovementTab:CreateToggle("Infinite Jump", infJumpEnabled, function(value)
+    infJumpEnabled = value
+    if value and not infJumpConn then
+        infJumpConn = UIS.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if input.KeyCode == Enum.KeyCode.Space then
+                local hum = getHum()
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end
+        end)
+    elseif not value and infJumpConn then
+        infJumpConn:Disconnect()
+        infJumpConn = nil
+    end
+end)
+
+MovementTab:CreateToggle("Walk on Water", walkWaterEnabled, function(value)
+    walkWaterEnabled = value
+end)
+
+MovementTab:CreateSlider("Walk Speed", 16, 100, 16, function(value)
+    walkSpeedValue = value
+    local hum = getHum()
+    if hum then hum.WalkSpeed = value end
+end)
+
+-- ============================================================
+-- UTILS TAB
+-- ============================================================
+UtilsTab:CreateToggle("ESP", espEnabled, function(value)
+    espEnabled = value
+end)
+
+UtilsTab:CreateToggle("Anti AFK", antiAfkEnabled, function(value)
+    antiAfkEnabled = value
+    if value then
+        task.spawn(function()
+            while antiAfkEnabled do
+                task.wait(60)
+                pcall(function()
+                    game:GetService("VirtualUser"):CaptureController()
+                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
+                end)
+            end
+        end)
+    end
+end)
+
+print("[braga Hub] ✅ Script cargado correctamente")
+print("[braga Hub] Para desactivar: presiona el botón de cerrar en la ventana")
