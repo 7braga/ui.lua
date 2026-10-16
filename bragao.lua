@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v5 - Script completo
+-- BRAGAO HUB v6 - Notifs pequeñas + Animación de tabs
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -308,14 +308,14 @@ local screenGui = new("ScreenGui", {
 }, lp:WaitForChild("PlayerGui"))
 print("[6] ScreenGui OK")
 
--- NOTIFS
+-- NOTIFS (más chico)
 local notifHolder = new("Frame", {
     Name = "Notifs", BackgroundTransparency = 1,
-    Size = UDim2.fromOffset(280, 400),
-    Position = UDim2.new(1, -300, 0, 60),
+    Size = UDim2.fromOffset(210, 400),
+    Position = UDim2.new(1, -226, 0, 60),
 }, screenGui)
 new("UIListLayout", {
-    Padding = UDim.new(0, 6),
+    Padding = UDim.new(0, 5),
     HorizontalAlignment = Enum.HorizontalAlignment.Right,
     VerticalAlignment = Enum.VerticalAlignment.Top,
     SortOrder = Enum.SortOrder.LayoutOrder,
@@ -323,31 +323,36 @@ new("UIListLayout", {
 
 local function notify(title, content, color)
     color = color or T.ACCENT
-    local h = content and 52 or 36
+    local h = content and 38 or 26
     local card = new("Frame", {
         BackgroundColor3 = T.PANEL, BackgroundTransparency = 1,
         Size = UDim2.new(1, 0, 0, h), BorderSizePixel = 0,
     }, notifHolder)
-    corner(card, 6); stroke(card, T.BORDER_SOFT, 1, 0.15)
+    corner(card, 5); stroke(card, T.BORDER_SOFT, 1, 0.2)
 
     local bar = new("Frame", {
-        BackgroundColor3 = color, Size = UDim2.new(0, 3, 1, 0), BorderSizePixel = 0,
+        BackgroundColor3 = color, Size = UDim2.new(0, 2, 1, 0), BorderSizePixel = 0,
     }, card)
 
     local tl = new("TextLabel", {
-        BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 6),
-        Size = UDim2.new(1, -20, 0, 16), Font = FONT_B,
-        Text = title, TextColor3 = T.TEXT, TextSize = 12,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 9, 0, content and 4 or 0),
+        Size = UDim2.new(1, -16, 0, content and 13 or 26),
+        Font = FONT_B,
+        Text = title, TextColor3 = T.TEXT, TextSize = 10,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, card)
 
     local cl
     if content then
         cl = new("TextLabel", {
-            BackgroundTransparency = 1, Position = UDim2.new(0, 12, 0, 24),
-            Size = UDim2.new(1, -20, 0, 20), Font = FONT,
-            Text = content, TextColor3 = T.TEXT_DIM, TextSize = 10,
-            TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true,
+            BackgroundTransparency = 1,
+            Position = UDim2.new(0, 9, 0, 18),
+            Size = UDim2.new(1, -16, 0, 15),
+            Font = FONT,
+            Text = content, TextColor3 = T.TEXT_DIM, TextSize = 9,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
         }, card)
     end
 
@@ -357,13 +362,13 @@ local function notify(title, content, color)
     tw(bar, { BackgroundTransparency = 0 }, 0.15)
 
     task.spawn(function()
-        task.wait(2.2)
+        task.wait(1.8)
         if not card.Parent then return end
-        tw(card, { BackgroundTransparency = 1 }, 0.25)
-        tw(tl, { TextTransparency = 1 }, 0.25)
-        if cl then tw(cl, { TextTransparency = 1 }, 0.25) end
-        tw(bar, { BackgroundTransparency = 1 }, 0.25)
-        task.wait(0.3)
+        tw(card, { BackgroundTransparency = 1 }, 0.22)
+        tw(tl, { TextTransparency = 1 }, 0.22)
+        if cl then tw(cl, { TextTransparency = 1 }, 0.22) end
+        tw(bar, { BackgroundTransparency = 1 }, 0.22)
+        task.wait(0.28)
         if card.Parent then card:Destroy() end
     end)
 end
@@ -573,7 +578,7 @@ end
 registerAccent(function() winTitle.TextColor3 = T.ACCENT end)
 registerAccent(function() floatBtn.TextColor3 = T.ACCENT end)
 
--- TABS
+-- TABS (con animación de apertura)
 local tabs, activeTab = {}, nil
 local function createTab(title)
     local tab = { Title = title, Content = nil, Button = nil }
@@ -621,6 +626,12 @@ local function createTab(title)
         end
         activeTab = tab
         tab.Content.Visible = true
+
+        -- Animación de entrada del content
+        tab.Content.BackgroundTransparency = 1
+        tab.Content.Position = UDim2.new(0, 22, 0, 10)
+        tw(tab.Content, { Position = UDim2.new(0, 10, 0, 10) }, 0.22)
+
         tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT, TextColor3 = T.TEXT })
         s.Color = T.ACCENT; s.Transparency = 0
     end)
@@ -632,6 +643,9 @@ local function createTab(title)
     table.insert(tabs, tab)
     if #tabs == 1 then
         tab.Content.Visible = true; activeTab = tab
+        tab.Content.BackgroundTransparency = 1
+        tab.Content.Position = UDim2.new(0, 22, 0, 10)
+        tw(tab.Content, { Position = UDim2.new(0, 10, 0, 10) }, 0.22)
         tw(tab.Button, { BackgroundColor3 = T.ELEMENT_ACT, TextColor3 = T.TEXT })
         s.Color = T.ACCENT; s.Transparency = 0
     end
@@ -977,5 +991,5 @@ section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
 print("[15] Opciones OK")
 
-notify("Bragao Hub v5", "UI cargada correctamente", T.ACCENT)
+notify("Bragao Hub v6", "UI cargada correctamente", T.ACCENT)
 print("[16] LISTO")
