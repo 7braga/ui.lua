@@ -1,313 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB - UI CUSTOM CON TABS
--- ═══════════════════════════════════════════════════════════
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local lp = Players.LocalPlayer
-
-print("[bragao Hub] ✅ Iniciando...")
-
--- ═══════════════════════════════════════════════════════════
--- CONFIGURACIÓN
--- ═══════════════════════════════════════════════════════════
-local Config = {
-    SilentAimPlayers = false,
-    SilentAimNPCs = false,
-    Prediction = false,
-    PredictionAmount = 0.1,
-    AutoKen = false,
-    ESP = false,
-    InfiniteJump = false,
-    WalkSpeed = 16,
-    AntiAFK = false,
-}
-
-local State = {
-    silentInstalled = false,
-    autoKenRunning = false,
-    infJumpConn = nil,
-    PlayersPosition = nil,
-    NPCPosition = nil,
-    maxRange = 500,
-    antiAFKRunning = false,
-}
-
--- Remotes
-local CommE, CommF
-pcall(function() CommE = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommE", 5) end)
-pcall(function() CommF = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommF_", 5) end)
-
--- ═══════════════════════════════════════════════════════════
--- FUNCIONES BASE
--- ═══════════════════════════════════════════════════════════
-local function getHRP()
-    local char = lp.Character
-    return char and char:FindFirstChild("HumanoidRootPart")
-end
-
-local function getHum()
-    local char = lp.Character
-    return char and char:FindFirstChildOfClass("Humanoid")
-end
-
-local function isEnemy(targetPlayer)
-    if not targetPlayer or targetPlayer == lp then return false end
-    local myTeam = lp.Team
-    local targetTeam = targetPlayer.Team
-    if myTeam and targetTeam then
-        if myTeam.Name == "Pirates" and targetTeam.Name == "Marines" then return true
-        elseif myTeam.Name == "Marines" and targetTeam.Name == "Pirates" then return true end
-    end
-    return true
-end
-
-local function getPredictedPosition(hrp)
-    if not hrp then return nil end
-    local humanoid = hrp.Parent:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return hrp.Position end
-    if not Config.Prediction or humanoid.WalkSpeed < 5 then return hrp.Position end
-    return hrp.Position + (hrp.AssemblyLinearVelocity * Config.PredictionAmount)
-end
-
-local function getClosestPlayer()
-    local hrp = getHRP()
-    if not hrp then return nil end
-    local closest, closestDist = nil, State.maxRange
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= lp and isEnemy(p) and p.Character then
-            local hum = p.Character:FindFirstChildOfClass("Humanoid")
-            local eHRP = p.Character:FindFirstChild("HumanoidRootPart")
-            if hum and hum.Health > 0 and eHRP then
-                local dist = (eHRP.Position - hrp.Position).Magnitude
-                if dist < closestDist then closestDist = dist; closest = p end
-            end
-        end
-    end
-    return closest
-end
-
-local function getClosestNPC()
-    local hrp = getHRP()
-    if not hrp then return nil end
-    local closest, closestDist = nil, State.maxRange
-    local enemies = workspace:FindFirstChild("Enemies")
-    if not enemies then return nil end
-    for _, v in ipairs(enemies:GetChildren()) do
-        local eHRP = v:FindFirstChild("HumanoidRootPart")
-        local hum = v:FindFirstChildOfClass("Humanoid")
-        if eHRP and hum and hum.Health > 0 then
-            local dist = (eHRP.Position - hrp.Position).Magnitude
-            if dist < closestDist then closestDist = dist; closest = v end
-        end
-    end
-    return closest
-end
-
--- ═══════════════════════════════════════════════════════════
--- SILENT AIM
--- ═══════════════════════════════════════════════════════════
-local function installSilentAim()
-    if State.silentInstalled then return end
-    State.silentInstalled = true
-    print("[Silent Aim] Instalado ✅")
-
-    RunService.Heartbeat:Connect(function()
-        if not Config.SilentAimPlayers and not Config.SilentAimNPCs then
-            State.PlayersPosition = nil; State.NPCPosition = nil; return
-        end
-        if Config.SilentAimPlayers then
-            local enemy = getClosestPlayer()
-            if enemy and enemy.Character then
-                local eHRP = enemy.Character:FindFirstChild("HumanoidRootPart")
-                State.PlayersPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else State.PlayersPosition = nil end
-        else State.PlayersPosition = nil end
-        if Config.SilentAimNPCs then
-            local npc = getClosestNPC()
-            if npc then
-                local eHRP = npc:FindFirstChild("HumanoidRootPart")
-                State.NPCPosition = eHRP and getPredictedPosition(eHRP) or nil
-            else State.NPCPosition = nil end
-        else State.NPCPosition = nil end
-    end)
-
-    pcall(function()
-        local ok, hookMeta = pcall(getrawmetatable, game)
-        if ok and hookMeta then
-            setreadonly(hookMeta, false)
-            local OldHook
-            OldHook = hookmetamethod(game, "__namecall", function(self, V1, V2, ...)
-                local Method = (getnamecallmethod and getnamecallmethod():lower()) or ""
-                if tostring(self) == "RemoteEvent" and Method == "fireserver" then
-                    if typeof(V1) == "Vector3" then
-                        if Config.SilentAimPlayers and State.PlayersPosition then return OldHook(self, State.PlayersPosition, V2, ...)
-                        elseif Config.SilentAimNPCs and State.NPCPosition then return OldHook(self, State.NPCPosition, V2, ...) end
-                    end
-                end
-                return OldHook(self, V1, V2, ...)
-            end)
-            setreadonly(hookMeta, true)
-        end
-    end)
-end
-
--- ═══════════════════════════════════════════════════════════
--- AUTO KEN
--- ═══════════════════════════════════════════════════════════
-local function startAutoKenLoop()
-    if State.autoKenRunning then return end
-    State.autoKenRunning = true
-    print("[Auto Ken] Iniciado ✅")
-    task.spawn(function()
-        while Config.AutoKen do
-            task.wait(0.1)
-            pcall(function()
-                local char = lp.Character
-                if not char then return end
-                if game:GetService("CollectionService"):HasTag(char, "Ken") then
-                    if CommE then CommE:FireServer("Ken", true) end
-                end
-            end)
-        end
-        State.autoKenRunning = false
-    end)
-end
-
--- ═══════════════════════════════════════════════════════════
--- ESP
--- ═══════════════════════════════════════════════════════════
-local ESPs = {}
-local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
-if not espFolder then
-    espFolder = Instance.new("Folder")
-    espFolder.Name = "GlobalESP"
-    espFolder.Parent = game.CoreGui
-end
-
-local function getESPColor(p)
-    if p == lp then return Color3.fromRGB(0, 255, 0) end
-    if isEnemy(p) then return Color3.fromRGB(255, 80, 80) end
-    return Color3.fromRGB(0, 255, 0)
-end
-
-local function createESP(targetPlayer)
-    if ESPs[targetPlayer] then return end
-    local char = targetPlayer.Character
-    if not char then return end
-    local head = char:FindFirstChild("Head")
-    if not head then return end
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = targetPlayer.Name; billboard.Adornee = head
-    billboard.Size = UDim2.fromOffset(220, 50); billboard.AlwaysOnTop = true
-    billboard.StudsOffset = Vector3.new(0, 3, 0); billboard.Parent = espFolder
-    local levelLabel = Instance.new("TextLabel")
-    levelLabel.Name = "LevelLabel"; levelLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    levelLabel.BackgroundTransparency = 1; levelLabel.Text = "Lv. ???"
-    levelLabel.TextColor3 = Color3.fromRGB(0, 170, 255); levelLabel.TextStrokeTransparency = 0.2
-    levelLabel.Font = Enum.Font.SourceSansBold; levelLabel.TextSize = 14
-    levelLabel.Parent = billboard
-    local mainLabel = Instance.new("TextLabel")
-    mainLabel.Name = "MainLabel"; mainLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    mainLabel.Position = UDim2.new(0, 0, 0.5, 0); mainLabel.BackgroundTransparency = 1
-    mainLabel.Text = "[0] " .. targetPlayer.DisplayName .. " (0m)"
-    mainLabel.TextColor3 = getESPColor(targetPlayer); mainLabel.TextStrokeTransparency = 0.2
-    mainLabel.Font = Enum.Font.SourceSansBold; mainLabel.TextSize = 16
-    mainLabel.Parent = billboard
-    ESPs[targetPlayer] = billboard
-end
-
-RunService.Heartbeat:Connect(function()
-    if not Config.ESP then
-        for _, gui in pairs(ESPs) do if gui then gui.Enabled = false end end
-        return
-    end
-    for _, targetPlayer in pairs(Players:GetPlayers()) do
-        if targetPlayer ~= lp then
-            if not ESPs[targetPlayer] then createESP(targetPlayer) end
-            local gui = ESPs[targetPlayer]
-            if gui then
-                local char = targetPlayer.Character
-                local head = char and char:FindFirstChild("Head")
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                local hum = char and char:FindFirstChildOfClass("Humanoid")
-                local myHRP = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-                if char and head and hrp and hum and myHRP then
-                    gui.Adornee = head; gui.Enabled = true
-                    local dist = (myHRP.Position - hrp.Position).Magnitude
-                    local nameLabel = gui:FindFirstChild("MainLabel")
-                    local levelLabel = gui:FindFirstChild("LevelLabel")
-                    if levelLabel then
-                        local dataFolder = targetPlayer:FindFirstChild("Data")
-                        local levelValue = dataFolder and dataFolder:FindFirstChild("Level")
-                        levelLabel.Text = levelValue and ("Lv. " .. levelValue.Value) or "Lv. ???"
-                    end
-                    if nameLabel then
-                        nameLabel.Text = "[" .. math.floor(hum.Health) .. "] " .. targetPlayer.DisplayName .. " (" .. math.floor(dist) .. "m)"
-                        nameLabel.TextColor3 = getESPColor(targetPlayer)
-                    end
-                else gui.Enabled = false end
-            end
-        end
-    end
-end)
-
--- ═══════════════════════════════════════════════════════════
--- INFINITE JUMP
--- ═══════════════════════════════════════════════════════════
-local function setupInfiniteJump()
-    if Config.InfiniteJump and not State.infJumpConn then
-        print("[Infinite Jump] Activado ✅")
-        State.infJumpConn = UIS.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if input.KeyCode == Enum.KeyCode.Space then
-                local hum = getHum()
-                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-            end
-        end)
-    elseif not Config.InfiniteJump and State.infJumpConn then
-        print("[Infinite Jump] Desactivado ❌")
-        State.infJumpConn:Disconnect()
-        State.infJumpConn = nil
-    end
-end
-
--- ═══════════════════════════════════════════════════════════
--- WALK SPEED
--- ═══════════════════════════════════════════════════════════
-RunService.Heartbeat:Connect(function()
-    if Config.WalkSpeed > 16 then
-        local hum = getHum()
-        if hum then hum.WalkSpeed = Config.WalkSpeed end
-    end
-end)
-
--- ═══════════════════════════════════════════════════════════
--- ANTI AFK
--- ═══════════════════════════════════════════════════════════
-local function setupAntiAFK()
-    if Config.AntiAFK and not State.antiAFKRunning then
-        State.antiAFKRunning = true
-        print("[Anti-AFK] Activado ✅")
-        task.spawn(function()
-            while Config.AntiAFK do
-                task.wait(60)
-                pcall(function()
-                    game:GetService("VirtualUser"):CaptureController()
-                    game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
-                end)
-            end
-            State.antiAFKRunning = false
-        end)
-    end
-end
-
--- ═══════════════════════════════════════════════════════════
--- ═══════════════════════════════════════════════════════════
---                NUEVA UI CON TABS
--- ═══════════════════════════════════════════════════════════
+--                NUEVA UI CON TABS (v2 · Minimalista)
 -- ═══════════════════════════════════════════════════════════
 
 local T = {
@@ -326,6 +18,12 @@ local T = {
     CLOSE_HOV   = Color3.fromRGB(175, 45, 45),
     MIN_HOV     = Color3.fromRGB(55, 55, 55),
 }
+
+-- ─── Fuente minimalista ───
+local FONT      = Enum.Font.SourceSans
+local FONT_SEMI = Enum.Font.SourceSansSemibold
+local FONT_BOLD = Enum.Font.SourceSansBold
+
 local TweenService = game:GetService("TweenService")
 local function tw(i, p, t) TweenService:Create(i, TweenInfo.new(t or 0.15), p):Play() end
 
@@ -349,11 +47,11 @@ local screenGui = new("ScreenGui", {
     IgnoreGuiInset = true,
 }, lp:WaitForChild("PlayerGui"))
 
--- MAIN
+-- MAIN (más pequeña: 500x380)
 local mainFrame = new("Frame", {
     Name = "MainFrame",
-    Size = UDim2.fromOffset(560, 420),
-    Position = UDim2.new(0.5, -280, 0.5, -210),
+    Size = UDim2.fromOffset(500, 380),
+    Position = UDim2.new(0.5, -250, 0.5, -190),
     BackgroundColor3 = T.BG,
     BorderSizePixel = 0, Active = true, ClipsDescendants = true,
 }, screenGui)
@@ -363,7 +61,7 @@ stroke(mainFrame, T.BORDER_HL, 1)
 -- TITLEBAR
 local titleBar = new("Frame", {
     Name = "TitleBar",
-    Size = UDim2.new(1, 0, 0, 38),
+    Size = UDim2.new(1, 0, 0, 36),
     BackgroundColor3 = T.TITLEBAR,
     BorderSizePixel = 0,
 }, mainFrame)
@@ -373,24 +71,24 @@ new("Frame", { BackgroundColor3 = T.TITLEBAR, Size = UDim2.new(1, 0, 0, 14),
 new("Frame", { BackgroundColor3 = T.BORDER, Size = UDim2.new(1, 0, 0, 1),
     Position = UDim2.new(0, 0, 1, -1), BorderSizePixel = 0 }, titleBar)
 
--- Titulo
+-- Título con símbolo ◆
 new("TextLabel", {
     BackgroundTransparency = 1,
-    Position = UDim2.new(0, 14, 0, 0),
+    Position = UDim2.new(0, 46, 0, 0),
     Size = UDim2.new(0, 300, 1, 0),
-    Font = Enum.Font.GothamBold,
-    Text = "⚡ BRAGAO HUB",
+    Font = FONT_SEMI,
+    Text = "◆  BRAGAO HUB",
     TextColor3 = Color3.fromRGB(255, 200, 0),
-    TextSize = 15,
+    TextSize = 14,
     TextXAlignment = Enum.TextXAlignment.Left,
 }, titleBar)
 
 -- ✕ Cerrar
 local closeBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(1, -38, 0, 9),
-    Size = UDim2.fromOffset(28, 20),
-    Font = Enum.Font.GothamBold, Text = "✕",
+    Position = UDim2.new(1, -36, 0, 8),
+    Size = UDim2.fromOffset(26, 20),
+    Font = FONT_SEMI, Text = "✕",
     TextColor3 = T.TEXT, TextSize = 12,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
@@ -400,10 +98,10 @@ stroke(closeBtn, T.BORDER, 1)
 -- — Minimizar
 local minBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(1, -72, 0, 9),
-    Size = UDim2.fromOffset(28, 20),
-    Font = Enum.Font.GothamBold, Text = "—",
-    TextColor3 = T.TEXT, TextSize = 14,
+    Position = UDim2.new(1, -68, 0, 8),
+    Size = UDim2.fromOffset(26, 20),
+    Font = FONT_SEMI, Text = "—",
+    TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(minBtn, 4)
@@ -412,17 +110,14 @@ stroke(minBtn, T.BORDER, 1)
 -- ☰ toggle sidebar
 local menuBtn = new("TextButton", {
     BackgroundColor3 = T.ELEMENT,
-    Position = UDim2.new(0, 10, 0, 9),
-    Size = UDim2.fromOffset(28, 20),
-    Font = Enum.Font.GothamBold, Text = "☰",
-    TextColor3 = T.TEXT, TextSize = 12,
+    Position = UDim2.new(0, 10, 0, 8),
+    Size = UDim2.fromOffset(26, 20),
+    Font = FONT_SEMI, Text = "≡",
+    TextColor3 = T.TEXT, TextSize = 13,
     AutoButtonColor = false, BorderSizePixel = 0,
 }, titleBar)
 corner(menuBtn, 4)
 stroke(menuBtn, T.BORDER, 1)
-
--- Reubicar título
-titleBar:FindFirstChildOfClass("TextLabel").Position = UDim2.new(0, 46, 0, 0)
 
 -- Hovers
 menuBtn.MouseEnter:Connect(function()  tw(menuBtn,  { BackgroundColor3 = T.MIN_HOV })   end)
@@ -435,12 +130,12 @@ closeBtn.MouseLeave:Connect(function() tw(closeBtn, { BackgroundColor3 = T.ELEME
 -- BODY
 local body = new("Frame", {
     Name = "Body", BackgroundTransparency = 1,
-    Position = UDim2.new(0, 0, 0, 38),
-    Size = UDim2.new(1, 0, 1, -38),
+    Position = UDim2.new(0, 0, 0, 36),
+    Size = UDim2.new(1, 0, 1, -36),
 }, mainFrame)
 
 -- SIDEBAR
-local sideW = 150
+local sideW = 140
 local sidebar = new("Frame", {
     Name = "Sidebar",
     BackgroundColor3 = T.PANEL,
@@ -518,7 +213,7 @@ minBtn.MouseButton1Click:Connect(function()
     if minimized then
         savedSize = mainFrame.Size
         body.Visible = false
-        tw(mainFrame, { Size = UDim2.fromOffset(280, 38) }, 0.2)
+        tw(mainFrame, { Size = UDim2.fromOffset(260, 36) }, 0.2)
     else
         body.Visible = true
         tw(mainFrame, { Size = savedSize }, 0.2)
@@ -539,7 +234,6 @@ local activeTab = nil
 local function createTab(title)
     local tab = { Title = title, Content = nil, Button = nil }
 
-    -- Contenido
     tab.Content = new("ScrollingFrame", {
         Name = title,
         BackgroundTransparency = 1,
@@ -556,11 +250,10 @@ local function createTab(title)
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, tab.Content)
 
-    -- Botón sidebar
     tab.Button = new("TextButton", {
         BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, 34),
-        Font = Enum.Font.Gotham,
+        Size = UDim2.new(1, 0, 0, 32),
+        Font = FONT,
         Text = "  " .. title,
         TextColor3 = T.TEXT, TextSize = 12,
         AutoButtonColor = false, BorderSizePixel = 0,
@@ -604,7 +297,7 @@ end
 local function section(tab, title)
     local sec = new("Frame", {
         BackgroundColor3 = T.PANEL,
-        Size = UDim2.new(1, 0, 0, 28),
+        Size = UDim2.new(1, 0, 0, 26),
         BorderSizePixel = 0,
     }, tab.Content)
     corner(sec, 6)
@@ -613,7 +306,7 @@ local function section(tab, title)
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 12, 0, 0),
         Size = UDim2.new(1, -20, 1, 0),
-        Font = Enum.Font.GothamBold, Text = title,
+        Font = FONT_SEMI, Text = title,
         TextColor3 = T.TEXT, TextSize = 11,
         TextXAlignment = Enum.TextXAlignment.Left,
     }, sec)
@@ -624,7 +317,7 @@ local function toggle(tab, cfg)
     cfg = cfg or {}
     local c = new("Frame", {
         BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, cfg.Desc and 52 or 42),
+        Size = UDim2.new(1, 0, 0, cfg.Desc and 48 or 38),
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6)
@@ -632,9 +325,9 @@ local function toggle(tab, cfg)
 
     new("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 12, 0, cfg.Desc and 7 or 0),
-        Size = UDim2.new(1, -100, 0, cfg.Desc and 16 or 42),
-        Font = Enum.Font.GothamBold,
+        Position = UDim2.new(0, 12, 0, cfg.Desc and 6 or 0),
+        Size = UDim2.new(1, -100, 0, cfg.Desc and 15 or 38),
+        Font = FONT_SEMI,
         Text = cfg.Title or "Toggle",
         TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -643,9 +336,9 @@ local function toggle(tab, cfg)
     if cfg.Desc and cfg.Desc ~= "" then
         new("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 12, 0, 24),
-            Size = UDim2.new(1, -100, 0, 14),
-            Font = Enum.Font.Gotham,
+            Position = UDim2.new(0, 12, 0, 22),
+            Size = UDim2.new(1, -100, 0, 13),
+            Font = FONT,
             Text = cfg.Desc,
             TextColor3 = T.TEXT_DIM, TextSize = 10,
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -654,21 +347,21 @@ local function toggle(tab, cfg)
 
     local switch = new("Frame", {
         BackgroundColor3 = cfg.Value and T.ON or T.OFF,
-        Position = UDim2.new(1, -60, 0.5, 0),
+        Position = UDim2.new(1, -58, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        Size = UDim2.fromOffset(46, 24),
+        Size = UDim2.fromOffset(44, 22),
         BorderSizePixel = 0,
     }, c)
-    corner(switch, 12)
+    corner(switch, 11)
     stroke(switch, T.BORDER, 1)
 
     local knob = new("Frame", {
         BackgroundColor3 = T.TEXT,
-        Position = cfg.Value and UDim2.new(1, -22, 0, 2) or UDim2.new(0, 2, 0, 2),
-        Size = UDim2.fromOffset(20, 20),
+        Position = cfg.Value and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2),
+        Size = UDim2.fromOffset(18, 18),
         BorderSizePixel = 0,
     }, switch)
-    corner(knob, 10)
+    corner(knob, 9)
 
     local btn = new("TextButton", {
         BackgroundTransparency = 1,
@@ -680,7 +373,7 @@ local function toggle(tab, cfg)
     btn.MouseButton1Click:Connect(function()
         state = not state
         tw(switch, { BackgroundColor3 = state and T.ON or T.OFF }, 0.2)
-        tw(knob, { Position = state and UDim2.new(1, -22, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
+        tw(knob, { Position = state and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2) }, 0.2)
         if cfg.Callback then cfg.Callback(state) end
     end)
     return btn
@@ -690,7 +383,7 @@ local function input(tab, cfg)
     cfg = cfg or {}
     local c = new("Frame", {
         BackgroundColor3 = T.ELEMENT,
-        Size = UDim2.new(1, 0, 0, cfg.Desc and 78 or 62),
+        Size = UDim2.new(1, 0, 0, cfg.Desc and 72 or 58),
         BorderSizePixel = 0,
     }, tab.Content)
     corner(c, 6)
@@ -698,9 +391,9 @@ local function input(tab, cfg)
 
     new("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 12, 0, 7),
-        Size = UDim2.new(1, -100, 0, 16),
-        Font = Enum.Font.GothamBold,
+        Position = UDim2.new(0, 12, 0, 6),
+        Size = UDim2.new(1, -100, 0, 15),
+        Font = FONT_SEMI,
         Text = cfg.Title or "Input",
         TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
@@ -709,20 +402,20 @@ local function input(tab, cfg)
     if cfg.Desc and cfg.Desc ~= "" then
         new("TextLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 12, 0, 24),
-            Size = UDim2.new(1, -100, 0, 14),
-            Font = Enum.Font.Gotham,
+            Position = UDim2.new(0, 12, 0, 22),
+            Size = UDim2.new(1, -100, 0, 13),
+            Font = FONT,
             Text = cfg.Desc,
             TextColor3 = T.TEXT_DIM, TextSize = 10,
             TextXAlignment = Enum.TextXAlignment.Left,
         }, c)
     end
 
-    local boxY = (cfg.Desc and cfg.Desc ~= "") and 44 or 30
+    local boxY = (cfg.Desc and cfg.Desc ~= "") and 42 or 28
     local box = new("Frame", {
         BackgroundColor3 = T.BG,
         Position = UDim2.new(0, 12, 0, boxY),
-        Size = UDim2.new(1, -24, 0, 26),
+        Size = UDim2.new(1, -24, 0, 24),
         BorderSizePixel = 0,
     }, c)
     corner(box, 5)
@@ -732,11 +425,11 @@ local function input(tab, cfg)
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 8, 0, 0),
         Size = UDim2.new(1, -16, 1, 0),
-        Font = Enum.Font.Gotham,
+        Font = FONT,
         Text = tostring(cfg.Value or ""),
         PlaceholderText = cfg.Placeholder or "escribe aquí...",
         PlaceholderColor3 = T.TEXT_DIM,
-        TextColor3 = T.TEXT, TextSize = 11,
+        TextColor3 = T.TEXT, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left,
         ClearTextOnFocus = false,
     }, box)
@@ -748,14 +441,68 @@ local function input(tab, cfg)
 end
 
 -- ═══════════════════════════════════════════════════════════
--- CREAR TABS Y OPCIONES
+-- WATERMARK (FPS + Ping)
+-- ═══════════════════════════════════════════════════════════
+local watermarkEnabled = false
+
+local wmFrame = new("Frame", {
+    Name = "Watermark",
+    BackgroundColor3 = T.BG,
+    BackgroundTransparency = 0.15,
+    Size = UDim2.fromOffset(220, 24),
+    Position = UDim2.new(1, -230, 0, 8),
+    Visible = false,
+    BorderSizePixel = 0,
+}, screenGui)
+corner(wmFrame, 5)
+stroke(wmFrame, T.BORDER, 1)
+
+local wmLabel = new("TextLabel", {
+    BackgroundTransparency = 1,
+    Size = UDim2.new(1, -10, 1, 0),
+    Position = UDim2.new(0, 5, 0, 0),
+    Font = FONT_SEMI,
+    Text = "◆  BRAGAO HUB  ·  FPS: --  ·  -- ms",
+    TextColor3 = T.TEXT,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Center,
+}, wmFrame)
+
+-- Contador de FPS
+local fpsCount, fpsTime, currentFPS = 0, 0, 60
+RunService.RenderStepped:Connect(function(dt)
+    fpsCount = fpsCount + 1
+    fpsTime = fpsTime + dt
+    if fpsTime >= 1 then
+        currentFPS = fpsCount
+        fpsCount = 0
+        fpsTime = 0
+    end
+end)
+
+-- Actualizar watermark cada 0.5s
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if watermarkEnabled then
+            local ping = 0
+            pcall(function()
+                ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+            end)
+            wmLabel.Text = string.format("◆  BRAGAO HUB  ·  FPS: %d  ·  %d ms", currentFPS, ping)
+        end
+    end
+end)
+
+-- ═══════════════════════════════════════════════════════════
+-- CREAR TABS Y OPCIONES (símbolos en vez de emojis)
 -- ═══════════════════════════════════════════════════════════
 
-local tabCombat    = createTab("⚔️ Combat")
-local tabAim       = createTab("🎯 Aim")
-local tabMovement  = createTab("🏃 Movement")
-local tabVisual    = createTab("👁️ Visual")
-local tabUtils     = createTab("⚙️ Utils")
+local tabCombat    = createTab("⌖  Combat")
+local tabAim       = createTab("◎  Aim")
+local tabMovement  = createTab("➤  Movement")
+local tabVisual    = createTab("◉  Visual")
+local tabUtils     = createTab("⚙  Utils")
 
 -- ─────── COMBAT ───────
 section(tabCombat, "Silent Aim")
@@ -862,7 +609,7 @@ input(tabMovement, {
 section(tabVisual, "ESP")
 toggle(tabVisual, {
     Title = "ESP Players",
-    Desc = "Muestra info de jugadores (nombre, vida, distancia)",
+    Desc = "Muestra nombre, vida y distancia",
     Value = false,
     Callback = function(v)
         Config.ESP = v
@@ -883,6 +630,18 @@ toggle(tabUtils, {
     end
 })
 
+section(tabUtils, "Interfaz")
+toggle(tabUtils, {
+    Title = "Watermark",
+    Desc = "Muestra FPS y Ping en pantalla",
+    Value = false,
+    Callback = function(v)
+        watermarkEnabled = v
+        wmFrame.Visible = v
+        print("[Config] Watermark: " .. tostring(v))
+    end
+})
+
 -- ═══════════════════════════════════════════════════════════
 -- FINAL
 -- ═══════════════════════════════════════════════════════════
@@ -891,10 +650,5 @@ print("╔═══════════════════════�
 print("║  ✅ BRAGAO HUB CARGADO CORRECTAMENTE  ║")
 print("╚════════════════════════════════════════╝")
 print("")
-print("📍 TABS DISPONIBLES:")
-print("   ⚔️  Combat   → Silent Aim Players / NPCs / Auto Ken")
-print("   🎯  Aim      → Prediction / Amount / Max Range")
-print("   🏃  Movement → Infinite Jump / Walk Speed")
-print("   👁️  Visual   → ESP")
-print("   ⚙️  Utils    → Anti-AFK")
+print("   TABS: Combat · Aim · Movement · Visual · Utils")
 print("")
