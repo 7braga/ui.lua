@@ -1,31 +1,23 @@
+-- ═══════════════════════════════════════════════════════════
+-- BRAGAO HUB - SIN WINDUI - UI CUSTOM FUNCIONAL
+-- ═══════════════════════════════════════════════════════════
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local lp = Players.LocalPlayer
 
-print("[bragao Hub] Iniciando carga...")
+print("[bragao Hub] ✅ Iniciando sin WindUI...")
 
--- WINDUI PRIMERO
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
-print("[bragao Hub] WindUI cargado ✅")
-
-local Window = WindUI:CreateWindow({
-    Title = "braga Hub | Blox Fruits",
-    Author = "by bragao",
-    Folder = "BragaoHub",
-    Icon = "home",
-})
-
-print("[bragao Hub] Ventana creada ✅")
-
--- VARIABLES
+-- ═══════════════════════════════════════════════════════════
+-- CONFIGURACIÓN
+-- ═══════════════════════════════════════════════════════════
 local Config = {
     SilentAimPlayers = false,
     SilentAimNPCs = false,
     Prediction = false,
     PredictionAmount = 0.1,
-    ZSkills = false,
     AutoKen = false,
     ESP = false,
     InfiniteJump = false,
@@ -40,6 +32,7 @@ local State = {
     PlayersPosition = nil,
     NPCPosition = nil,
     maxRange = 500,
+    antiAFKRunning = false,
 }
 
 -- Remotes
@@ -47,9 +40,10 @@ local CommE, CommF
 pcall(function() CommE = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommE", 5) end)
 pcall(function() CommF = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("CommF_", 5) end)
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- FUNCIONES BASE
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 local function getHRP()
     local char = lp.Character
     return char and char:FindFirstChild("HumanoidRootPart")
@@ -113,9 +107,10 @@ local function getClosestNPC()
     return closest
 end
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- SILENT AIM
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 local function installSilentAim()
     if State.silentInstalled then return end
     State.silentInstalled = true
@@ -161,9 +156,10 @@ local function installSilentAim()
     end)
 end
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- AUTO KEN
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 local function startAutoKenLoop()
     if State.autoKenRunning then return end
     State.autoKenRunning = true
@@ -183,9 +179,10 @@ local function startAutoKenLoop()
     end)
 end
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- ESP
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 local ESPs = {}
 local espFolder = game.CoreGui:FindFirstChild("GlobalESP")
 if not espFolder then
@@ -261,9 +258,10 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- INFINITE JUMP
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 local function setupInfiniteJump()
     if Config.InfiniteJump and not State.infJumpConn then
         print("[Infinite Jump] Activado ✅")
@@ -281,9 +279,10 @@ local function setupInfiniteJump()
     end
 end
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- WALK SPEED
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+
 RunService.Heartbeat:Connect(function()
     if Config.WalkSpeed > 16 then
         local hum = getHum()
@@ -291,13 +290,13 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
 -- ANTI AFK
--- ============================================================
-local antiAFKRunning = false
+-- ═══════════════════════════════════════════════════════════
+
 local function setupAntiAFK()
-    if Config.AntiAFK and not antiAFKRunning then
-        antiAFKRunning = true
+    if Config.AntiAFK and not State.antiAFKRunning then
+        State.antiAFKRunning = true
         print("[Anti-AFK] Activado ✅")
         task.spawn(function()
             while Config.AntiAFK do
@@ -307,92 +306,280 @@ local function setupAntiAFK()
                     game:GetService("VirtualUser"):ClickButton1(Vector2.new(0, 0))
                 end)
             end
-            antiAFKRunning = false
+            State.antiAFKRunning = false
         end)
     end
 end
 
--- ============================================================
--- CREAR UI - TABS Y OPCIONES
--- ============================================================
+-- ═══════════════════════════════════════════════════════════
+-- CREAR UI CUSTOM (SIN WINDUI)
+-- ═══════════════════════════════════════════════════════════
 
--- TAB 1: COMBAT
-local CombatTab = Window:CreateTab("Combat", "⚔️")
-print("[bragao Hub] Tab Combat creado ✅")
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BragaoHub"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = lp:WaitForChild("PlayerGui")
 
-CombatTab:CreateToggle("Silent Aim Players", false, function(value)
+print("[bragao Hub] ✅ ScreenGui creado")
+
+-- MAIN FRAME
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 350, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+print("[bragao Hub] ✅ Frame principal creado")
+
+-- HEADER
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 40)
+header.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 10)
+headerCorner.Parent = header
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -40, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ BRAGAO HUB"
+title.TextColor3 = Color3.fromRGB(255, 200, 0)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseBtn"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0.5, -15)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = "×"
+closeBtn.TextSize = 20
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = header
+
+local closeBtnCorner = Instance.new("UICorner")
+closeBtnCorner.CornerRadius = UDim.new(0, 5)
+closeBtnCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame:Destroy()
+end)
+
+print("[bragao Hub] ✅ Header y botón cerrar creados")
+
+-- CONTENT FRAME (scrollable)
+local contentFrame = Instance.new("ScrollingFrame")
+contentFrame.Name = "Content"
+contentFrame.Size = UDim2.new(1, 0, 1, -40)
+contentFrame.Position = UDim2.new(0, 0, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.BorderSizePixel = 0
+contentFrame.ScrollBarThickness = 3
+contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+contentFrame.Parent = mainFrame
+
+local contentLayout = Instance.new("UIListLayout")
+contentLayout.Padding = UDim.new(0, 10)
+contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+contentLayout.Parent = contentFrame
+
+local contentPadding = Instance.new("UIPadding")
+contentPadding.PaddingLeft = UDim.new(0, 10)
+contentPadding.PaddingRight = UDim.new(0, 10)
+contentPadding.PaddingTop = UDim.new(0, 10)
+contentPadding.PaddingBottom = UDim.new(0, 10)
+contentPadding.Parent = contentFrame
+
+print("[bragao Hub] ✅ Content frame creado")
+
+-- FUNCIONES PARA CREAR ELEMENTOS
+local function createLabel(text, parent)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 25)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    label.TextSize = 13
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = parent
+    return label
+end
+
+local function createToggle(text, callback, parent)
+    local toggle = Instance.new("Frame")
+    toggle.Size = UDim2.new(1, 0, 0, 30)
+    toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    toggle.BorderSizePixel = 0
+    toggle.Parent = parent
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 5)
+    toggleCorner.Parent = toggle
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 12
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = toggle
+
+    local button = Instance.new("TextButton")
+    button.Name = "ToggleButton"
+    button.Size = UDim2.new(0, 40, 0, 20)
+    button.Position = UDim2.new(1, -45, 0.5, -10)
+    button.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+    button.BorderSizePixel = 0
+    button.Text = "OFF"
+    button.TextSize = 10
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.Parent = toggle
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 3)
+    buttonCorner.Parent = button
+
+    local state = false
+    button.MouseButton1Click:Connect(function()
+        state = not state
+        button.BackgroundColor3 = state and Color3.fromRGB(80, 200, 120) or Color3.fromRGB(200, 80, 80)
+        button.Text = state and "ON" or "OFF"
+        callback(state)
+    end)
+
+    return toggle, button
+end
+
+print("[bragao Hub] ✅ Funciones de UI creadas")
+
+-- ═══════════════════════════════════════════════════════════
+-- AGREGAR ELEMENTOS A LA UI
+-- ═══════════════════════════════════════════════════════════
+
+createLabel("⚔️ COMBAT", contentFrame)
+
+createToggle("Silent Aim Players", function(value)
     Config.SilentAimPlayers = value
     if value then installSilentAim() end
     print("[Config] Silent Aim Players: " .. tostring(value))
-end)
+end, contentFrame)
 
-CombatTab:CreateToggle("Silent Aim NPCs", false, function(value)
+createToggle("Silent Aim NPCs", function(value)
     Config.SilentAimNPCs = value
     if value then installSilentAim() end
     print("[Config] Silent Aim NPCs: " .. tostring(value))
-end)
+end, contentFrame)
 
-CombatTab:CreateToggle("Auto Ken", false, function(value)
+createToggle("Auto Ken", function(value)
     Config.AutoKen = value
     if value then startAutoKenLoop() end
     print("[Config] Auto Ken: " .. tostring(value))
-end)
+end, contentFrame)
 
--- TAB 2: AIM
-local AimTab = Window:CreateTab("Aim", "🎯")
-print("[bragao Hub] Tab Aim creado ✅")
+createLabel("🎯 AIM", contentFrame)
 
-AimTab:CreateToggle("Prediction", false, function(value)
+createToggle("Prediction", function(value)
     Config.Prediction = value
     print("[Config] Prediction: " .. tostring(value))
-end)
+end, contentFrame)
 
-AimTab:CreateSlider("Prediction Amount", 0, 1, 0.1, function(value)
-    Config.PredictionAmount = value
-    print("[Config] Prediction Amount: " .. tostring(value))
-end)
+createLabel("🏃 MOVEMENT", contentFrame)
 
--- TAB 3: MOVEMENT
-local MovementTab = Window:CreateTab("Movement", "🏃")
-print("[bragao Hub] Tab Movement creado ✅")
-
-MovementTab:CreateToggle("Infinite Jump", false, function(value)
+createToggle("Infinite Jump", function(value)
     Config.InfiniteJump = value
     setupInfiniteJump()
     print("[Config] Infinite Jump: " .. tostring(value))
-end)
+end, contentFrame)
 
-MovementTab:CreateSlider("Walk Speed", 16, 100, 16, function(value)
-    Config.WalkSpeed = value
-    print("[Config] Walk Speed: " .. tostring(value))
-end)
+createLabel("👁️ VISUAL", contentFrame)
 
--- TAB 4: VISUAL
-local VisualTab = Window:CreateTab("Visual", "👁️")
-print("[bragao Hub] Tab Visual creado ✅")
-
-VisualTab:CreateToggle("ESP", false, function(value)
+createToggle("ESP", function(value)
     Config.ESP = value
     print("[Config] ESP: " .. tostring(value))
-end)
+end, contentFrame)
 
--- TAB 5: UTILS
-local UtilsTab = Window:CreateTab("Utils", "⚙️")
-print("[bragao Hub] Tab Utils creado ✅")
+createLabel("⚙️ UTILS", contentFrame)
 
-UtilsTab:CreateToggle("Anti-AFK", false, function(value)
+createToggle("Anti-AFK", function(value)
     Config.AntiAFK = value
     setupAntiAFK()
     print("[Config] Anti-AFK: " .. tostring(value))
+end, contentFrame)
+
+createLabel("Walk Speed (Slider)", contentFrame)
+
+-- Walk Speed Slider
+local walkSpeedFrame = Instance.new("Frame")
+walkSpeedFrame.Size = UDim2.new(1, 0, 0, 30)
+walkSpeedFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+walkSpeedFrame.BorderSizePixel = 0
+walkSpeedFrame.Parent = contentFrame
+
+local wsCorner = Instance.new("UICorner")
+wsCorner.CornerRadius = UDim.new(0, 5)
+wsCorner.Parent = walkSpeedFrame
+
+local slider = Instance.new("TextBox")
+slider.Size = UDim2.new(1, -10, 1, 0)
+slider.Position = UDim2.new(0, 5, 0, 0)
+slider.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+slider.TextColor3 = Color3.fromRGB(255, 255, 255)
+slider.Text = "16"
+slider.TextSize = 12
+slider.Font = Enum.Font.Gotham
+slider.BorderSizePixel = 0
+slider.Parent = walkSpeedFrame
+
+slider.FocusLost:Connect(function()
+    local num = tonumber(slider.Text)
+    if num then
+        if num < 16 then num = 16 end
+        if num > 100 then num = 100 end
+        Config.WalkSpeed = num
+        slider.Text = tostring(num)
+        print("[Config] Walk Speed: " .. tostring(num))
+    else
+        slider.Text = "16"
+    end
 end)
 
-print("[bragao Hub] ════════════════════════════════════════")
-print("[bragao Hub] ✅ SCRIPT CARGADO CORRECTAMENTE")
-print("[bragao Hub] ════════════════════════════════════════")
-print("[bragao Hub] Tabs disponibles:")
-print("[bragao Hub]  ⚔️  Combat (Silent Aim, Auto Ken)")
-print("[bragao Hub]  🎯  Aim (Prediction)")
-print("[bragao Hub]  🏃  Movement (Jump, Speed)")
-print("[bragao Hub]  👁️   Visual (ESP)")
-print("[bragao Hub]  ⚙️   Utils (Anti-AFK)")
-print("[bragao Hub] ════════════════════════════════════════")
+print("[bragao Hub] ✅ Todos los toggles y opciones creados")
+
+-- MENSAJE FINAL
+print("")
+print("╔════════════════════════════════════════╗")
+print("║  ✅ BRAGAO HUB CARGADO CORRECTAMENTE  ║")
+print("╚════════════════════════════════════════╝")
+print("")
+print("📍 OPCIONES DISPONIBLES:")
+print("   ⚔️  Silent Aim Players")
+print("   ⚔️  Silent Aim NPCs")
+print("   ⚔️  Auto Ken")
+print("   🎯  Prediction")
+print("   🏃  Infinite Jump")
+print("   🏃  Walk Speed")
+print("   👁️   ESP")
+print("   ⚙️   Anti-AFK")
+print("")
+print("🎮 Haz click en los toggles para activar/desactivar")
+print("")
