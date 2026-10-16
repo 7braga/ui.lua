@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
--- BRAGAO HUB v7.2 - Tracer ESP desde el personaje (FIXED)
+-- BRAGAO HUB v7.3 - Tracer ESP estable + centrado (FIXED)
 -- ═══════════════════════════════════════════════════════════
 print("[1] Iniciando...")
 
@@ -322,21 +322,25 @@ RunService.RenderStepped:Connect(function()
                 if bd then bd.frame.Visible = false end
             end
 
-            -- TRACER ESP (desde tu personaje hacia el enemigo)
+            -- TRACER ESP (desde el centro de tu personaje al centro del enemigo)
             if Config.TracerESP then
                 local trData = getOrCreateTracer(tp)
                 if alive and myHRP then
-                    local targetPos = head.Position
-                    local sp, onScreen = cam:WorldToViewportPoint(targetPos)
-                    local originPos, onOrigin = cam:WorldToViewportPoint(myHead and myHead.Position or myHRP.Position)
-                    if onScreen and sp.Z > 0 and onOrigin and originPos.Z > 0 then
-                        local dx = sp.X - originPos.X
-                        local dy = sp.Y - originPos.Y
+                    local origin3D = myHRP.Position
+                    local target3D = hrp.Position
+
+                    local sp      = cam:WorldToViewportPoint(target3D)
+                    local originP = cam:WorldToViewportPoint(origin3D)
+
+                    if sp.Z > 0 and originP.Z > 0 then
+                        local dx = sp.X - originP.X
+                        local dy = sp.Y - originP.Y
                         local length = math.sqrt(dx * dx + dy * dy)
                         local angle = math.deg(math.atan2(dy, dx))
+
                         trData.frame.Visible = true
-                        trData.frame.Position = UDim2.fromOffset(originPos.X, originPos.Y)
-                        trData.frame.Size = UDim2.fromOffset(length, 1)
+                        trData.frame.Position = UDim2.fromOffset(originP.X, originP.Y)
+                        trData.frame.Size = UDim2.fromOffset(length, 1.5)
                         trData.frame.Rotation = angle
                         trData.frame.BackgroundColor3 = getESPColor(tp)
                     else
@@ -1123,5 +1127,5 @@ section(tabUtils, "Apariencia")
 colorPicker(tabUtils, "Color de acento")
 print("[15] Opciones OK")
 
-notify("Bragao Hub v7.2", "Tracer desde el personaje", T.ACCENT)
+notify("Bragao Hub v7.3", "Tracer estable + centrado", T.ACCENT)
 print("[16] LISTO")
