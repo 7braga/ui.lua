@@ -248,7 +248,7 @@ do
 	textLabel.TextXAlignment = Enum.TextXAlignment.Left
 	textLabel.TextColor3 = Color3.fromRGB(242, 242, 248)
 	textLabel.TextTransparency = 1
-	textLabel.Text = "Loading Onyx"
+	textLabel.Text = "Loading Bragas"
 	textLabel.Parent = frame2
 	local textLabel2 = Instance.new("TextLabel")
 	textLabel2.Position = UDim2.fromOffset(81, 43)
@@ -558,7 +558,7 @@ do
 	local createWindow = v3.CreateWindow
 
 	local tbl = {
-		Title = "Onyx - Premium",
+		Title = "Bragas - Premium",
 		Icon = "solar:planet-bold",
 		Author = "Murder Mystery 2",
 		Folder = "OnyxV2",
@@ -584,7 +584,7 @@ do
 	v2 = createWindow(v3, tbl)
 end
 
-v2:Tag({ Title = "@OnyxScripts", Icon = "youtube", Color = Color3.fromHex("#ffffff"), Radius = 6 })
+v2:Tag({ Title = "@Bragas", Icon = "youtube", Color = Color3.fromHex("#ffffff"), Radius = 6 })
 
 v2:Tag({
 	Title = "discord.gg/dCnvGNYANP",
@@ -596,7 +596,7 @@ v2:Tag({
 v2:Tag({ Title = "Mobile & PC", Icon = "smartphone", Color = Color3.fromHex("#ffffff"), Radius = 6 })
 
 task.spawn(function()
-	local tbl = { ["discord.gg/dCnvGNYANP"] = true, ["Mobile & PC"] = true, ["@OnyxScripts"] = true }
+	local tbl = { ["discord.gg/dCnvGNYANP"] = true, ["Mobile & PC"] = true, ["@Bragas"] = true }
 	local colorSequence = ColorSequence.new
 	local tbl2 = {}
 	local v3 = ColorSequenceKeypoint.new(0, Color3.fromRGB(26, 26, 32))
@@ -831,7 +831,7 @@ end)
 local color = Color3.fromHex
 
 v2:EditOpenButton({
-	Title = "Onyx",
+	Title = "Bragas",
 	Icon = "solar:planet-bold",
 	CornerRadius = UDim.new(0, 16),
 	StrokeThickness = 2,
@@ -1267,7 +1267,7 @@ tbl.discordFetch = function()
 	end
 
 	tbl.discordInfo = {
-		name = result.guild.name or "Onyx Scripts",
+		name = result.guild.name or "Bragas",
 		members = result.approximate_member_count,
 		online = result.approximate_presence_count,
 		icon = str2,
@@ -1359,7 +1359,7 @@ tbl.discordCard = function(arg)
 	}
 
 	local paragraph = arg.Paragraph
-	local tbl3 = { Title = v3 and v3.name or "Onyx Scripts" }
+	local tbl3 = { Title = v3 and v3.name or "Bragas" }
 	local str
 
 	if v3 then
@@ -1536,7 +1536,7 @@ tbl.card = function(arg)
 		textLabel.TextXAlignment = Enum.TextXAlignment.Left
 		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		textLabel.TextTransparency = 1
-		textLabel.Text = tostring(tbl2.title or "Onyx")
+		textLabel.Text = tostring(tbl2.title or "Bragas")
 		textLabel.ZIndex = 1
 		textLabel.Parent = frame
 		local uiGradient2 = Instance.new("UIGradient", textLabel)
@@ -1816,7 +1816,7 @@ tbl.farewell = function()
 
 	tbl.card({
 		title = "Bye bye!",
-		subtitle = "Thanks for running Onyx",
+		subtitle = "Thanks for running Bragas",
 		body = "Something let you down? Tell us in the server.",
 	})
 end
@@ -12681,7 +12681,7 @@ tbl.perf.features.effects = {
 tbl.perf.el.effects = tbl11.visuals:Toggle({
 	Title = "Remove Particles & Effects",
 	Flag = "Toggle_Perf_Effects",
-	Desc = "Particles, trails, beams, smoke, fire and every dynamic light. Onyx's own ESP and crosshair stay.",
+	Desc = "Particles, trails, beams, smoke, fire and every dynamic light. Bragas' own ESP and crosshair stay.",
 	Type = "Toggle",
 	Value = false,
 	Callback = fn48(function(arg)
@@ -14016,7 +14016,7 @@ LOADUI.step(1, "Ready")
 LOADUI.done()
 
 tbl.notifyNow({
-	Title = "Onyx v2",
+	Title = "Bragas v2",
 	Content = "Loaded. G toggles the window. Invite copied - discord.gg/dCnvGNYANP",
 	Duration = 10,
 	Icon = "solar:planet-bold",
