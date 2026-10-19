@@ -71,6 +71,12 @@ local Config = {
     AimMode = "360", AimPriority = "Nearest",
     ShowFOV = false, FOVMode = "V1", FOVRadius = 150, AimMaxRange = 2000,
     Tracer = false, TracerColor = "Red",
+    ESP = false, ESPRange = 1000,
+    Tracers = false, TracerTracerColor = "White",
+    ESPName = true, ESPHealth = true, ESPHealthBar = true, ESPDistance = true, ESPBox = true,
+    ESPTool = false, ESPChams = false, ESPTextSize = 13,
+    SATracer = true, SATracerAll = true,
+    HUDShow = true, HUDLocked = false, HUDScale = 100, HUDPos = "", HUDSounds = true,
     SoruAutoAim = false, SoruAimMode = "360", SoruFOVType = "V1",
     SoruPriority = "Nearest", SoruFOVRadius = 150, SoruRange = 300, SoruShowFOV = false,
     ZBoostEnabled = false, ZBoostPower = 450, ZBoostDuration = 0.55,
@@ -1208,6 +1214,8 @@ local SilentAimModule = (function()
     local renderConnection, heartbeatConnection = nil, nil
     local currentTool, currentToolCategory = nil, "Melee"
     local PlayersPosition, NPCPosition = nil, nil
+    local CurrentTargetPlayer = nil
+    local fovCache, fovCacheTime = {}, 0
     local Selectedplayer = nil
     local characterConnections = {}
     local Skills = {"X"}
@@ -1692,6 +1700,7 @@ local SilentAimModule = (function()
                     SoruFOVFrame.Visible = false
                 end
                 pcall(function()
+                    CurrentTargetPlayer = nil
                     local lpChar = player.Character
                     if not lpChar then return end
                     local lpHRP = lpChar:FindFirstChild("HumanoidRootPart")
@@ -1705,6 +1714,7 @@ local SilentAimModule = (function()
                     if SilentAimPlayersEnabled then
                         local targetplayer = getClosestplayer(lpHRP)
                         if targetplayer and targetplayer.Character then
+                            CurrentTargetPlayer = targetplayer
                             PlayersPosition = predicted(getHRP(targetplayer.Character))
                         else
                             PlayersPosition = nil
@@ -1765,6 +1775,7 @@ local SilentAimModule = (function()
         destroyTracer()
         PlayersPosition = nil
         NPCPosition = nil
+        CurrentTargetPlayer = nil
     end
 
     -- MAIN namecall / index hooks (Nameless exact behavior)
@@ -1919,6 +1930,37 @@ local SilentAimModule = (function()
     end
     function module:SetTracerColor(color) TracerColor = color; updateTracerColor() end
     function module:GetTargetPos() return PlayersPosition or NPCPosition end
+    function module:GetTargetPlayer() return CurrentTargetPlayer end
+    function module:IsPlayerSilentAimEnabled() return SilentAimPlayersEnabled end
+    -- Enemigos (los mismos que el silent aim consideraría) cuya posición en pantalla cae dentro del círculo del FOV.
+    -- Se recalcula como máximo cada 0.1 s para no repetir el chequeo de aliados en cada frame.
+    function module:GetFOVEnemies()
+        if not SilentAimPlayersEnabled then return {} end
+        local now = os.clock()
+        if now - fovCacheTime < 0.1 then return fovCache end
+        fovCacheTime = now
+        local result = {}
+        local lpChar = player.Character
+        local lpHRP = lpChar and lpChar:FindFirstChild("HumanoidRootPart")
+        if lpHRP then
+            camera = Workspace.CurrentCamera
+            local center = getFOVCenter(FOVMode)
+            for _, pl in ipairs(Players:GetPlayers()) do
+                if pl ~= player and pl.Character and pl.Character.Parent and isEnemy(pl) then
+                    local hum = pl.Character:FindFirstChildWhichIsA("Humanoid")
+                    local hrp = getHRP(pl.Character)
+                    if hum and hum.Health > 0 and hrp and (hrp.Position - lpHRP.Position).Magnitude <= maxRange then
+                        local sp, onScreen = camera:WorldToViewportPoint(hrp.Position)
+                        if onScreen and (Vector2.new(sp.X, sp.Y) - center).Magnitude <= FOVRadius then
+                            table.insert(result, pl)
+                        end
+                    end
+                end
+            end
+        end
+        fovCache = result
+        return result
+    end
     function module:GetBlacklist() return BlacklistedKeys end
     return module
 end)()
@@ -2543,15 +2585,564 @@ local function InjectFastFlags(setId)
 end
 
 
+-- ==================== ESP SYSTEM ====================
+local TracerBeams = {}
+
+local function IsEnemy(player)
+    if player == lp then return false end
+    local myTeam = lp.Team
+    local targetTeam = player.Team
+    if not myTeam or not targetTeam then return true end
+    if myTeam.Name == "Pirates" and targetTeam.Name == "Pirates" then return false end
+    if myTeam.Name == "Marines" and targetTeam.Name == "Marines" then return false end
+    return true
+end
+
+local function GetESPColor(player)
+    if IsEnemy(player) then
+        return Color3.fromRGB(255, 0, 0)
+    else
+        return Color3.fromRGB(0, 255, 0)
+    end
+end
+
+local function CreateTracer(player)
+    if not player or not player.Character then return end
+    if TracerBeams[player] then return end
+    local myChar = lp.Character
+    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return end
+    local character = player.Character
+    local targetHRP = character:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then return end
+    local attachment0 = Instance.new("Attachment")
+    attachment0.Parent = myHRP
+    local attachment1 = Instance.new("Attachment")
+    attachment1.Parent = targetHRP
+    local beam = Instance.new("Beam")
+    beam.Attachment0 = attachment0
+    beam.Attachment1 = attachment1
+    beam.Color = ColorSequence.new(GetESPColor(player))
+    beam.Transparency = NumberSequence.new(0.5)
+    beam.Width0 = 2
+    beam.Width1 = 2
+    beam.Parent = workspace
+    TracerBeams[player] = {
+        Beam = beam,
+        Attachment0 = attachment0,
+        Attachment1 = attachment1
+    }
+end
+
+local function UpdateTracers()
+    if not Config.Tracers then
+        for player, obj in pairs(TracerBeams) do
+            if obj then
+                pcall(function()
+                    obj.Beam:Destroy()
+                    obj.Attachment0:Destroy()
+                    obj.Attachment1:Destroy()
+                end)
+            end
+        end
+        TracerBeams = {}
+        return
+    end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= lp then
+            local char = player.Character
+            if char then
+                if not TracerBeams[player] then
+                    CreateTracer(player)
+                end
+            end
+        end
+    end
+end
+
+
+-- ═══════════════════════════════════════════════════════════
+-- ESP 2D (nombre, HP, barra de vida, distancia, caja, arma, chams)
+-- + SILENT AIM FOV TRACER (línea roja a los enemigos dentro del FOV)
+-- Todo se dibuja en una ScreenGui propia, siempre visible a través de paredes.
+-- ═══════════════════════════════════════════════════════════
+do
+    -- Si el script se ejecuta dos veces, limpiar lo anterior
+    pcall(function()
+        if getgenv and getgenv().__BragaoESPConn then
+            getgenv().__BragaoESPConn:Disconnect()
+            getgenv().__BragaoESPConn = nil
+        end
+    end)
+    pcall(function()
+        local host = (gethui and gethui()) or CoreGui
+        local old = host:FindFirstChild("Bragao_ESP")
+        if old then old:Destroy() end
+    end)
+
+    local ESPGui = Instance.new("ScreenGui")
+    ESPGui.Name = "Bragao_ESP"
+    ESPGui.ResetOnSpawn = false
+    ESPGui.IgnoreGuiInset = true
+    ESPGui.DisplayOrder = 5
+    ESPGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    pcall(function()
+        if syn and syn.protect_gui then syn.protect_gui(ESPGui) end
+    end)
+    ESPGui.Parent = (gethui and gethui()) or CoreGui
+
+    local RED = Color3.fromRGB(255, 0, 0)
+    local espData = {}   -- [Player] = { Box, Stroke, BarBG, BarFill, Name, Info, Chams }
+    local saLines = {}   -- [Player] = Frame (línea roja del silent aim)
+
+    -- ---------- helpers ----------
+    local function newText(size, bold)
+        local t = Instance.new("TextLabel")
+        t.BackgroundTransparency = 1
+        t.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+        t.TextSize = size
+        t.TextStrokeTransparency = 0.35
+        t.TextColor3 = Color3.new(1, 1, 1)
+        t.Size = UDim2.fromOffset(220, size + 2)
+        t.AnchorPoint = Vector2.new(0.5, 0)
+        t.Visible = false
+        t.Parent = ESPGui
+        return t
+    end
+
+    local function createESP(pl)
+        local o = {}
+        o.Box = Instance.new("Frame")
+        o.Box.BackgroundTransparency = 1
+        o.Box.BorderSizePixel = 0
+        o.Box.Visible = false
+        o.Box.Parent = ESPGui
+        o.Stroke = Instance.new("UIStroke")
+        o.Stroke.Thickness = 1.5
+        o.Stroke.Parent = o.Box
+
+        o.BarBG = Instance.new("Frame")
+        o.BarBG.BackgroundColor3 = Color3.new(0, 0, 0)
+        o.BarBG.BackgroundTransparency = 0.3
+        o.BarBG.BorderSizePixel = 0
+        o.BarBG.Visible = false
+        o.BarBG.Parent = ESPGui
+        o.BarFill = Instance.new("Frame")
+        o.BarFill.BorderSizePixel = 0
+        o.BarFill.AnchorPoint = Vector2.new(0, 1)
+        o.BarFill.Position = UDim2.new(0, 0, 1, 0)
+        o.BarFill.Size = UDim2.new(1, 0, 1, 0)
+        o.BarFill.Parent = o.BarBG
+
+        o.Name = newText(13, true)
+        o.Info = newText(12, false)
+        espData[pl] = o
+        return o
+    end
+
+    local function hideESP(o)
+        o.Box.Visible = false
+        o.BarBG.Visible = false
+        o.Name.Visible = false
+        o.Info.Visible = false
+    end
+
+    local function setChams(o, char, on, color)
+        if on and char then
+            if not o.Chams then
+                local h = Instance.new("Highlight")
+                h.FillTransparency = 0.6
+                h.OutlineTransparency = 0
+                h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                h.Parent = ESPGui
+                o.Chams = h
+            end
+            o.Chams.Adornee = char
+            o.Chams.FillColor = color
+            o.Chams.OutlineColor = color
+            o.Chams.Enabled = true
+        elseif o.Chams then
+            o.Chams.Enabled = false
+        end
+    end
+
+    local function destroyESP(pl)
+        local o = espData[pl]
+        if o then
+            for _, k in ipairs({ "Box", "BarBG", "Name", "Info", "Chams" }) do
+                if o[k] then pcall(function() o[k]:Destroy() end) end
+            end
+            espData[pl] = nil
+        end
+        local f = saLines[pl]
+        if f then
+            pcall(function() f:Destroy() end)
+            saLines[pl] = nil
+        end
+    end
+
+    -- ---------- ESP 2D ----------
+    local function updateESP(cam, myHRP)
+        local on = Config.ESP == true
+        local range = Config.ESPRange or 1000
+        local textSize = Config.ESPTextSize or 13
+
+        for _, pl in ipairs(Players:GetPlayers()) do
+            if pl ~= lp then
+                local o = espData[pl]
+                local char = pl.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local alive = on and hum ~= nil and hrp ~= nil and hum.Health > 0
+
+                local dist = 0
+                if alive and myHRP then
+                    dist = (hrp.Position - myHRP.Position).Magnitude
+                    if dist > range then alive = false end
+                end
+
+                if not alive then
+                    if o then
+                        hideESP(o)
+                        setChams(o, nil, false)
+                    end
+                else
+                    o = o or createESP(pl)
+                    local color = GetESPColor(pl)
+                    setChams(o, char, Config.ESPChams == true, color)
+
+                    local topV = cam:WorldToViewportPoint(hrp.Position + Vector3.new(0, 3, 0))
+                    local botV = cam:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3.2, 0))
+                    if topV.Z <= 0 or botV.Z <= 0 then
+                        hideESP(o)
+                    else
+                        local h = math.max(botV.Y - topV.Y, 6)
+                        local w = h * 0.6
+                        local cx = topV.X
+                        local x, y = cx - w / 2, topV.Y
+
+                        -- caja
+                        o.Box.Visible = Config.ESPBox == true
+                        o.Box.Position = UDim2.fromOffset(x, y)
+                        o.Box.Size = UDim2.fromOffset(w, h)
+                        o.Stroke.Color = color
+
+                        -- barra de vida
+                        local maxHp = math.max(hum.MaxHealth, 1)
+                        local ratio = math.clamp(hum.Health / maxHp, 0, 1)
+                        o.BarBG.Visible = Config.ESPHealthBar == true
+                        o.BarBG.Position = UDim2.fromOffset(x - 6, y)
+                        o.BarBG.Size = UDim2.fromOffset(3, h)
+                        o.BarFill.Size = UDim2.new(1, 0, ratio, 0)
+                        o.BarFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0):Lerp(Color3.fromRGB(0, 255, 0), ratio)
+
+                        -- nombre
+                        o.Name.TextSize = textSize
+                        o.Name.TextColor3 = color
+                        o.Name.Text = pl.Name
+                        o.Name.Position = UDim2.fromOffset(cx, y - textSize - 4)
+                        o.Name.Visible = Config.ESPName == true
+
+                        -- línea de info: HP | distancia | arma
+                        local parts = {}
+                        if Config.ESPHealth then
+                            parts[#parts + 1] = "HP " .. math.floor(hum.Health) .. "/" .. math.floor(maxHp)
+                        end
+                        if Config.ESPDistance then
+                            parts[#parts + 1] = math.floor(dist) .. "m"
+                        end
+                        if Config.ESPTool then
+                            local tool = char:FindFirstChildOfClass("Tool")
+                            if tool then parts[#parts + 1] = tool.Name end
+                        end
+                        if #parts > 0 then
+                            o.Info.TextSize = textSize - 1
+                            o.Info.Text = table.concat(parts, " | ")
+                            o.Info.Position = UDim2.fromOffset(cx, y + h + 2)
+                            o.Info.Visible = true
+                        else
+                            o.Info.Visible = false
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- ---------- Silent Aim FOV Tracer ----------
+    local saLabel = newText(14, true)
+    saLabel.Text = "[ SILENT AIM ]"
+    saLabel.TextColor3 = RED
+    saLabel.ZIndex = 4
+
+    local function newLine()
+        local f = Instance.new("Frame")
+        f.BorderSizePixel = 0
+        f.AnchorPoint = Vector2.new(0.5, 0.5)
+        f.BackgroundColor3 = RED
+        f.Visible = false
+        f.Parent = ESPGui
+        return f
+    end
+
+    local function drawLine(f, a, b, thickness)
+        local d = b - a
+        local len = d.Magnitude
+        if len < 1 then
+            f.Visible = false
+            return
+        end
+        f.Size = UDim2.fromOffset(len, thickness)
+        f.Position = UDim2.fromOffset((a.X + b.X) / 2, (a.Y + b.Y) / 2)
+        f.Rotation = math.deg(math.atan2(d.Y, d.X))
+        f.Visible = true
+    end
+
+    -- Punto en pantalla; si está detrás de la cámara lo manda al borde para que la línea siga apuntando bien
+    local function screenPoint(cam, pos, vs)
+        local v = cam:WorldToViewportPoint(pos)
+        local p = Vector2.new(v.X, v.Y)
+        if v.Z <= 0 then
+            local c = vs / 2
+            local dir = c - p
+            if dir.Magnitude < 1 then dir = Vector2.new(0, 1) end
+            p = c + dir.Unit * vs.Magnitude
+            p = Vector2.new(math.clamp(p.X, 0, vs.X), math.clamp(p.Y, 0, vs.Y))
+        end
+        return p, v.Z > 0
+    end
+
+    local function updateSATracers(cam, myHRP)
+        local want = {} -- [Player] = true si es el objetivo real del silent aim, false si solo está en el FOV
+        if Config.SATracer and myHRP and SilentAimModule:IsPlayerSilentAimEnabled() then
+            if Config.SATracerAll then
+                for _, pl in ipairs(SilentAimModule:GetFOVEnemies()) do
+                    want[pl] = false
+                end
+            end
+            local target = SilentAimModule:GetTargetPlayer()
+            if target then want[target] = true end
+        end
+
+        local vs = cam.ViewportSize
+        local startP, startOk = screenPoint(cam, myHRP and myHRP.Position or Vector3.zero, vs)
+        if not myHRP or not startOk then
+            startP = Vector2.new(vs.X / 2, vs.Y)
+        end
+
+        local drawn = {}
+        local labelPos = nil
+        for pl, isTarget in pairs(want) do
+            local char = pl.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local f = saLines[pl]
+                if not f then
+                    f = newLine()
+                    saLines[pl] = f
+                end
+                local p, inFront = screenPoint(cam, hrp.Position, vs)
+                drawLine(f, startP, p, isTarget and 3 or 1.5)
+                f.BackgroundTransparency = isTarget and 0 or 0.45
+                f.ZIndex = isTarget and 3 or 2
+                drawn[pl] = true
+                if isTarget and inFront then labelPos = p end
+            end
+        end
+
+        for pl, f in pairs(saLines) do
+            if not drawn[pl] then f.Visible = false end
+        end
+
+        if labelPos then
+            saLabel.Position = UDim2.fromOffset(labelPos.X, labelPos.Y - 56)
+            saLabel.Visible = true
+        else
+            saLabel.Visible = false
+        end
+    end
+
+    Players.PlayerRemoving:Connect(destroyESP)
+
+    local conn = RunService.RenderStepped:Connect(function()
+        pcall(function()
+            local cam = Workspace.CurrentCamera
+            if not cam then return end
+            local myChar = lp.Character
+            local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+            updateESP(cam, myHRP)
+            updateSATracers(cam, myHRP)
+        end)
+    end)
+    pcall(function()
+        if getgenv then getgenv().__BragaoESPConn = conn end
+    end)
+end
+
+Players.PlayerRemoving:Connect(function(player)
+    if TracerBeams[player] then
+        pcall(function()
+            TracerBeams[player].Beam:Destroy()
+            TracerBeams[player].Attachment0:Destroy()
+            TracerBeams[player].Attachment1:Destroy()
+        end)
+        TracerBeams[player] = nil
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    UpdateTracers()
+end)
+
 -- ==================== UI ====================
-local Window = WindUI:CreateWindow({
-    Title = "Bragao Hub",
-    Icon = "star",
-    Theme = "Dark",
-})
+-- ==================== TEMA + SONIDOS + VENTANA ====================
+-- Sonidos de la UI (clic de botones, clic de interruptores)
+local SFX = {
+    quiet = false,
+    ready = false,
+    objs = {},
+    ids = { click = 139800881181209, toggle = 136108770017536 },
+    vol = { click = 0.65, toggle = 0.6 },
+}
+function SFX.play(name)
+    if Config.HUDSounds == false or not SFX.ready then return end
+    local id = SFX.ids[name]
+    if not id then return end
+    pcall(function()
+        local folder = SoundService:FindFirstChild("BragaoSFX")
+        if not folder then
+            folder = Instance.new("Folder")
+            folder.Name = "BragaoSFX"
+            folder.Parent = SoundService
+        end
+        local s = SFX.objs[name]
+        if not s or not s.Parent then
+            s = folder:FindFirstChild(name) or Instance.new("Sound")
+            s.Name = name
+            s.SoundId = "rbxassetid://" .. id
+            s.Volume = SFX.vol[name] or 0.5
+            s.Parent = folder
+            SFX.objs[name] = s
+        end
+        s.TimePosition = 0
+        s:Play()
+    end)
+end
+task.delay(3, function() SFX.ready = true end)
+
+-- Toggles que controlan los botones flotantes (se llenan al crear la UI)
+local FloatToggles = {}
+
+-- Tema de colores (paleta de Onyx/Bragas)
+local ThemeName = "Dark"
+pcall(function()
+    WindUI:AddTheme({
+        Name = "Bragas",
+        Background = WindUI:Gradient({
+            ["0"] = { Color = Color3.fromHex("#161619"), Transparency = 0.12 },
+            ["100"] = { Color = Color3.fromHex("#161619"), Transparency = 0.12 },
+        }, { Rotation = 90 }),
+        Accent = WindUI:Gradient({
+            ["0"] = { Color = Color3.fromHex("#101014"), Transparency = 0 },
+            ["100"] = { Color = Color3.fromHex("#2a2a32"), Transparency = 0 },
+        }, { Rotation = 90 }),
+        Dialog = Color3.fromHex("#141418"),
+        Outline = Color3.fromHex("#ffffff"),
+        Text = Color3.fromHex("#ffffff"),
+        Placeholder = Color3.fromHex("#a1a1aa"),
+        Button = Color3.fromHex("#3f3f46"),
+        Icon = Color3.fromHex("#d4d4d8"),
+        Toggle = Color3.fromHex("#ffffff"),
+        Slider = Color3.fromHex("#ffffff"),
+        Checkbox = Color3.fromHex("#ffffff"),
+        SliderIcon = Color3.fromHex("#71717a"),
+        Primary = Color3.fromHex("#ffffff"),
+        PanelBackground = Color3.fromHex("#ffffff"),
+        PanelBackgroundTransparency = 0.94,
+        LabelBackground = Color3.fromHex("#000000"),
+        LabelBackgroundTransparency = 0.8,
+        ElementBackground = Color3.fromHex("#18181b"),
+        ElementBackgroundTransparency = 0.3,
+    })
+    ThemeName = "Bragas"
+end)
+
+local Window
+do
+    local vp = (Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
+    local okW, res = pcall(function()
+        return WindUI:CreateWindow({
+            Title = "Bragao Hub",
+            Icon = "solar:planet-bold",
+            Folder = "BragaoHub",
+            Size = UDim2.fromOffset(math.max(560, math.min(850, vp.X - 24)), math.max(350, math.min(560, vp.Y - 24))),
+            MaxSize = Vector2.new(850, 560),
+            Theme = ThemeName,
+            Transparent = true,
+            Resizable = true,
+            Acrylic = false,
+            ShadowTransparency = 0.3,
+            Radius = 18,
+            IconRadius = 1,
+            IconSize = 27,
+            SideBarWidth = 185,
+            Topbar = { Height = 56, ButtonsType = "Default" },
+            User = { Enabled = false, Anonymous = false },
+        })
+    end)
+    if okW and res then
+        Window = res
+    else
+        warn("Bragao Hub: ventana con tema falló, usando la básica:", res)
+        Window = WindUI:CreateWindow({ Title = "Bragao Hub", Icon = "star", Theme = "Dark" })
+    end
+end
+
+pcall(function()
+    Window:Tag({ Title = "Blox Fruits", Icon = "swords", Color = Color3.fromHex("#ffffff"), Radius = 6 })
+    Window:Tag({ Title = "Mobile & PC", Icon = "smartphone", Color = Color3.fromHex("#ffffff"), Radius = 6 })
+end)
+pcall(function()
+    Window:EditOpenButton({
+        Title = "Bragao",
+        Icon = "solar:planet-bold",
+        CornerRadius = UDim.new(0, 16),
+        StrokeThickness = 2,
+        Color = ColorSequence.new(Color3.fromHex("#2a2a32"), Color3.fromHex("#c9c9d4")),
+        OnlyMobile = false,
+        Enabled = true,
+        Draggable = true,
+    })
+end)
+
+-- Sonido en interruptores (toggle) y botones de todas las pestañas
+do
+    local origTab = Window.Tab
+    Window.Tab = function(self, opts)
+        local tab = origTab(self, opts)
+        if type(tab) == "table" then
+            for method, sound in pairs({ Toggle = "toggle", Button = "click" }) do
+                local orig = tab[method]
+                if type(orig) == "function" then
+                    tab[method] = function(t, o)
+                        if type(o) == "table" then
+                            local cb = o.Callback
+                            o.Callback = function(...)
+                                if not SFX.quiet then SFX.play(sound) end
+                                if cb then return cb(...) end
+                            end
+                        end
+                        return orig(t, o)
+                    end
+                end
+            end
+        end
+        return tab
+    end
+end
 
 local Main = Window:Tab({ Title = "Main", Icon = "home" })
-Main:Toggle({ Title = "Fast Attack", Value = Config.FastAttack, Callback = function(v) Config.FastAttack = v; save() end })
+FloatToggles.FastAttack = Main:Toggle({ Title = "Fast Attack", Value = Config.FastAttack, Callback = function(v) Config.FastAttack = v; save() end })
 Main:Toggle({ Title = "Attack Players", Value = Config.FAPlayers, Callback = function(v) Config.FAPlayers = v; save() end })
 Main:Toggle({ Title = "Attack NPCs", Value = Config.FAMobs, Callback = function(v) Config.FAMobs = v; save() end })
 Main:Slider({ Title = "FA Range", Step = 50, Value = { Min = 50, Max = 5000, Default = Config.FARange }, Callback = function(v) Config.FARange = v; save() end })
@@ -2755,7 +3346,7 @@ Trackers:Toggle({
 })
 
 local Aim = Window:Tab({ Title = "Aim", Icon = "target" })
-Aim:Toggle({ Title = "Silent Aim Players", Value = Config.SilentPlayer, Callback = function(v)
+FloatToggles.Silent = Aim:Toggle({ Title = "Silent Aim Players", Value = Config.SilentPlayer, Callback = function(v)
     Config.SilentPlayer = v
     SilentAimModule:SetPlayerSilentAim(v)
     save()
@@ -2795,7 +3386,7 @@ Aim:Dropdown({
         save()
     end,
 })
-Aim:Toggle({ Title = "Show FOV Circle", Value = Config.ShowFOV, Callback = function(v)
+FloatToggles.FOV = Aim:Toggle({ Title = "Show FOV Circle", Value = Config.ShowFOV, Callback = function(v)
     Config.ShowFOV = v
     SilentAimModule:SetShowFOVCircle(v)
     save()
@@ -3038,7 +3629,7 @@ end })
 -- ==================== MOVEMENT TAB ====================
 local Movement = Window:Tab({ Title = "Movement", Icon = "person-standing" })
 Movement:Paragraph({ Title = "Fly & Speed", Desc = "Movimiento basico" })
-Movement:Toggle({
+FloatToggles.Fly = Movement:Toggle({
     Title = "Fly",
     Value = Config.Fly,
     Callback = function(v)
@@ -3053,7 +3644,7 @@ Movement:Slider({
     Value = { Min = 50, Max = 500, Default = Config.FlySpeed or 250 },
     Callback = function(v) Config.FlySpeed = v; save() end,
 })
-Movement:Toggle({
+FloatToggles.Speed = Movement:Toggle({
     Title = "Speed Hack",
     Value = Config.SpeedEnabled,
     Callback = function(v)
@@ -3079,7 +3670,7 @@ Movement:Slider({
 })
 
 Movement:Paragraph({ Title = "Movement", Desc = "Noclip, jump, dash, etc." })
-Movement:Toggle({
+FloatToggles.Noclip = Movement:Toggle({
     Title = "Noclip",
     Value = false,
     Callback = function(v)
@@ -3087,7 +3678,7 @@ Movement:Toggle({
         save()
     end,
 })
-Movement:Toggle({
+FloatToggles.InfJump = Movement:Toggle({
     Title = "Infinite Jump",
     Value = false,
     Callback = function(v)
@@ -3250,6 +3841,460 @@ Potato:Button({
         Notify("Bragao Hub", "Total: " .. tostring(n1+n2+n3) .. " flags inyectadas", 3)
     end,
 })
+
+-- ==================== VISUAL TAB ====================
+local Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
+
+Visual:Paragraph({ Title = "ESP Settings", Desc = "Ver jugadores a través de paredes" })
+FloatToggles.ESP = Visual:Toggle({
+    Title = "ESP",
+    Value = Config.ESP,
+    Callback = function(v)
+        Config.ESP = v
+        save()
+    end
+})
+
+Visual:Slider({
+    Title = "ESP Range",
+    Step = 50,
+    Value = { Min = 100, Max = 5000, Default = Config.ESPRange },
+    Callback = function(v)
+        Config.ESPRange = v
+        save()
+    end
+})
+
+for _, opt in ipairs({
+    { "ESPName", "ESP Name" },
+    { "ESPHealth", "ESP HP (texto)" },
+    { "ESPHealthBar", "ESP Barra de vida" },
+    { "ESPDistance", "ESP Distancia" },
+    { "ESPBox", "ESP Box" },
+    { "ESPTool", "ESP Arma equipada" },
+    { "ESPChams", "ESP Chams (silueta)" },
+}) do
+    Visual:Toggle({
+        Title = opt[2],
+        Value = Config[opt[1]],
+        Callback = function(v)
+            Config[opt[1]] = v
+            save()
+        end
+    })
+end
+
+Visual:Slider({
+    Title = "ESP Tamaño de texto",
+    Step = 1,
+    Value = { Min = 10, Max = 20, Default = Config.ESPTextSize },
+    Callback = function(v)
+        Config.ESPTextSize = v
+        save()
+    end
+})
+
+Visual:Paragraph({ Title = "Silent Aim Tracer", Desc = "Línea roja desde tu personaje al objetivo del silent aim (requiere Silent Aim Players activado)" })
+Visual:Toggle({
+    Title = "Silent Aim Tracer",
+    Value = Config.SATracer,
+    Callback = function(v)
+        Config.SATracer = v
+        save()
+    end
+})
+Visual:Toggle({
+    Title = "Marcar a todos los del FOV",
+    Value = Config.SATracerAll,
+    Callback = function(v)
+        Config.SATracerAll = v
+        save()
+    end
+})
+
+Visual:Paragraph({ Title = "Tracer Settings", Desc = "Líneas hasta los jugadores" })
+Visual:Toggle({ 
+    Title = "Tracers", 
+    Value = Config.Tracers, 
+    Callback = function(v) 
+        Config.Tracers = v
+        save() 
+    end 
+})
+
+-- ==================== FLOATING BUTTONS (HUD) + UI TAB ====================
+-- Botones flotantes arrastrables estilo Onyx/Bragas. Cada uno prende/apaga el toggle real de la UI,
+-- así el estado siempre coincide con el menú.
+do
+    local TweenService = game:GetService("TweenService")
+
+    -- Limpieza si el script se ejecuta dos veces
+    pcall(function()
+        if getgenv and getgenv().__BragaoHUDCleanup then
+            getgenv().__BragaoHUDCleanup()
+            getgenv().__BragaoHUDCleanup = nil
+        end
+    end)
+    pcall(function()
+        local host = (gethui and gethui()) or CoreGui
+        local old = host:FindFirstChild("Bragao_HUD")
+        if old then old:Destroy() end
+    end)
+
+    local IS_MOBILE = UIS.TouchEnabled
+    local TILE = IS_MOBILE and 72 or 84
+    local GAP = 10
+
+    local conns = {}
+    local function track(c) conns[#conns + 1] = c return c end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "Bragao_HUD"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 10
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    pcall(function()
+        if syn and syn.protect_gui then syn.protect_gui(gui) end
+    end)
+    gui.Parent = (gethui and gethui()) or CoreGui
+    gui.Enabled = Config.HUDShow ~= false
+
+    -- Posiciones guardadas: { [key] = {scaleX, offsetX, scaleY, offsetY} }
+    local saved = {}
+    pcall(function()
+        if type(Config.HUDPos) == "string" and Config.HUDPos ~= "" then
+            local d = HttpService:JSONDecode(Config.HUDPos)
+            if type(d) == "table" then saved = d end
+        end
+    end)
+    local function savePositions()
+        pcall(function() Config.HUDPos = HttpService:JSONEncode(saved) end)
+        save()
+    end
+
+    local function hudScale()
+        return math.clamp((Config.HUDScale or 100) / 100, 0.5, 1.5) * (IS_MOBILE and 0.8 or 1)
+    end
+
+    -- ---------- definición de botones ----------
+    local ICON = {
+        target = "rbxassetid://87563802520297",
+        sword = "rbxassetid://124448418211665",
+        crosshair = "rbxassetid://134242818164054",
+        plane = "rbxassetid://126985561580989",
+        ghost = "rbxassetid://113822048130017",
+        climb = "rbxassetid://100467452364672",
+    }
+
+    local function flip(toggleObj, getState)
+        if not toggleObj then return end
+        SFX.quiet = true
+        pcall(function() toggleObj:Set(not getState()) end)
+        SFX.quiet = false
+    end
+
+    local defs = {
+        { key = "Silent",  row = 1, text = "SILENT\nAIM",   color = "#2DD4BF", icon = ICON.target,
+          get = function() return Config.SilentPlayer == true end, toggle = "Silent" },
+        { key = "Attack",  row = 1, text = "FAST\nATTACK",  color = "#EF4444", icon = ICON.sword,
+          get = function() return Config.FastAttack == true end, toggle = "FastAttack" },
+        { key = "ESP",     row = 1, text = "ESP",           color = "#FACC15", glyph = "👁",
+          get = function() return Config.ESP == true end, toggle = "ESP" },
+        { key = "FOV",     row = 1, text = "SHOW\nFOV",     color = "#257AF7", icon = ICON.crosshair,
+          get = function() return Config.ShowFOV == true end, toggle = "FOV" },
+        { key = "Fly",     row = 2, text = "FLY",           color = "#38BDF8", icon = ICON.plane,
+          get = function() return Config.Fly == true end, toggle = "Fly" },
+        { key = "Noclip",  row = 2, text = "NOCLIP",        color = "#94A3B8", icon = ICON.ghost,
+          get = function() return MovementState.Noclip == true end, toggle = "Noclip" },
+        { key = "Speed",   row = 2, text = "SPEED",         color = "#F97316", glyph = "⚡",
+          get = function() return Config.SpeedEnabled == true end, toggle = "Speed" },
+        { key = "Jump",    row = 2, text = "INF\nJUMP",     color = "#A855F7", icon = ICON.climb,
+          get = function() return MovementState.InfiniteJump == true end, toggle = "InfJump" },
+    }
+
+    local tiles = {}
+
+    local function defaultPosition(def, index)
+        local perRow = 4
+        local col = index - (def.row - 1) * perRow
+        local s = hudScale()
+        return UDim2.new(0.5, (col - (perRow + 1) / 2) * (TILE + GAP) * s, 0.25, (def.row - 1) * (TILE + GAP) * s)
+    end
+
+    local function tween(obj, props, t)
+        TweenService:Create(obj, TweenInfo.new(t or 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+    end
+
+    local function setActive(tile, active, instant)
+        tile.active = active
+        local set = instant and function(o, p) for k, v in pairs(p) do o[k] = v end end or tween
+        set(tile.stroke, { Transparency = active and 0 or 0.15 })
+        set(tile.plate, { BackgroundTransparency = active and 0.35 or 0.82 })
+        set(tile.plateStroke, { Transparency = active and 0.15 or 0.55 })
+        set(tile.label, { TextColor3 = active and Color3.fromRGB(240, 240, 246) or Color3.fromRGB(146, 146, 158) })
+        if tile.icon then
+            local c = tile.accent
+            local mix = active and 0.8 or 0.55
+            set(tile.icon, { ImageColor3 = Color3.new(c.R + (1 - c.R) * mix, c.G + (1 - c.G) * mix, c.B + (1 - c.B) * mix) })
+        end
+        if tile.glyphLabel then
+            set(tile.glyphLabel, { TextTransparency = active and 0 or 0.35 })
+        end
+    end
+
+    local function buildTile(def, index)
+        local accent = Color3.fromHex(def.color)
+        local tile = { def = def, accent = accent, active = false }
+
+        local btn = Instance.new("TextButton")
+        btn.Name = def.key .. "Btn"
+        btn.Size = UDim2.fromOffset(TILE, TILE)
+        local p = saved[def.key]
+        btn.Position = (type(p) == "table" and #p == 4) and UDim2.new(p[1], p[2], p[3], p[4]) or defaultPosition(def, index)
+        btn.AnchorPoint = Vector2.new(0.5, 0.5)
+        btn.Text = ""
+        btn.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
+        btn.BackgroundTransparency = 0.18
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = false
+        btn.ZIndex = 2
+        btn.Parent = gui
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 16)
+
+        local scale = Instance.new("UIScale")
+        scale.Scale = hudScale()
+        scale.Parent = btn
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 1.5
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Color = accent
+        stroke.Transparency = 0.15
+        stroke.Parent = btn
+
+        local plateSize = IS_MOBILE and 30 or 34
+        local plate = Instance.new("Frame")
+        plate.Name = "Plate"
+        plate.Size = UDim2.fromOffset(plateSize, plateSize)
+        plate.Position = UDim2.new(0.5, 0, 0, math.floor(TILE * 0.36))
+        plate.AnchorPoint = Vector2.new(0.5, 0.5)
+        plate.BackgroundColor3 = accent
+        plate.BackgroundTransparency = 0.82
+        plate.BorderSizePixel = 0
+        plate.ZIndex = 3
+        plate.Parent = btn
+        Instance.new("UICorner", plate).CornerRadius = UDim.new(0, 11)
+        local plateStroke = Instance.new("UIStroke")
+        plateStroke.Thickness = 1
+        plateStroke.Color = accent
+        plateStroke.Transparency = 0.55
+        plateStroke.Parent = plate
+
+        if def.icon then
+            local img = Instance.new("ImageLabel")
+            img.Name = "Icon"
+            img.Size = UDim2.fromOffset(23, 23)
+            img.Position = UDim2.fromScale(0.5, 0.5)
+            img.AnchorPoint = Vector2.new(0.5, 0.5)
+            img.BackgroundTransparency = 1
+            img.Image = def.icon
+            img.ZIndex = 5
+            img.Parent = plate
+            tile.icon = img
+        else
+            local g = Instance.new("TextLabel")
+            g.Name = "Glyph"
+            g.Size = UDim2.fromScale(1, 1)
+            g.BackgroundTransparency = 1
+            g.Text = def.glyph or "?"
+            g.TextSize = 20
+            g.Font = Enum.Font.GothamBold
+            g.TextColor3 = Color3.new(1, 1, 1)
+            g.ZIndex = 5
+            g.Parent = plate
+            tile.glyphLabel = g
+        end
+
+        local label = Instance.new("TextLabel")
+        label.Name = "Label"
+        label.Size = UDim2.new(1, -10, 0, 24)
+        label.Position = UDim2.new(0.5, 0, 1, -7)
+        label.AnchorPoint = Vector2.new(0.5, 1)
+        label.BackgroundTransparency = 1
+        label.Text = def.text
+        label.TextSize = IS_MOBILE and 9 or 10
+        label.Font = Enum.Font.GothamBold
+        label.TextColor3 = Color3.fromRGB(146, 146, 158)
+        label.TextWrapped = true
+        label.LineHeight = 1.1
+        label.ZIndex = 6
+        label.Parent = btn
+
+        tile.btn, tile.scale, tile.stroke, tile.plate, tile.plateStroke, tile.label = btn, scale, stroke, plate, plateStroke, label
+
+        track(btn.MouseEnter:Connect(function()
+            tween(btn, { BackgroundTransparency = 0.06 }, 0.12)
+            if not tile.active then tween(label, { TextColor3 = Color3.fromRGB(228, 228, 236) }, 0.12) end
+        end))
+        track(btn.MouseLeave:Connect(function()
+            tween(btn, { BackgroundTransparency = 0.18 }, 0.12)
+            if not tile.active then tween(label, { TextColor3 = Color3.fromRGB(146, 146, 158) }, 0.12) end
+        end))
+
+        -- arrastre
+        local drag = nil
+        track(btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                drag = { input = input, startPos = btn.Position, startMouse = input.Position, moved = false }
+                tile.drag = drag
+            end
+        end))
+        tile.drag = nil
+
+        local lastClick = 0
+        local function press()
+            local now = os.clock()
+            if now - lastClick < 0.2 then return end
+            lastClick = now
+            SFX.play("click")
+            local s = hudScale()
+            tween(scale, { Scale = s * 0.93 }, 0.06)
+            task.delay(0.08, function()
+                if scale.Parent then tween(scale, { Scale = s }, 0.16) end
+            end)
+            local tg = FloatToggles[def.toggle]
+            if tg then
+                flip(tg, def.get)
+            else
+                Notify("Bragao Hub", def.text:gsub("\n", " ") .. ": toggle no disponible", 2)
+            end
+        end
+        track(btn.MouseButton1Click:Connect(function()
+            if tile.suppressClick then return end
+            press()
+        end))
+        track(btn.TouchTap:Connect(function()
+            if tile.suppressClick then return end
+            press()
+        end))
+
+        setActive(tile, def.get(), true)
+        tiles[def.key] = tile
+        return tile
+    end
+
+    for i, def in ipairs(defs) do buildTile(def, i) end
+
+    -- movimiento y fin del arrastre (una sola conexión para todos los botones)
+    track(UIS.InputChanged:Connect(function(input)
+        if Config.HUDLocked then return end
+        for _, tile in pairs(tiles) do
+            local d = tile.drag
+            if d and (input.UserInputType == Enum.UserInputType.MouseMovement or input == d.input) then
+                local delta = input.Position - d.startMouse
+                if not d.moved then
+                    if math.abs(delta.X) + math.abs(delta.Y) < 6 then return end
+                    d.moved = true
+                    tile.suppressClick = true
+                end
+                local sp = d.startPos
+                tile.btn.Position = UDim2.new(sp.X.Scale, sp.X.Offset + delta.X, sp.Y.Scale, sp.Y.Offset + delta.Y)
+            end
+        end
+    end))
+    track(UIS.InputEnded:Connect(function(input)
+        for key, tile in pairs(tiles) do
+            local d = tile.drag
+            if d and input == d.input then
+                tile.drag = nil
+                if d.moved then
+                    local pos = tile.btn.Position
+                    saved[key] = { pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset }
+                    savePositions()
+                    task.delay(0.05, function() tile.suppressClick = false end)
+                end
+            end
+        end
+    end))
+
+    -- el estado de cada botón sigue al del menú (también cuando lo cambias desde la ventana)
+    local acc = 0
+    track(RunService.Heartbeat:Connect(function(dt)
+        acc += dt
+        if acc < 0.2 then return end
+        acc = 0
+        for _, tile in pairs(tiles) do
+            local state = tile.def.get()
+            if state ~= tile.active then setActive(tile, state, false) end
+        end
+    end))
+
+    local function relayout()
+        local s = hudScale()
+        for i, def in ipairs(defs) do
+            local tile = tiles[def.key]
+            tile.scale.Scale = s
+            if not saved[def.key] then tile.btn.Position = defaultPosition(def, i) end
+        end
+    end
+
+    pcall(function()
+        getgenv().__BragaoHUDCleanup = function()
+            for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
+            pcall(function() gui:Destroy() end)
+        end
+    end)
+
+    -- ---------- pestaña UI ----------
+    local UITab = Window:Tab({ Title = "UI", Icon = "palette" })
+    UITab:Paragraph({ Title = "Botones flotantes", Desc = "Toca un botón para prender/apagar la función. Arrástralo para moverlo; la posición se guarda." })
+    UITab:Toggle({
+        Title = "Mostrar botones flotantes",
+        Value = Config.HUDShow ~= false,
+        Callback = function(v)
+            Config.HUDShow = v
+            gui.Enabled = v
+            save()
+        end,
+    })
+    UITab:Toggle({
+        Title = "Bloquear posición",
+        Value = Config.HUDLocked == true,
+        Callback = function(v)
+            Config.HUDLocked = v
+            save()
+        end,
+    })
+    UITab:Slider({
+        Title = "Tamaño de los botones (%)",
+        Step = 5,
+        Value = { Min = 50, Max = 150, Default = Config.HUDScale or 100 },
+        Callback = function(v)
+            Config.HUDScale = v
+            relayout()
+            save()
+        end,
+    })
+    UITab:Button({
+        Title = "Reiniciar posiciones",
+        Callback = function()
+            saved = {}
+            savePositions()
+            relayout()
+            Notify("Bragao Hub", "Botones colocados en su sitio", 2)
+        end,
+    })
+    UITab:Paragraph({ Title = "Sonido", Desc = "Clic al tocar botones y sonido al activar interruptores." })
+    UITab:Toggle({
+        Title = "Sonidos",
+        Value = Config.HUDSounds ~= false,
+        Callback = function(v)
+            Config.HUDSounds = v
+            save()
+        end,
+    })
+end
 
 task.defer(function()
     if Config.Fly then startFly() end
