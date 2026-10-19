@@ -77,6 +77,11 @@ local Config = {
     ESPTool = false, ESPChams = false, ESPTextSize = 13,
     SATracer = true, SATracerAll = true,
     HUDShow = true, HUDLocked = false, HUDScale = 100, HUDPos = "", HUDSounds = true,
+    -- Qué botones flotantes mostrar (todos activos por defecto). Desmarca los que no quieras ver.
+    HUDBtnSilent = true, HUDBtnAttack = true, HUDBtnESP = true, HUDBtnFOV = true,
+    HUDBtnFly = true, HUDBtnNoclip = true, HUDBtnSpeed = true, HUDBtnJump = true,
+    -- Imagen de fondo + opacidad del menú
+    BGImageEnabled = false, BGImageSrc = "", BGDim = 0, UIOpacity = 50,
     SoruAutoAim = false, SoruAimMode = "360", SoruFOVType = "V1",
     SoruPriority = "Nearest", SoruFOVRadius = 150, SoruRange = 300, SoruShowFOV = false,
     ZBoostEnabled = false, ZBoostPower = 450, ZBoostDuration = 0.55,
@@ -3067,6 +3072,30 @@ pcall(function()
     ThemeName = "Bragas"
 end)
 
+-- Lista de "hosts" donde pueden vivir los ScreenGui (para encontrar los de WindUI después)
+local function __bragaoGuiHosts()
+    local hosts = {}
+    pcall(function() table.insert(hosts, lp:WaitForChild("PlayerGui")) end)
+    table.insert(hosts, CoreGui)
+    pcall(function()
+        if gethui then
+            local h = gethui()
+            if h and h ~= CoreGui then table.insert(hosts, h) end
+        end
+    end)
+    return hosts
+end
+-- Guardamos qué GUIs ya existían ANTES de crear la ventana, para luego saber
+-- cuáles son nuevas (la ventana de WindUI + su botón flotante de abrir/cerrar)
+local __BragaoGuisBefore = {}
+for _, host in ipairs(__bragaoGuiHosts()) do
+    pcall(function()
+        for _, g in ipairs(host:GetChildren()) do
+            __BragaoGuisBefore[g] = true
+        end
+    end)
+end
+
 local Window
 do
     local vp = (Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
@@ -3113,6 +3142,201 @@ pcall(function()
         Enabled = true,
         Draggable = true,
     })
+end)
+
+-- Cuáles GUIs son los que WindUI acaba de crear (ventana + botón flotante de abrir)
+local WindUIGuis = {}
+for _, host in ipairs(__bragaoGuiHosts()) do
+    pcall(function()
+        for _, g in ipairs(host:GetChildren()) do
+            if not __BragaoGuisBefore[g] then
+                table.insert(WindUIGuis, g)
+            end
+        end
+    end)
+end
+
+-- ==================== IMAGEN DE FONDO + OPACIDAD DE LA UI ====================
+-- Imagen detrás del menú (full screen) + control de qué tan transparentes/opacos
+-- se ven los paneles del menú encima de esa imagen.
+local BGHost = (gethui and gethui()) or CoreGui
+local bgGui = Instance.new("ScreenGui")
+bgGui.Name = "Bragao_Background"
+bgGui.ResetOnSpawn = false
+bgGui.IgnoreGuiInset = true
+bgGui.DisplayOrder = -10 -- siempre detrás de todo lo demás (ventana, HUD, etc.)
+pcall(function() if syn and syn.protect_gui then syn.protect_gui(bgGui) end end)
+bgGui.Parent = BGHost
+
+local bgImage = Instance.new("ImageLabel")
+bgImage.Name = "Image"
+bgImage.Size = UDim2.fromScale(1, 1)
+bgImage.BackgroundTransparency = 1
+bgImage.BorderSizePixel = 0
+bgImage.ScaleType = Enum.ScaleType.Crop
+bgImage.Image = ""
+bgImage.Visible = false
+bgImage.ZIndex = 1
+bgImage.Parent = bgGui
+
+local bgDim = Instance.new("Frame")
+bgDim.Name = "Dim"
+bgDim.Size = UDim2.fromScale(1, 1)
+bgDim.BackgroundColor3 = Color3.new(0, 0, 0)
+bgDim.BorderSizePixel = 0
+bgDim.BackgroundTransparency = 1
+bgDim.ZIndex = 2
+bgDim.Parent = bgGui
+
+local function applyBGDim()
+    bgDim.BackgroundTransparency = 1 - math.clamp((Config.BGDim or 0) / 100, 0, 1)
+end
+
+-- Resuelve una URL (http/https) o un rbxassetid a algo que se pueda poner en .Image
+local bgImageCache = {}
+local function resolveImageAsset(src, callback)
+    src = tostring(src or "")
+    src = src:gsub("^%s+", ""):gsub("%s+$", "")
+    if src == "" then callback(nil) return end
+    if bgImageCache[src] then callback(bgImageCache[src]) return end
+    task.spawn(function()
+        local result = nil
+        if src:match("^rbxassetid://") then
+            result = src
+        elseif src:match("^%d+$") then
+            result = "rbxassetid://" .. src
+        elseif src:match("^https?://") then
+            pcall(function()
+                if not (writefile and getcustomasset) then return end
+                local ok, data = pcall(function() return game:HttpGet(src) end)
+                if not ok or not data or #data == 0 then return end
+                pcall(function()
+                    if makefolder and not isfolder("BragaoHub") then makefolder("BragaoHub") end
+                end)
+                local ext = src:match("%.(%a+)$") or "png"
+                if #ext > 4 then ext = "png" end
+                local path = "BragaoHub/bg_" .. tostring(#data) .. "." .. ext
+                writefile(path, data)
+                local okAsset, assetId = pcall(getcustomasset, path)
+                if okAsset and assetId then
+                    result = assetId
+                end
+            end)
+        end
+        if result then bgImageCache[src] = result end
+        callback(result)
+    end)
+end
+
+local function applyBackgroundImage()
+    if not Config.BGImageEnabled or not Config.BGImageSrc or Config.BGImageSrc == "" then
+        bgImage.Visible = false
+        return
+    end
+    resolveImageAsset(Config.BGImageSrc, function(assetId)
+        if assetId then
+            bgImage.Image = assetId
+            bgImage.Visible = Config.BGImageEnabled == true
+        else
+            bgImage.Visible = false
+            Notify("Bragao Hub", "No se pudo cargar la imagen de fondo (URL/ID inválido, o tu ejecutor no soporta getcustomasset)", 4)
+        end
+    end)
+end
+
+-- Comando de chat de respaldo por si el textbox de la UI no está disponible:
+-- "!bg <url o rbxassetid>" activa y pone la imagen | "!bgoff" la apaga
+pcall(function()
+    lp.Chatted:Connect(function(msg)
+        local url = msg:match("^!bg%s+(.+)$")
+        if url then
+            Config.BGImageSrc = url
+            Config.BGImageEnabled = true
+            save()
+            applyBackgroundImage()
+            Notify("Bragao Hub", "Imagen de fondo actualizada", 2)
+        elseif msg:match("^!bgoff$") then
+            Config.BGImageEnabled = false
+            save()
+            applyBackgroundImage()
+            Notify("Bragao Hub", "Imagen de fondo desactivada", 2)
+        end
+    end)
+end)
+
+-- ---------- Opacidad de la UI (paneles del menú de WindUI) ----------
+-- 0%   = paneles totalmente transparentes (se ve la imagen A TRAVÉS del menú)
+-- 50%  = aspecto normal del tema (sin cambios)
+-- 100% = paneles sólidos/opacos (no se ve a través, solo UI + imagen de fondo)
+local uiBaseTransparency = setmetatable({}, { __mode = "k" })
+local function captureInstance(inst)
+    if inst:IsA("GuiObject") and uiBaseTransparency[inst] == nil then
+        uiBaseTransparency[inst] = inst.BackgroundTransparency
+    end
+end
+
+local applyUIOpacitySingle
+applyUIOpacitySingle = function(inst)
+    local base = uiBaseTransparency[inst]
+    if base == nil or not inst.Parent then return end
+    local pct = math.clamp(Config.UIOpacity or 50, 0, 100)
+    local val
+    if pct <= 50 then
+        local t = pct / 50
+        val = 1 + (base - 1) * t
+    elseif base >= 0.995 then
+        val = base -- elementos invisibles por diseño no se vuelven sólidos
+    else
+        local t = (pct - 50) / 50
+        val = base - base * t
+    end
+    pcall(function() inst.BackgroundTransparency = val end)
+end
+
+local function applyUIOpacity(pct)
+    Config.UIOpacity = math.clamp(pct or 50, 0, 100)
+    for inst in pairs(uiBaseTransparency) do
+        applyUIOpacitySingle(inst)
+    end
+end
+
+local function captureAllUI()
+    for _, gui in ipairs(WindUIGuis) do
+        if gui and gui.Parent then
+            pcall(function()
+                for _, inst in ipairs(gui:GetDescendants()) do
+                    captureInstance(inst)
+                end
+            end)
+        end
+    end
+end
+captureAllUI()
+applyUIOpacity(Config.UIOpacity or 50)
+applyBGDim()
+if Config.BGImageEnabled then applyBackgroundImage() end
+
+-- Capturar y aplicar opacidad a elementos nuevos (cuando WindUI crea paneles/pestañas al vuelo)
+for _, gui in ipairs(WindUIGuis) do
+    pcall(function()
+        gui.DescendantAdded:Connect(function(inst)
+            task.defer(function()
+                if inst.Parent and inst:IsA("GuiObject") then
+                    captureInstance(inst)
+                    applyUIOpacitySingle(inst)
+                end
+            end)
+        end)
+    end)
+end
+
+-- Red de seguridad: re-escanea cada 2s por si aparecieron paneles nuevos
+task.spawn(function()
+    while true do
+        task.wait(2)
+        captureAllUI()
+        applyUIOpacity(Config.UIOpacity or 50)
+    end
 end)
 
 -- Sonido en interruptores (toggle) y botones de todas las pestañas
@@ -4015,6 +4239,16 @@ do
 
     local tiles = {}
 
+    -- ---------- visibilidad individual de cada botón ----------
+    local function hudBtnConfigKey(def)
+        return "HUDBtn" .. def.key
+    end
+    local function isButtonEnabled(def)
+        local v = Config[hudBtnConfigKey(def)]
+        if v == nil then return true end
+        return v == true
+    end
+
     local function defaultPosition(def, index)
         local perRow = 4
         local col = index - (def.row - 1) * perRow
@@ -4059,6 +4293,8 @@ do
         btn.BorderSizePixel = 0
         btn.AutoButtonColor = false
         btn.ZIndex = 2
+        btn.Visible = isButtonEnabled(def)
+        btn.Active = btn.Visible
         btn.Parent = gui
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 16)
 
@@ -4186,6 +4422,21 @@ do
 
     for i, def in ipairs(defs) do buildTile(def, i) end
 
+    -- Muestra u oculta un botón flotante individual y guarda la preferencia
+    local function setButtonVisible(def, state)
+        local tile = tiles[def.key]
+        if not tile then return end
+        Config[hudBtnConfigKey(def)] = state
+        tile.btn.Visible = state
+        tile.btn.Active = state
+        if not state then
+            -- si lo estaba arrastrando o a punto de hacer click, cancelar
+            tile.drag = nil
+            tile.suppressClick = false
+        end
+        save()
+    end
+
     -- movimiento y fin del arrastre (una sola conexión para todos los botones)
     track(UIS.InputChanged:Connect(function(input)
         if Config.HUDLocked then return end
@@ -4291,6 +4542,82 @@ do
         Value = Config.HUDSounds ~= false,
         Callback = function(v)
             Config.HUDSounds = v
+            save()
+        end,
+    })
+
+    -- ---------- selección de qué botones flotantes mostrar ----------
+    UITab:Paragraph({
+        Title = "Elegir botones flotantes",
+        Desc = "Activa SOLO los botones que quieras ver flotando en pantalla (ej: deja prendido únicamente ESP y FLY).",
+    })
+    for _, def in ipairs(defs) do
+        UITab:Toggle({
+            Title = def.text:gsub("\n", " "),
+            Value = isButtonEnabled(def),
+            Callback = function(v)
+                setButtonVisible(def, v)
+            end,
+        })
+    end
+
+    -- ---------- imagen de fondo + opacidad de la UI ----------
+    UITab:Paragraph({
+        Title = "Imagen de fondo",
+        Desc = "Pega un link DIRECTO a la imagen (termina en .png/.jpg/.webp) o un rbxassetid. "
+            .. "Links de GitHub deben ser 'raw' (raw.githubusercontent.com/..., no github.com/.../blob/...). "
+            .. "Si tu menú no tiene cuadro de texto, escribe en el chat del juego: !bg <link>  (o !bgoff para apagarla).",
+    })
+    UITab:Toggle({
+        Title = "Activar imagen de fondo",
+        Value = Config.BGImageEnabled == true,
+        Callback = function(v)
+            Config.BGImageEnabled = v
+            applyBackgroundImage()
+            save()
+        end,
+    })
+    pcall(function()
+        UITab:Input({
+            Title = "URL o rbxassetid de la imagen",
+            Value = Config.BGImageSrc or "",
+            Placeholder = "https://raw.githubusercontent.com/usuario/repo/main/imagen.png",
+            ClearTextOnFocus = false,
+            Callback = function(v)
+                Config.BGImageSrc = tostring(v or "")
+                save()
+                if Config.BGImageEnabled then applyBackgroundImage() end
+            end,
+        })
+    end)
+    UITab:Button({
+        Title = "Recargar imagen de fondo",
+        Callback = function()
+            applyBackgroundImage()
+            Notify("Bragao Hub", "Recargando imagen de fondo...", 2)
+        end,
+    })
+    UITab:Slider({
+        Title = "Oscurecer imagen de fondo (%)",
+        Step = 5,
+        Value = { Min = 0, Max = 90, Default = Config.BGDim or 0 },
+        Callback = function(v)
+            Config.BGDim = v
+            applyBGDim()
+            save()
+        end,
+    })
+
+    UITab:Paragraph({
+        Title = "Opacidad de la UI",
+        Desc = "0% = paneles del menú transparentes (se ve la imagen A TRAVÉS de la UI) | 50% = normal | 100% = paneles sólidos (no se ve a través, solo UI + imagen).",
+    })
+    UITab:Slider({
+        Title = "Opacidad de la UI (%)",
+        Step = 5,
+        Value = { Min = 0, Max = 100, Default = Config.UIOpacity or 50 },
+        Callback = function(v)
+            applyUIOpacity(v)
             save()
         end,
     })
