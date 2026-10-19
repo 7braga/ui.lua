@@ -76,7 +76,6 @@ local Config = {
     ESPName = true, ESPHealth = true, ESPHealthBar = true, ESPDistance = true, ESPBox = true,
     ESPTool = false, ESPChams = false, ESPTextSize = 13,
     SATracer = true, SATracerAll = true,
-    HUDShow = true, HUDLocked = false, HUDScale = 100, HUDPos = "", HUDSounds = true,
     SoruAutoAim = false, SoruAimMode = "360", SoruFOVType = "V1",
     SoruPriority = "Nearest", SoruFOVRadius = 150, SoruRange = 300, SoruShowFOV = false,
     ZBoostEnabled = false, ZBoostPower = 450, ZBoostDuration = 0.55,
@@ -89,6 +88,10 @@ local Config = {
     SkyEnabled = false, SkyType = "black storm",
     AmbientEnabled = false, AmbientType = "Rain",
     MinecraftTex = false,
+    -- 4EVR: fondo + colores de la UI (se guardan)
+    UI_Theme = 1, UI_BgOn = true, UI_BgVisible = 55, UI_CardAlpha = 30,
+    UI_ColBg = "#161619", UI_ColText = "#ffffff", UI_ColMuted = "#a1a1aa", UI_ColAccent = "#ffffff",
+    UI_ColCard = "#18181b", UI_ColButton = "#3f3f46", UI_ColIcon = "#d4d4d8", UI_ColBorder = "#ffffff",
     -- Blacklist persistence
     BL_Melee_Z = false, BL_Melee_X = false, BL_Melee_C = false, BL_Melee_V = false, BL_Melee_F = false,
     BL_Sword_Z = false, BL_Sword_X = false, BL_Sword_C = false, BL_Sword_V = false, BL_Sword_F = false,
@@ -96,6 +99,31 @@ local Config = {
     BL_Gun_Z = false, BL_Gun_X = false, BL_Gun_C = false, BL_Gun_V = false, BL_Gun_F = false,
 }
 
+
+-- ==================== UI: definiciones de botones flotantes (estilo Onyx) ====================
+-- "toggle" = Title exacto del toggle de la UI que enciende/apaga el botón.
+local BragaoUI = {
+    floatDefs = {
+        { id = "Noclip",  toggle = "Noclip",             label = "NOCLIP",        icon = "ghost",     color = "#94A3B8", default = true  },
+        { id = "Fly",     toggle = "Fly",                label = "FLY",           icon = "plane",     color = "#38BDF8", default = true  },
+        { id = "Silent",  toggle = "Silent Aim Players", label = "SILENT\nAIM",   icon = "target",    color = "#2DD4BF", default = true  },
+        { id = "ESP",     toggle = "ESP",                label = "ESP",           icon = "expand",    color = "#FACC15", default = true  },
+        { id = "FastAtk", toggle = "Fast Attack",        label = "FAST\nATTACK",  icon = "sword",     color = "#EF4444", default = true  },
+        { id = "InfJump", toggle = "Infinite Jump",      label = "INF\nJUMP",     icon = "climb",     color = "#A855F7", default = true  },
+        { id = "Soru",    toggle = "Soru Auto Aim",      label = "SORU\nAIM",     icon = "crosshair", color = "#257AF7", default = false },
+    },
+    states = {},     -- [Title del toggle] = true/false (estado actual)
+    elements = {},   -- [Title] = { elementos WindUI }
+    callbacks = {},  -- [Title] = { callbacks envueltos }
+}
+for _, d in ipairs(BragaoUI.floatDefs) do
+    Config["BtnOn_" .. d.id] = d.default
+    Config["BtnX_" .. d.id] = -1   -- -1 = posición por defecto
+    Config["BtnY_" .. d.id] = -1
+end
+Config.BtnScale = UserInputService.TouchEnabled and 70 or 100
+Config.BtnLocked = false
+Config.UISounds = true
 
 local CONFIG_FILE = "bragaoHub_Config.json"
 
@@ -2995,117 +3023,120 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ==================== UI ====================
--- ==================== TEMA + SONIDOS + VENTANA ====================
--- Sonidos de la UI (clic de botones, clic de interruptores)
-local SFX = {
-    quiet = false,
-    ready = false,
-    objs = {},
-    ids = { click = 139800881181209, toggle = 136108770017536 },
-    vol = { click = 0.65, toggle = 0.6 },
-}
-function SFX.play(name)
-    if Config.HUDSounds == false or not SFX.ready then return end
-    local id = SFX.ids[name]
-    if not id then return end
-    pcall(function()
-        local folder = SoundService:FindFirstChild("BragaoSFX")
-        if not folder then
-            folder = Instance.new("Folder")
-            folder.Name = "BragaoSFX"
-            folder.Parent = SoundService
-        end
-        local s = SFX.objs[name]
-        if not s or not s.Parent then
-            s = folder:FindFirstChild(name) or Instance.new("Sound")
-            s.Name = name
-            s.SoundId = "rbxassetid://" .. id
-            s.Volume = SFX.vol[name] or 0.5
-            s.Parent = folder
-            SFX.objs[name] = s
-        end
-        s.TimePosition = 0
-        s:Play()
-    end)
-end
-task.delay(3, function() SFX.ready = true end)
-
--- Toggles que controlan los botones flotantes (se llenan al crear la UI)
-local FloatToggles = {}
-
--- Tema de colores (paleta de Onyx/Bragas)
-local ThemeName = "Dark"
-pcall(function()
-    WindUI:AddTheme({
-        Name = "Bragas",
-        Background = WindUI:Gradient({
-            ["0"] = { Color = Color3.fromHex("#161619"), Transparency = 0.12 },
-            ["100"] = { Color = Color3.fromHex("#161619"), Transparency = 0.12 },
-        }, { Rotation = 90 }),
-        Accent = WindUI:Gradient({
-            ["0"] = { Color = Color3.fromHex("#101014"), Transparency = 0 },
-            ["100"] = { Color = Color3.fromHex("#2a2a32"), Transparency = 0 },
-        }, { Rotation = 90 }),
-        Dialog = Color3.fromHex("#141418"),
-        Outline = Color3.fromHex("#ffffff"),
-        Text = Color3.fromHex("#ffffff"),
-        Placeholder = Color3.fromHex("#a1a1aa"),
-        Button = Color3.fromHex("#3f3f46"),
-        Icon = Color3.fromHex("#d4d4d8"),
-        Toggle = Color3.fromHex("#ffffff"),
-        Slider = Color3.fromHex("#ffffff"),
-        Checkbox = Color3.fromHex("#ffffff"),
-        SliderIcon = Color3.fromHex("#71717a"),
-        Primary = Color3.fromHex("#ffffff"),
-        PanelBackground = Color3.fromHex("#ffffff"),
-        PanelBackgroundTransparency = 0.94,
-        LabelBackground = Color3.fromHex("#000000"),
-        LabelBackgroundTransparency = 0.8,
-        ElementBackground = Color3.fromHex("#18181b"),
-        ElementBackgroundTransparency = 0.3,
-    })
-    ThemeName = "Bragas"
-end)
-
-local Window
+-- Tema tipo Onyx: grafito casi negro, textos blancos, acentos grises
 do
-    local vp = (Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
-    local okW, res = pcall(function()
-        return WindUI:CreateWindow({
-            Title = "Bragao Hub",
-            Icon = "solar:planet-bold",
-            Folder = "BragaoHub",
-            Size = UDim2.fromOffset(math.max(560, math.min(850, vp.X - 24)), math.max(350, math.min(560, vp.Y - 24))),
-            MaxSize = Vector2.new(850, 560),
-            Theme = ThemeName,
-            Transparent = true,
-            Resizable = true,
-            Acrylic = false,
-            ShadowTransparency = 0.3,
-            Radius = 18,
-            IconRadius = 1,
-            IconSize = 27,
-            SideBarWidth = 185,
-            Topbar = { Height = 56, ButtonsType = "Default" },
-            User = { Enabled = false, Anonymous = false },
-        })
-    end)
-    if okW and res then
-        Window = res
-    else
-        warn("Bragao Hub: ventana con tema falló, usando la básica:", res)
-        Window = WindUI:CreateWindow({ Title = "Bragao Hub", Icon = "star", Theme = "Dark" })
+    -- Imágenes de fondo (4EVR)
+    BragaoUI.themeImages = {
+        { name = "Tema 1", id = "117499714135455" },
+        { name = "Tema 2", id = "112468991492978" },
+    }
+    function BragaoUI.bgString()
+        local d = BragaoUI.themeImages[Config.UI_Theme] or BragaoUI.themeImages[1]
+        return "rbxassetid://" .. d.id
     end
+    function BragaoUI.bgTransparency()
+        local vis = Config.UI_BgOn and math.clamp(tonumber(Config.UI_BgVisible) or 55, 0, 100) / 100 or 0
+        return 1 - vis
+    end
+
+    -- Colores guardados -> tema
+    local function toHex(c)
+        return string.format("#%02x%02x%02x", math.floor(c.R * 255 + 0.5), math.floor(c.G * 255 + 0.5), math.floor(c.B * 255 + 0.5))
+    end
+    local function fromHex(h, fb)
+        local okc, c = pcall(Color3.fromHex, h)
+        if okc and typeof(c) == "Color3" then return c end
+        return fb
+    end
+    BragaoUI.toHex = toHex
+    BragaoUI.uiDefaults = {
+        UI_ColBg = "#161619", UI_ColCard = "#18181b", UI_ColText = "#ffffff", UI_ColMuted = "#a1a1aa",
+        UI_ColAccent = "#ffffff", UI_ColButton = "#3f3f46", UI_ColIcon = "#d4d4d8", UI_ColBorder = "#ffffff",
+    }
+    function BragaoUI.col(key)
+        return fromHex(Config[key], fromHex(BragaoUI.uiDefaults[key] or "#ffffff", Color3.new(1, 1, 1)))
+    end
+    function BragaoUI.buildTheme()
+        local bg, accent, text = BragaoUI.col("UI_ColBg"), BragaoUI.col("UI_ColAccent"), BragaoUI.col("UI_ColText")
+        local black, white = Color3.new(0, 0, 0), Color3.new(1, 1, 1)
+        return {
+            Name = "Bragao",
+            Background = WindUI:Gradient({
+                ["0"] = { Color = bg, Transparency = 0.12 },
+                ["100"] = { Color = bg, Transparency = 0.12 },
+            }, { Rotation = 90 }),
+            Accent = WindUI:Gradient({
+                ["0"] = { Color = bg:Lerp(black, 0.3), Transparency = 0 },
+                ["100"] = { Color = bg:Lerp(white, 0.1), Transparency = 0 },
+            }, { Rotation = 90 }),
+            Dialog = bg:Lerp(black, 0.1),
+            Outline = BragaoUI.col("UI_ColBorder"),
+            Text = text,
+            Placeholder = BragaoUI.col("UI_ColMuted"),
+            Button = BragaoUI.col("UI_ColButton"),
+            Icon = BragaoUI.col("UI_ColIcon"),
+            Toggle = accent,
+            Slider = accent,
+            Checkbox = accent,
+            SliderIcon = Color3.fromHex("#71717a"),
+            Primary = text,
+            PanelBackground = Color3.fromHex("#ffffff"),
+            PanelBackgroundTransparency = 0.94,
+            LabelBackground = Color3.fromHex("#000000"),
+            LabelBackgroundTransparency = 0.8,
+            ElementBackground = BragaoUI.col("UI_ColCard"),
+            ElementBackgroundTransparency = math.clamp((tonumber(Config.UI_CardAlpha) or 30) / 100, 0, 0.95),
+        }
+    end
+    local ok = pcall(function() WindUI:AddTheme(BragaoUI.buildTheme()) end)
+    BragaoUI.themeName = ok and "Bragao" or "Dark"
+
+    -- Aplica los colores en vivo (con debounce para no saturar al arrastrar el picker)
+    function BragaoUI.applyTheme()
+        if BragaoUI.themeName ~= "Bragao" then return end
+        pcall(function()
+            local t = WindUI:GetThemes().Bragao
+            for k, v in pairs(BragaoUI.buildTheme()) do t[k] = v end
+            WindUI:SetTheme("Bragao")
+        end)
+    end
+    local pendingApply = false
+    function BragaoUI.queueApply()
+        if pendingApply then return end
+        pendingApply = true
+        task.delay(0.15, function()
+            pendingApply = false
+            BragaoUI.applyTheme()
+            save()
+        end)
+    end
+    local vs = (Workspace.CurrentCamera and Workspace.CurrentCamera.ViewportSize) or Vector2.new(1920, 1080)
+    BragaoUI.windowSize = UDim2.fromOffset(math.max(560, math.min(850, vs.X - 24)), math.max(350, math.min(560, vs.Y - 24)))
 end
 
-pcall(function()
-    Window:Tag({ Title = "Blox Fruits", Icon = "swords", Color = Color3.fromHex("#ffffff"), Radius = 6 })
-    Window:Tag({ Title = "Mobile & PC", Icon = "smartphone", Color = Color3.fromHex("#ffffff"), Radius = 6 })
-end)
+local Window = WindUI:CreateWindow({
+    Title = "Bragao Hub",
+    Icon = "star",
+    Theme = BragaoUI.themeName,
+    Size = BragaoUI.windowSize,
+    MaxSize = Vector2.new(850, 560),
+    Resizable = true,
+    Transparent = true,
+    Background = BragaoUI.bgString(),
+    BackgroundImageTransparency = BragaoUI.bgTransparency(),
+    Acrylic = false,
+    ShadowTransparency = 0.3,
+    Radius = 18,
+    SideBarWidth = 185,
+    HideSearchBar = false,
+    Topbar = { Height = 56, ButtonsType = "Default" },
+    User = { Enabled = false, Anonymous = false },
+})
+
 pcall(function()
     Window:EditOpenButton({
         Title = "Bragao",
-        Icon = "solar:planet-bold",
+        Icon = "star",
         CornerRadius = UDim.new(0, 16),
         StrokeThickness = 2,
         Color = ColorSequence.new(Color3.fromHex("#2a2a32"), Color3.fromHex("#c9c9d4")),
@@ -3115,26 +3146,135 @@ pcall(function()
     })
 end)
 
--- Sonido en interruptores (toggle) y botones de todas las pestañas
+-- ==================== FONDO (imagen) ====================
+BragaoUI.bgCurrent = BragaoUI.bgString()
+function BragaoUI.findBg()
+    if BragaoUI.bgLabel and BragaoUI.bgLabel.Parent then return BragaoUI.bgLabel end
+    local found
+    pcall(function()
+        for _, d in ipairs(Window.UIElements.Main:GetDescendants()) do
+            if d:IsA("ImageLabel") and d.Image == BragaoUI.bgCurrent then found = d break end
+        end
+    end)
+    BragaoUI.bgLabel = found
+    return found
+end
+function BragaoUI.applyBackground()
+    local str, tr = BragaoUI.bgString(), BragaoUI.bgTransparency()
+    local lbl = BragaoUI.findBg()
+    if lbl then
+        lbl.Image = str
+        lbl.ImageTransparency = tr
+    else
+        pcall(function() Window:SetBackgroundImage(str) end)
+        pcall(function() Window:SetBackgroundImageTransparency(tr) end)
+    end
+    BragaoUI.bgCurrent = str
+    pcall(function() Window.BackgroundImageTransparency = tr end) -- para que al reabrir mantenga el valor
+end
+task.delay(1, function() BragaoUI.applyBackground() end)
+
+-- ==================== SONIDOS DE LA UI (click / toggle) ====================
+BragaoUI.sfxIds = { click = 139800881181209, toggle = 136108770017536, error = 131039887376992 }
+BragaoUI.sfxVol = { click = 0.65, toggle = 0.6, error = 0.55 }
+BragaoUI.sfxReady = false
+BragaoUI.sfx = {}
+
+function BragaoUI.playSfx(name)
+    if not BragaoUI.sfxReady or not Config.UISounds then return end
+    local id = BragaoUI.sfxIds[name]
+    if not id then return end
+    pcall(function()
+        local folder = SoundService:FindFirstChild("BragaoSFX")
+        if not folder then
+            folder = Instance.new("Folder")
+            folder.Name = "BragaoSFX"
+            folder.Parent = SoundService
+        end
+        local s = BragaoUI.sfx[name]
+        if not s or not s.Parent then
+            s = Instance.new("Sound")
+            s.Name = name
+            s.SoundId = string.format("rbxassetid://%.0f", id)
+            s.Volume = BragaoUI.sfxVol[name] or 0.5
+            s.Parent = folder
+            BragaoUI.sfx[name] = s
+        end
+        s.TimePosition = 0
+        s:Play()
+    end)
+end
+-- evita que suene todo al cargar la UI
+task.delay(2, function() BragaoUI.sfxReady = true end)
+
+-- Envolver Window:Tab para: grupos plegables (Tab:Sec), sonido en toggles/botones y registro de toggles (botones flotantes)
+-- Uso: Tab:Sec({ Title = "...", Desc = "...", Icon = "...", Opened = true }) -> todo lo que se cree después va dentro de ese grupo.
 do
     local origTab = Window.Tab
-    Window.Tab = function(self, opts)
-        local tab = origTab(self, opts)
-        if type(tab) == "table" then
-            for method, sound in pairs({ Toggle = "toggle", Button = "click" }) do
-                local orig = tab[method]
-                if type(orig) == "function" then
-                    tab[method] = function(t, o)
-                        if type(o) == "table" then
-                            local cb = o.Callback
-                            o.Callback = function(...)
-                                if not SFX.quiet then SFX.play(sound) end
-                                if cb then return cb(...) end
-                            end
+    local ELEMENTS = { "Toggle", "Button", "Slider", "Dropdown", "Paragraph", "Input", "Keybind", "Colorpicker", "Divider", "Space", "Image", "Code" }
+    Window.Tab = function(self, cfg)
+        local tab = origTab(self, cfg)
+        if type(tab) ~= "table" then return tab end
+
+        local origSection = tab.Section
+        local base, cur = {}, nil
+        for _, name in ipairs(ELEMENTS) do
+            if type(tab[name]) == "function" then base[name] = tab[name] end
+        end
+
+        function tab.Sec(selfT, scfg)
+            scfg = scfg or {}
+            if scfg.Opened == nil then scfg.Opened = true end
+            if scfg.Box == nil then scfg.Box = true end
+            if scfg.BoxBorder == nil then scfg.BoxBorder = true end
+            cur = nil
+            if type(origSection) ~= "function" then return nil end
+            local ok, sec = pcall(origSection, tab, scfg)
+            if (not ok or type(sec) ~= "table") and scfg.Icon then
+                scfg.Icon = nil
+                ok, sec = pcall(origSection, tab, scfg)
+            end
+            if ok and type(sec) == "table" then cur = sec end
+            return cur
+        end
+        function tab.EndSec() cur = nil end
+
+        for name, fn in pairs(base) do
+            tab[name] = function(selfT, ecfg)
+                local title
+                if type(ecfg) == "table" then
+                    if name == "Toggle" then
+                        title = ecfg.Title
+                        local cb = ecfg.Callback
+                        BragaoUI.states[title] = ecfg.Value == true
+                        local wrapped = function(v, ...)
+                            BragaoUI.states[title] = (v == true)
+                            BragaoUI.playSfx("toggle")
+                            if BragaoUI.refresh then BragaoUI.refresh(title) end
+                            if cb then return cb(v, ...) end
                         end
-                        return orig(t, o)
+                        ecfg.Callback = wrapped
+                        BragaoUI.callbacks[title] = BragaoUI.callbacks[title] or {}
+                        table.insert(BragaoUI.callbacks[title], wrapped)
+                    elseif name == "Button" then
+                        local cb = ecfg.Callback
+                        ecfg.Callback = function(...)
+                            BragaoUI.playSfx("click")
+                            if cb then return cb(...) end
+                        end
                     end
                 end
+                local el
+                if cur and type(cur[name]) == "function" then
+                    el = cur[name](cur, ecfg)
+                else
+                    el = fn(tab, ecfg)
+                end
+                if name == "Toggle" and title then
+                    BragaoUI.elements[title] = BragaoUI.elements[title] or {}
+                    table.insert(BragaoUI.elements[title], el)
+                end
+                return el
             end
         end
         return tab
@@ -3142,14 +3282,17 @@ do
 end
 
 local Main = Window:Tab({ Title = "Main", Icon = "home" })
-FloatToggles.FastAttack = Main:Toggle({ Title = "Fast Attack", Value = Config.FastAttack, Callback = function(v) Config.FastAttack = v; save() end })
+Main:Sec({ Title = "Fast Attack", Icon = "zap", Desc = "Ataque rápido a jugadores y NPCs" })
+Main:Toggle({ Title = "Fast Attack", Value = Config.FastAttack, Callback = function(v) Config.FastAttack = v; save() end })
 Main:Toggle({ Title = "Attack Players", Value = Config.FAPlayers, Callback = function(v) Config.FAPlayers = v; save() end })
 Main:Toggle({ Title = "Attack NPCs", Value = Config.FAMobs, Callback = function(v) Config.FAMobs = v; save() end })
 Main:Slider({ Title = "FA Range", Step = 50, Value = { Min = 50, Max = 5000, Default = Config.FARange }, Callback = function(v) Config.FARange = v; save() end })
+Main:Sec({ Title = "Bring Mobs", Icon = "magnet", Desc = "Traer mobs hacia ti" })
 Main:Toggle({ Title = "Bring Mobs", Value = Config.BringMobs, Callback = function(v) Config.BringMobs = v; save() end })
 Main:Slider({ Title = "Bring Range", Step = 50, Value = { Min = 50, Max = 5000, Default = Config.BringRange }, Callback = function(v) Config.BringRange = v; save() end })
 
 local GunAura = Window:Tab({ Title = "Gun Aura", Icon = "crosshair" })
+GunAura:Sec({ Title = "Gun Aura Safe", Icon = "shield", Desc = "Versión segura" })
 GunAura:Toggle({ Title = "Gun Aura Safe", Value = Config.SafeGun, Callback = function(v)
     Config.SafeGun = v
     _cachedToolSafe = nil
@@ -3160,6 +3303,7 @@ GunAura:Toggle({ Title = "Safe Mobs", Value = Config.SafeMobs, Callback = functi
 GunAura:Toggle({ Title = "Safe Players", Value = Config.SafePlayers, Callback = function(v) Config.SafePlayers = v; save() end })
 GunAura:Toggle({ Title = "Safe Sea Events", Value = Config.SafeSea, Callback = function(v) Config.SafeSea = v; save() end })
 GunAura:Slider({ Title = "Safe Gun Range", Step = 50, Value = { Min = 50, Max = 30000, Default = Config.SafeRange }, Callback = function(v) Config.SafeRange = v; save() end })
+GunAura:Sec({ Title = "Super Gun Aura", Icon = "flame", Desc = "Versión agresiva" })
 GunAura:Toggle({ Title = "Super Gun Aura", Value = Config.SuperGun, Callback = function(v)
     Config.SuperGun = v
     _cachedToolSuper = nil
@@ -3170,6 +3314,7 @@ GunAura:Toggle({ Title = "Super Mobs", Value = Config.SuperMobs, Callback = func
 GunAura:Toggle({ Title = "Super Players", Value = Config.SuperPlayers, Callback = function(v) Config.SuperPlayers = v; save() end })
 GunAura:Toggle({ Title = "Super Sea Events", Value = Config.SuperSea, Callback = function(v) Config.SuperSea = v; save() end })
 GunAura:Slider({ Title = "Super Gun Range", Step = 50, Value = { Min = 50, Max = 30000, Default = Config.SuperRange }, Callback = function(v) Config.SuperRange = v; save() end })
+GunAura:Sec({ Title = "Extras", Icon = "eye", Desc = "Ocultar elementos del mapa" })
 GunAura:Toggle({ Title = "Disappear Everything", Value = Config.Disappear, Callback = function(v)
     setDisappear(v)
     save()
@@ -3178,7 +3323,7 @@ GunAura:Paragraph({ Title = "Disappear Keybind", Desc = "Tecla P para activar/de
 
 
 local Dungeons = Window:Tab({ Title = "Dungeons", Icon = "swords" })
-Dungeons:Paragraph({ Title = "Fruit Fast Attack", Desc = "Fast attack de fruta SIN equipar (Cestian style)" })
+Dungeons:Sec({ Title = "Fruit Fast Attack", Icon = "flame", Desc = "Fast attack de fruta SIN equipar" })
 Dungeons:Toggle({ Title = "Fruit Fast Attack (sin equipar)", Value = Config.FruitM1, Callback = function(v)
     Config.FruitM1 = v
     if FruitM1 and FruitM1.SetNormal then
@@ -3186,7 +3331,7 @@ Dungeons:Toggle({ Title = "Fruit Fast Attack (sin equipar)", Value = Config.Frui
     end
     save()
 end })
-Dungeons:Paragraph({ Title = "Bypass TP NPC", Desc = "Teletransporte a NPCs ignorando limites" })
+Dungeons:Sec({ Title = "Bypass TP NPC", Icon = "map-pin", Desc = "Teletransporte a NPCs ignorando límites" })
 Dungeons:Toggle({ Title = "Bypass TP NPC", Value = Config.BypassTpNpc or false, Callback = function(v)
     Config.BypassTpNpc = v
     if v then
@@ -3237,6 +3382,7 @@ local trackPlayerNames = {"Nearest"}
 for _, p in ipairs(Players:GetPlayers()) do
     if p ~= lp then table.insert(trackPlayerNames, p.Name) end
 end
+Trackers:Sec({ Title = "Objetivo", Icon = "users", Desc = "A quién seguir" })
 Trackers:Dropdown({
     Title = "Target Player",
     Values = trackPlayerNames,
@@ -3246,6 +3392,7 @@ Trackers:Dropdown({
         save()
     end,
 })
+Trackers:Sec({ Title = "Tween / Teleport", Icon = "move", Desc = "Cómo llegar al objetivo" })
 Trackers:Toggle({
     Title = "Tween Nearest",
     Value = Config.TweenNearest,
@@ -3275,6 +3422,7 @@ Trackers:Slider({
     Value = { Min = 50, Max = 800, Default = Config.TweenSpeed or 350 },
     Callback = function(v) Config.TweenSpeed = v; save() end,
 })
+Trackers:Sec({ Title = "Offset de posición", Icon = "sliders-horizontal", Desc = "Ajuste fino X / Y / Z" })
 Trackers:Slider({
     Title = "Offset X",
     Step = 0.5,
@@ -3293,6 +3441,7 @@ Trackers:Slider({
     Value = { Min = -20, Max = 20, Default = Config.TweenOZ or 3.5 },
     Callback = function(v) Config.TweenOZ = v; save() end,
 })
+Trackers:Sec({ Title = "Órbita / Fly", Icon = "orbit", Desc = "Girar o volar alrededor del objetivo" })
 Trackers:Toggle({
     Title = "Tracker Orbit / Fly",
     Value = Config.TrackerFly,
@@ -3314,6 +3463,7 @@ Trackers:Slider({
     Value = { Min = 5, Max = 150, Default = Config.TrackerOrbitRadius },
     Callback = function(v) Config.TrackerOrbitRadius = v; save() end,
 })
+Trackers:Sec({ Title = "Auto Flee y Spectate", Icon = "heart-pulse", Desc = "Huir con poca vida y espectar" })
 Trackers:Toggle({
     Title = "Auto Flee",
     Value = Config.AutoFlee,
@@ -3346,7 +3496,8 @@ Trackers:Toggle({
 })
 
 local Aim = Window:Tab({ Title = "Aim", Icon = "target" })
-FloatToggles.Silent = Aim:Toggle({ Title = "Silent Aim Players", Value = Config.SilentPlayer, Callback = function(v)
+Aim:Sec({ Title = "Silent Aim", Icon = "crosshair", Desc = "Jugadores, NPCs y prioridad" })
+Aim:Toggle({ Title = "Silent Aim Players", Value = Config.SilentPlayer, Callback = function(v)
     Config.SilentPlayer = v
     SilentAimModule:SetPlayerSilentAim(v)
     save()
@@ -3376,6 +3527,7 @@ Aim:Dropdown({
         save()
     end,
 })
+Aim:Sec({ Title = "FOV y alcance", Icon = "scan", Desc = "Círculo, radio y rango máximo" })
 Aim:Dropdown({
     Title = "FOV Mode",
     Values = {"V1", "V2"},
@@ -3386,7 +3538,7 @@ Aim:Dropdown({
         save()
     end,
 })
-FloatToggles.FOV = Aim:Toggle({ Title = "Show FOV Circle", Value = Config.ShowFOV, Callback = function(v)
+Aim:Toggle({ Title = "Show FOV Circle", Value = Config.ShowFOV, Callback = function(v)
     Config.ShowFOV = v
     SilentAimModule:SetShowFOVCircle(v)
     save()
@@ -3414,6 +3566,12 @@ Aim:Slider({
         save()
     end,
 })
+Aim:Toggle({ Title = "Tracer", Value = Config.Tracer, Callback = function(v)
+    Config.Tracer = v
+    SilentAimModule:SetTracerEnabled(v)
+    save()
+end })
+Aim:Sec({ Title = "M1 Extender", Icon = "swords", Desc = "Más rango en el M1" })
 Aim:Toggle({ Title = "M1 Extender (solo rango)", Value = Config.M1Extender, Callback = function(v)
     Config.M1Extender = v
     M1ExtenderMod:Toggle(v)
@@ -3429,6 +3587,7 @@ Aim:Slider({
         save()
     end,
 })
+Aim:Sec({ Title = "Extras", Icon = "rocket", Desc = "Gun Click y Z Boost" })
 Aim:Toggle({ Title = "Gun Click SL", Value = Config.GunClickSL, Callback = function(v)
     Config.GunClickSL = v
     GunClickSLMod:SetEnabled(v)
@@ -3445,6 +3604,7 @@ Aim:Slider({
     Value = { Min = 100, Max = 2000, Default = Config.ZBoostPower or 450 },
     Callback = function(v) Config.ZBoostPower = v; save() end,
 })
+Aim:Sec({ Title = "Soru Auto Aim", Icon = "target", Desc = "Auto aim para Soru" })
 Aim:Toggle({ Title = "Soru Auto Aim", Value = Config.SoruAutoAim, Callback = function(v)
     Config.SoruAutoAim = v
     SilentAimModule:SetSoruAutoAim(v)
@@ -3505,55 +3665,68 @@ Aim:Toggle({ Title = "Show Soru FOV", Value = Config.SoruShowFOV, Callback = fun
     SilentAimModule:SetSoruShowFOVCircle(v)
     save()
 end })
-Aim:Toggle({ Title = "Tracer", Value = Config.Tracer, Callback = function(v)
-    Config.Tracer = v
-    SilentAimModule:SetTracerEnabled(v)
-    save()
-end })
 
 local BL = Window:Tab({ Title = "Blacklist", Icon = "ban" })
-local function blToggle(cat, key)
-    local ck = "BL_" .. cat .. "_" .. key
-    BL:Toggle({
-        Title = cat .. ": Blacklist " .. key,
-        Value = Config[ck] == true,
-        Callback = function(v)
-            Config[ck] = v
-            SilentAimModule:SetBlacklistKey(cat, key, v)
-            save()
-        end,
-    })
+BL:Paragraph({ Title = "Blacklist del Silent Aim", Desc = "Abre la ⚙ de cada categoría y marca las habilidades que quieres excluir." })
+local blItems, blRefresh = {}, {}
+local function blCategory(cat, label, keys)
+    local sec = BL:Sec({ Title = label, Desc = "Ninguna en blacklist", Icon = "settings", Opened = false })
+    local function refresh()
+        local on = {}
+        for _, key in ipairs(keys) do
+            if Config["BL_" .. cat .. "_" .. key] == true then table.insert(on, key) end
+        end
+        local txt = (#on > 0) and ("Blacklist: " .. table.concat(on, "  ·  ")) or "Ninguna en blacklist"
+        if sec then pcall(function() sec:SetDesc(txt) end) end
+    end
+    table.insert(blRefresh, refresh)
+    for _, key in ipairs(keys) do
+        local ck = "BL_" .. cat .. "_" .. key
+        local el = BL:Toggle({
+            Title = (key == "TAP") and "TAP (click normal)" or ("Habilidad " .. key),
+            Desc = "Añadir a la blacklist",
+            Value = Config[ck] == true,
+            Callback = function(v)
+                Config[ck] = v
+                SilentAimModule:SetBlacklistKey(cat, key, v)
+                refresh()
+                save()
+            end,
+        })
+        table.insert(blItems, { el = el, ck = ck, cat = cat, key = key })
+    end
+    refresh()
 end
--- Melee: Z X C (como Nameless)
-BL:Paragraph({ Title = "--- MELEES ---", Desc = "Z / X / C" })
-for _, key in ipairs({"Z", "X", "C"}) do
-    blToggle("Melee", key)
-end
--- Fruit: Z X C V F TAP
-BL:Paragraph({ Title = "--- FRUITS ---", Desc = "Z / X / C / V / F / TAP" })
-for _, key in ipairs({"Z", "X", "C", "V", "F", "TAP"}) do
-    blToggle("Fruit", key)
-end
--- Sword: Z X
-BL:Paragraph({ Title = "--- SWORDS ---", Desc = "Z / X" })
-for _, key in ipairs({"Z", "X"}) do
-    blToggle("Sword", key)
-end
--- Gun: Z X
-BL:Paragraph({ Title = "--- GUNS ---", Desc = "Z / X" })
-for _, key in ipairs({"Z", "X"}) do
-    blToggle("Gun", key)
-end
+blCategory("Fruit", "Fruit", { "Z", "X", "C", "V", "F", "TAP" })
+blCategory("Sword", "Sword", { "Z", "X" })
+blCategory("Melee", "Melee", { "Z", "X", "C" })
+blCategory("Gun", "Gun", { "Z", "X" })
+BL:EndSec()
+BL:Button({ Title = "Limpiar blacklist", Desc = "Desmarca todas las habilidades", Callback = function()
+    for _, it in ipairs(blItems) do
+        if Config[it.ck] then
+            Config[it.ck] = false
+            pcall(function() SilentAimModule:SetBlacklistKey(it.cat, it.key, false) end)
+            pcall(function() it.el:Set(false) end)
+        end
+    end
+    for _, r in ipairs(blRefresh) do r() end
+    save()
+    Notify("Bragao Hub", "Blacklist limpiada", 2)
+end })
 
 local Misc = Window:Tab({ Title = "Misc", Icon = "settings" })
+Misc:Sec({ Title = "General", Icon = "settings", Desc = "Avisos y anti AFK" })
 Misc:Toggle({ Title = "Notifications", Value = Config.Notifications, Callback = function(v)
     Config.Notifications = v
     save()
 end })
 Misc:Toggle({ Title = "Anti AFK", Value = Config.AntiAFK, Callback = function(v) Config.AntiAFK = v; save() end })
+Misc:Sec({ Title = "Automático", Icon = "zap", Desc = "V3, V4 y PvP" })
 Misc:Toggle({ Title = "Auto V3", Value = Config.AutoV3, Callback = function(v) Config.AutoV3 = v; save() end })
 Misc:Toggle({ Title = "Auto V4", Value = Config.AutoV4, Callback = function(v) Config.AutoV4 = v; save() end })
 Misc:Toggle({ Title = "Auto PvP", Value = Config.AutoPvP, Callback = function(v) Config.AutoPvP = v; save() end })
+Misc:Sec({ Title = "Utilidades", Icon = "wrench", Desc = "Cámara, mundo y protección" })
 Misc:Toggle({ Title = "Infinite Zoom", Value = Config.InfiniteZoom, Callback = function(v)
     Config.InfiniteZoom = v
     lp.CameraMaxZoomDistance = v and math.huge or savedZoom
@@ -3573,6 +3746,7 @@ Misc:Toggle({ Title = "Anti Lava", Value = Config.AntiLava, Callback = function(
     if v then startAntiLava() else stopAntiLava() end
     save()
 end })
+Misc:Sec({ Title = "Velocidad", Icon = "gauge", Desc = "Modo y valor de velocidad" })
 Misc:Toggle({ Title = "Speed Hack", Value = Config.SpeedEnabled, Callback = function(v)
     Config.SpeedEnabled = v
     if not v then
@@ -3589,6 +3763,7 @@ Misc:Dropdown({
 })
 Misc:Slider({ Title = "Speed Value", Step = 1, Value = { Min = 16, Max = 500, Default = Config.SpeedValue }, Callback = function(v) Config.SpeedValue = v; save() end })
 
+Misc:Sec({ Title = "Acciones", Icon = "play", Desc = "Compras y utilidades rápidas" })
 Misc:Button({ Title = "Buy Cyborg Race", Callback = function()
     pcall(function() CommF:InvokeServer("CyborgTrainer", "Buy") end)
     Notify("Bragao Hub", "Buy Cyborg Race enviado", 2)
@@ -3628,8 +3803,8 @@ end })
 
 -- ==================== MOVEMENT TAB ====================
 local Movement = Window:Tab({ Title = "Movement", Icon = "person-standing" })
-Movement:Paragraph({ Title = "Fly & Speed", Desc = "Movimiento basico" })
-FloatToggles.Fly = Movement:Toggle({
+Movement:Sec({ Title = "Fly", Icon = "plane", Desc = "Volar y su velocidad" })
+Movement:Toggle({
     Title = "Fly",
     Value = Config.Fly,
     Callback = function(v)
@@ -3644,7 +3819,8 @@ Movement:Slider({
     Value = { Min = 50, Max = 500, Default = Config.FlySpeed or 250 },
     Callback = function(v) Config.FlySpeed = v; save() end,
 })
-FloatToggles.Speed = Movement:Toggle({
+Movement:Sec({ Title = "Velocidad", Icon = "gauge", Desc = "Speed hack y modo" })
+Movement:Toggle({
     Title = "Speed Hack",
     Value = Config.SpeedEnabled,
     Callback = function(v)
@@ -3669,8 +3845,8 @@ Movement:Slider({
     Callback = function(v) Config.SpeedValue = v; save() end,
 })
 
-Movement:Paragraph({ Title = "Movement", Desc = "Noclip, jump, dash, etc." })
-FloatToggles.Noclip = Movement:Toggle({
+Movement:Sec({ Title = "Noclip y saltos", Icon = "footprints", Desc = "Atravesar y saltar" })
+Movement:Toggle({
     Title = "Noclip",
     Value = false,
     Callback = function(v)
@@ -3678,7 +3854,7 @@ FloatToggles.Noclip = Movement:Toggle({
         save()
     end,
 })
-FloatToggles.InfJump = Movement:Toggle({
+Movement:Toggle({
     Title = "Infinite Jump",
     Value = false,
     Callback = function(v)
@@ -3711,6 +3887,7 @@ Movement:Toggle({
         save()
     end,
 })
+Movement:Sec({ Title = "Extras", Icon = "activity", Desc = "Caída, dash y altura" })
 Movement:Toggle({
     Title = "No Fall Damage",
     Value = false,
@@ -3756,7 +3933,7 @@ Movement:Slider({
 
 
 local Potato = Window:Tab({ Title = "Potato Graphics", Icon = "monitor" })
-Potato:Paragraph({ Title = "No GFX (Nameless)", Desc = "V1 = particles/beams | V2 = + hotbar icons" })
+Potato:Sec({ Title = "No GFX", Icon = "monitor", Desc = "V1 = partículas/beams | V2 = + iconos" })
 Potato:Dropdown({
     Title = "No GFX Mode",
     Values = {"Off", "V1", "V2"},
@@ -3766,7 +3943,7 @@ Potato:Dropdown({
         save()
     end,
 })
-Potato:Paragraph({ Title = "Low Graphics (Cestian)", Desc = "Bajar calidad del juego" })
+Potato:Sec({ Title = "Gráficos bajos", Icon = "cpu", Desc = "Bajar la calidad del juego" })
 Potato:Toggle({
     Title = "Low Graphics",
     Value = Config.LowGraphics or false,
@@ -3810,7 +3987,7 @@ Potato:Toggle({
         save()
     end,
 })
-Potato:Paragraph({ Title = "Fast Flags (Cestian)", Desc = "Inyecta FFlags del executor (FPS / red / fisica)" })
+Potato:Sec({ Title = "Fast Flags", Icon = "rocket", Desc = "FFlags del executor (FPS / red / física)" })
 Potato:Button({
     Title = "Inject Fast Flags 1",
     Callback = function()
@@ -3845,8 +4022,8 @@ Potato:Button({
 -- ==================== VISUAL TAB ====================
 local Visual = Window:Tab({ Title = "Visual", Icon = "eye" })
 
-Visual:Paragraph({ Title = "ESP Settings", Desc = "Ver jugadores a través de paredes" })
-FloatToggles.ESP = Visual:Toggle({
+Visual:Sec({ Title = "ESP", Icon = "eye", Desc = "Ver jugadores a través de paredes" })
+Visual:Toggle({
     Title = "ESP",
     Value = Config.ESP,
     Callback = function(v)
@@ -3865,6 +4042,7 @@ Visual:Slider({
     end
 })
 
+Visual:Sec({ Title = "ESP — información", Icon = "layers", Desc = "Qué mostrar de cada jugador" })
 for _, opt in ipairs({
     { "ESPName", "ESP Name" },
     { "ESPHealth", "ESP HP (texto)" },
@@ -3894,7 +4072,7 @@ Visual:Slider({
     end
 })
 
-Visual:Paragraph({ Title = "Silent Aim Tracer", Desc = "Línea roja desde tu personaje al objetivo del silent aim (requiere Silent Aim Players activado)" })
+Visual:Sec({ Title = "Silent Aim Tracer", Icon = "crosshair", Desc = "Línea al objetivo (requiere Silent Aim Players)" })
 Visual:Toggle({
     Title = "Silent Aim Tracer",
     Value = Config.SATracer,
@@ -3912,7 +4090,7 @@ Visual:Toggle({
     end
 })
 
-Visual:Paragraph({ Title = "Tracer Settings", Desc = "Líneas hasta los jugadores" })
+Visual:Sec({ Title = "Tracers", Icon = "move", Desc = "Líneas hasta los jugadores" })
 Visual:Toggle({ 
     Title = "Tracers", 
     Value = Config.Tracers, 
@@ -3922,136 +4100,106 @@ Visual:Toggle({
     end 
 })
 
--- ==================== FLOATING BUTTONS (HUD) + UI TAB ====================
--- Botones flotantes arrastrables estilo Onyx/Bragas. Cada uno prende/apaga el toggle real de la UI,
--- así el estado siempre coincide con el menú.
+-- ==================== BOTONES FLOTANTES (estilo Onyx) ====================
+-- Cada botón enciende/apaga un toggle real de la UI y se mantiene sincronizado con él.
 do
-    local TweenService = game:GetService("TweenService")
-
-    -- Limpieza si el script se ejecuta dos veces
-    pcall(function()
-        if getgenv and getgenv().__BragaoHUDCleanup then
-            getgenv().__BragaoHUDCleanup()
-            getgenv().__BragaoHUDCleanup = nil
-        end
-    end)
-    pcall(function()
-        local host = (gethui and gethui()) or CoreGui
-        local old = host:FindFirstChild("Bragao_HUD")
-        if old then old:Destroy() end
-    end)
-
-    local IS_MOBILE = UIS.TouchEnabled
+    local ICONS = {
+        crosshair = "rbxassetid://134242818164054",
+        sword = "rbxassetid://124448418211665",
+        target = "rbxassetid://87563802520297",
+        climb = "rbxassetid://100467452364672",
+        plane = "rbxassetid://126985561580989",
+        expand = "rbxassetid://137492887754537",
+        ghost = "rbxassetid://113822048130017",
+    }
+    local IS_MOBILE = UserInputService.TouchEnabled
     local TILE = IS_MOBILE and 72 or 84
     local GAP = 10
 
-    local conns = {}
-    local function track(c) conns[#conns + 1] = c return c end
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "Bragao_HUD"
-    gui.ResetOnSpawn = false
-    gui.IgnoreGuiInset = true
-    gui.DisplayOrder = 10
-    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    pcall(function()
-        if syn and syn.protect_gui then syn.protect_gui(gui) end
-    end)
-    gui.Parent = (gethui and gethui()) or CoreGui
-    gui.Enabled = Config.HUDShow ~= false
-
-    -- Posiciones guardadas: { [key] = {scaleX, offsetX, scaleY, offsetY} }
-    local saved = {}
-    pcall(function()
-        if type(Config.HUDPos) == "string" and Config.HUDPos ~= "" then
-            local d = HttpService:JSONDecode(Config.HUDPos)
-            if type(d) == "table" then saved = d end
-        end
-    end)
-    local function savePositions()
-        pcall(function() Config.HUDPos = HttpService:JSONEncode(saved) end)
-        save()
-    end
-
-    local function hudScale()
-        return math.clamp((Config.HUDScale or 100) / 100, 0.5, 1.5) * (IS_MOBILE and 0.8 or 1)
-    end
-
-    -- ---------- definición de botones ----------
-    local ICON = {
-        target = "rbxassetid://87563802520297",
-        sword = "rbxassetid://124448418211665",
-        crosshair = "rbxassetid://134242818164054",
-        plane = "rbxassetid://126985561580989",
-        ghost = "rbxassetid://113822048130017",
-        climb = "rbxassetid://100467452364672",
-    }
-
-    local function flip(toggleObj, getState)
-        if not toggleObj then return end
-        SFX.quiet = true
-        pcall(function() toggleObj:Set(not getState()) end)
-        SFX.quiet = false
-    end
-
-    local defs = {
-        { key = "Silent",  row = 1, text = "SILENT\nAIM",   color = "#2DD4BF", icon = ICON.target,
-          get = function() return Config.SilentPlayer == true end, toggle = "Silent" },
-        { key = "Attack",  row = 1, text = "FAST\nATTACK",  color = "#EF4444", icon = ICON.sword,
-          get = function() return Config.FastAttack == true end, toggle = "FastAttack" },
-        { key = "ESP",     row = 1, text = "ESP",           color = "#FACC15", glyph = "👁",
-          get = function() return Config.ESP == true end, toggle = "ESP" },
-        { key = "FOV",     row = 1, text = "SHOW\nFOV",     color = "#257AF7", icon = ICON.crosshair,
-          get = function() return Config.ShowFOV == true end, toggle = "FOV" },
-        { key = "Fly",     row = 2, text = "FLY",           color = "#38BDF8", icon = ICON.plane,
-          get = function() return Config.Fly == true end, toggle = "Fly" },
-        { key = "Noclip",  row = 2, text = "NOCLIP",        color = "#94A3B8", icon = ICON.ghost,
-          get = function() return MovementState.Noclip == true end, toggle = "Noclip" },
-        { key = "Speed",   row = 2, text = "SPEED",         color = "#F97316", glyph = "⚡",
-          get = function() return Config.SpeedEnabled == true end, toggle = "Speed" },
-        { key = "Jump",    row = 2, text = "INF\nJUMP",     color = "#A855F7", icon = ICON.climb,
-          get = function() return MovementState.InfiniteJump == true end, toggle = "InfJump" },
-    }
-
-    local tiles = {}
-
-    local function defaultPosition(def, index)
-        local perRow = 4
-        local col = index - (def.row - 1) * perRow
-        local s = hudScale()
-        return UDim2.new(0.5, (col - (perRow + 1) / 2) * (TILE + GAP) * s, 0.25, (def.row - 1) * (TILE + GAP) * s)
-    end
+    local F = { gui = nil, parts = {}, locked = Config.BtnLocked == true }
+    BragaoUI.float = F
 
     local function tween(obj, props, t)
-        TweenService:Create(obj, TweenInfo.new(t or 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+        pcall(function()
+            TweenService:Create(obj, TweenInfo.new(t or 0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+        end)
     end
 
-    local function setActive(tile, active, instant)
-        tile.active = active
-        local set = instant and function(o, p) for k, v in pairs(p) do o[k] = v end end or tween
-        set(tile.stroke, { Transparency = active and 0 or 0.15 })
-        set(tile.plate, { BackgroundTransparency = active and 0.35 or 0.82 })
-        set(tile.plateStroke, { Transparency = active and 0.15 or 0.55 })
-        set(tile.label, { TextColor3 = active and Color3.fromRGB(240, 240, 246) or Color3.fromRGB(146, 146, 158) })
-        if tile.icon then
-            local c = tile.accent
-            local mix = active and 0.8 or 0.55
-            set(tile.icon, { ImageColor3 = Color3.new(c.R + (1 - c.R) * mix, c.G + (1 - c.G) * mix, c.B + (1 - c.B) * mix) })
+    local function lighten(c, a)
+        return Color3.new(c.R + (1 - c.R) * a, c.G + (1 - c.G) * a, c.B + (1 - c.B) * a)
+    end
+
+    local function scaleValue()
+        return math.clamp((Config.BtnScale or 100) / 100, 0.4, 2)
+    end
+
+    -- Enciende/apaga el toggle real (y su elemento en la UI) desde un botón flotante
+    function BragaoUI.setToggle(title, value)
+        local list = BragaoUI.elements[title]
+        if list then
+            for _, el in ipairs(list) do
+                pcall(function() el:Set(value) end)
+            end
         end
-        if tile.glyphLabel then
-            set(tile.glyphLabel, { TextTransparency = active and 0 or 0.35 })
+        -- Si Set no disparó el callback, lo llamamos nosotros
+        if BragaoUI.states[title] ~= value then
+            for _, cb in ipairs(BragaoUI.callbacks[title] or {}) do
+                pcall(cb, value)
+            end
         end
     end
 
-    local function buildTile(def, index)
+    local function setActive(part, active)
+        part.active = active
+        tween(part.stroke, { Transparency = active and 0 or 0.15 }, 0.18)
+        tween(part.plate, { BackgroundTransparency = active and 0.35 or 0.82 }, 0.18)
+        tween(part.plateStroke, { Transparency = active and 0.15 or 0.55 }, 0.18)
+        tween(part.icon, { ImageColor3 = lighten(part.accent, active and 0.8 or 0.55) }, 0.18)
+        tween(part.label, { TextColor3 = active and Color3.fromRGB(240, 240, 246) or Color3.fromRGB(146, 146, 158) }, 0.18)
+    end
+
+    function BragaoUI.refresh(title)
+        for _, def in ipairs(BragaoUI.floatDefs) do
+            if def.toggle == title and F.parts[def.id] then
+                setActive(F.parts[def.id], BragaoUI.states[title] == true)
+            end
+        end
+    end
+
+    -- Posiciones por defecto: una fila centrada arriba, solo con los botones activos
+    function F.relayout()
+        local list = {}
+        for _, def in ipairs(BragaoUI.floatDefs) do
+            if F.parts[def.id] then table.insert(list, def) end
+        end
+        local sc = scaleValue()
+        for i, def in ipairs(list) do
+            local part = F.parts[def.id]
+            part.scale.Scale = sc
+            if (Config["BtnX_" .. def.id] or -1) < 0 then
+                part.btn.Position = UDim2.new(0.5, (i - (#list + 1) / 2) * (TILE + GAP) * sc, 0.25, 0)
+            else
+                part.btn.Position = UDim2.fromScale(Config["BtnX_" .. def.id], Config["BtnY_" .. def.id])
+            end
+        end
+    end
+
+    function F.destroy(id)
+        local part = F.parts[id]
+        if not part then return end
+        for _, c in ipairs(part.conns) do pcall(function() c:Disconnect() end) end
+        pcall(function() part.btn:Destroy() end)
+        F.parts[id] = nil
+    end
+
+    function F.create(def)
+        if F.parts[def.id] or not F.gui then return end
+        if not BragaoUI.callbacks[def.toggle] then return end -- ese toggle no existe en esta versión
         local accent = Color3.fromHex(def.color)
-        local tile = { def = def, accent = accent, active = false }
 
         local btn = Instance.new("TextButton")
-        btn.Name = def.key .. "Btn"
+        btn.Name = def.id .. "Btn"
         btn.Size = UDim2.fromOffset(TILE, TILE)
-        local p = saved[def.key]
-        btn.Position = (type(p) == "table" and #p == 4) and UDim2.new(p[1], p[2], p[3], p[4]) or defaultPosition(def, index)
         btn.AnchorPoint = Vector2.new(0.5, 0.5)
         btn.Text = ""
         btn.BackgroundColor3 = Color3.fromRGB(10, 10, 13)
@@ -4059,13 +4207,11 @@ do
         btn.BorderSizePixel = 0
         btn.AutoButtonColor = false
         btn.ZIndex = 2
-        btn.Parent = gui
+        btn.Parent = F.gui
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 16)
-
-        local scale = Instance.new("UIScale")
-        scale.Scale = hudScale()
-        scale.Parent = btn
-
+        local uiScale = Instance.new("UIScale")
+        uiScale.Scale = scaleValue()
+        uiScale.Parent = btn
         local stroke = Instance.new("UIStroke")
         stroke.Thickness = 1.5
         stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -4073,10 +4219,9 @@ do
         stroke.Transparency = 0.15
         stroke.Parent = btn
 
-        local plateSize = IS_MOBILE and 30 or 34
         local plate = Instance.new("Frame")
         plate.Name = "Plate"
-        plate.Size = UDim2.fromOffset(plateSize, plateSize)
+        plate.Size = UDim2.fromOffset(34, 34)
         plate.Position = UDim2.new(0.5, 0, 0, math.floor(TILE * 0.36))
         plate.AnchorPoint = Vector2.new(0.5, 0.5)
         plate.BackgroundColor3 = accent
@@ -4091,209 +4236,298 @@ do
         plateStroke.Transparency = 0.55
         plateStroke.Parent = plate
 
-        if def.icon then
-            local img = Instance.new("ImageLabel")
-            img.Name = "Icon"
-            img.Size = UDim2.fromOffset(23, 23)
-            img.Position = UDim2.fromScale(0.5, 0.5)
-            img.AnchorPoint = Vector2.new(0.5, 0.5)
-            img.BackgroundTransparency = 1
-            img.Image = def.icon
-            img.ZIndex = 5
-            img.Parent = plate
-            tile.icon = img
-        else
-            local g = Instance.new("TextLabel")
-            g.Name = "Glyph"
-            g.Size = UDim2.fromScale(1, 1)
-            g.BackgroundTransparency = 1
-            g.Text = def.glyph or "?"
-            g.TextSize = 20
-            g.Font = Enum.Font.GothamBold
-            g.TextColor3 = Color3.new(1, 1, 1)
-            g.ZIndex = 5
-            g.Parent = plate
-            tile.glyphLabel = g
-        end
+        local icon = Instance.new("ImageLabel")
+        icon.Name = "Icon"
+        icon.Size = UDim2.fromOffset(23, 23)
+        icon.Position = UDim2.new(0.5, 0, 0.5, 0)
+        icon.AnchorPoint = Vector2.new(0.5, 0.5)
+        icon.BackgroundTransparency = 1
+        icon.Image = ICONS[def.icon] or ""
+        icon.ImageColor3 = lighten(accent, 0.55)
+        icon.ZIndex = 5
+        icon.Parent = plate
 
+        local lines = select(2, def.label:gsub("\n", "")) + 1
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -10, 0, 24)
         label.Position = UDim2.new(0.5, 0, 1, -7)
         label.AnchorPoint = Vector2.new(0.5, 1)
         label.BackgroundTransparency = 1
-        label.Text = def.text
-        label.TextSize = IS_MOBILE and 9 or 10
+        label.Text = def.label
+        label.TextSize = (lines >= 2) and (IS_MOBILE and 8 or 9) or (IS_MOBILE and 9 or 10)
         label.Font = Enum.Font.GothamBold
         label.TextColor3 = Color3.fromRGB(146, 146, 158)
         label.TextWrapped = true
-        label.LineHeight = 1.1
+        label.LineHeight = lines >= 2 and 1 or 1.1
         label.ZIndex = 6
         label.Parent = btn
 
-        tile.btn, tile.scale, tile.stroke, tile.plate, tile.plateStroke, tile.label = btn, scale, stroke, plate, plateStroke, label
+        local part = {
+            btn = btn, stroke = stroke, plate = plate, plateStroke = plateStroke,
+            icon = icon, label = label, accent = accent, scale = uiScale,
+            active = false, conns = {}, def = def,
+        }
+        F.parts[def.id] = part
+        local function on(signal, fn) table.insert(part.conns, signal:Connect(fn)) end
 
-        track(btn.MouseEnter:Connect(function()
-            tween(btn, { BackgroundTransparency = 0.06 }, 0.12)
-            if not tile.active then tween(label, { TextColor3 = Color3.fromRGB(228, 228, 236) }, 0.12) end
-        end))
-        track(btn.MouseLeave:Connect(function()
-            tween(btn, { BackgroundTransparency = 0.18 }, 0.12)
-            if not tile.active then tween(label, { TextColor3 = Color3.fromRGB(146, 146, 158) }, 0.12) end
-        end))
+        -- hover
+        on(btn.MouseEnter, function()
+            tween(btn, { BackgroundTransparency = 0.06 })
+            tween(plate, { BackgroundTransparency = part.active and 0.3 or 0.7 })
+        end)
+        on(btn.MouseLeave, function()
+            tween(btn, { BackgroundTransparency = 0.18 })
+            tween(plate, { BackgroundTransparency = part.active and 0.35 or 0.82 })
+        end)
 
-        -- arrastre
-        local drag = nil
-        track(btn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                drag = { input = input, startPos = btn.Position, startMouse = input.Position, moved = false }
-                tile.drag = drag
-            end
-        end))
-        tile.drag = nil
-
+        -- click vs arrastre
+        local pressed, dragged, activeInput, startScalePos, startInputPos = false, false, nil, nil, nil
         local lastClick = 0
-        local function press()
+        local function doClick()
+            if dragged then return end
             local now = os.clock()
             if now - lastClick < 0.2 then return end
             lastClick = now
-            SFX.play("click")
-            local s = hudScale()
-            tween(scale, { Scale = s * 0.93 }, 0.06)
+            BragaoUI.playSfx("click")
+            local sc = scaleValue()
+            tween(uiScale, { Scale = sc * 0.93 }, 0.06)
             task.delay(0.08, function()
-                if scale.Parent then tween(scale, { Scale = s }, 0.16) end
+                if uiScale.Parent then tween(uiScale, { Scale = sc }, 0.16) end
             end)
-            local tg = FloatToggles[def.toggle]
-            if tg then
-                flip(tg, def.get)
-            else
-                Notify("Bragao Hub", def.text:gsub("\n", " ") .. ": toggle no disponible", 2)
-            end
+            task.spawn(function()
+                BragaoUI.setToggle(def.toggle, not (BragaoUI.states[def.toggle] == true))
+            end)
         end
-        track(btn.MouseButton1Click:Connect(function()
-            if tile.suppressClick then return end
-            press()
-        end))
-        track(btn.TouchTap:Connect(function()
-            if tile.suppressClick then return end
-            press()
-        end))
+        on(btn.MouseButton1Click, doClick)
+        on(btn.TouchTap, doClick)
 
-        setActive(tile, def.get(), true)
-        tiles[def.key] = tile
-        return tile
+        on(btn.InputBegan, function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                pressed, dragged, activeInput = true, false, input
+                local vs = F.gui.AbsoluteSize
+                local center = btn.AbsolutePosition + btn.AbsoluteSize / 2
+                startScalePos = Vector2.new(center.X / vs.X, center.Y / vs.Y)
+                startInputPos = input.Position
+            end
+        end)
+        on(UserInputService.InputChanged, function(input)
+            if not pressed or F.locked or not btn.Parent then return end
+            if input.UserInputType ~= Enum.UserInputType.MouseMovement and input ~= activeInput then return end
+            local d = input.Position - startInputPos
+            if not dragged then
+                if math.abs(d.X) + math.abs(d.Y) < 6 then return end
+                dragged = true
+            end
+            local vs = F.gui.AbsoluteSize
+            btn.Position = UDim2.fromScale(
+                math.clamp(startScalePos.X + d.X / vs.X, 0.02, 0.98),
+                math.clamp(startScalePos.Y + d.Y / vs.Y, 0.02, 0.98)
+            )
+        end)
+        on(UserInputService.InputEnded, function(input)
+            if not pressed or input ~= activeInput then return end
+            pressed, activeInput = false, nil
+            if dragged then
+                Config["BtnX_" .. def.id] = btn.Position.X.Scale
+                Config["BtnY_" .. def.id] = btn.Position.Y.Scale
+                save()
+            end
+            task.delay(0.05, function() dragged = false end)
+        end)
+
+        setActive(part, BragaoUI.states[def.toggle] == true)
+        F.relayout()
     end
 
-    for i, def in ipairs(defs) do buildTile(def, i) end
-
-    -- movimiento y fin del arrastre (una sola conexión para todos los botones)
-    track(UIS.InputChanged:Connect(function(input)
-        if Config.HUDLocked then return end
-        for _, tile in pairs(tiles) do
-            local d = tile.drag
-            if d and (input.UserInputType == Enum.UserInputType.MouseMovement or input == d.input) then
-                local delta = input.Position - d.startMouse
-                if not d.moved then
-                    if math.abs(delta.X) + math.abs(delta.Y) < 6 then return end
-                    d.moved = true
-                    tile.suppressClick = true
-                end
-                local sp = d.startPos
-                tile.btn.Position = UDim2.new(sp.X.Scale, sp.X.Offset + delta.X, sp.Y.Scale, sp.Y.Offset + delta.Y)
-            end
+    function F.build()
+        pcall(function()
+            local host = (gethui and gethui()) or CoreGui
+            local old = host:FindFirstChild("Bragao_Buttons")
+            if old then old:Destroy() end
+        end)
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "Bragao_Buttons"
+        gui.ResetOnSpawn = false
+        gui.IgnoreGuiInset = true
+        gui.DisplayOrder = 10
+        gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        pcall(function()
+            if syn and syn.protect_gui then syn.protect_gui(gui) end
+        end)
+        gui.Parent = (gethui and gethui()) or CoreGui
+        F.gui = gui
+        for _, def in ipairs(BragaoUI.floatDefs) do
+            if Config["BtnOn_" .. def.id] then F.create(def) end
         end
-    end))
-    track(UIS.InputEnded:Connect(function(input)
-        for key, tile in pairs(tiles) do
-            local d = tile.drag
-            if d and input == d.input then
-                tile.drag = nil
-                if d.moved then
-                    local pos = tile.btn.Position
-                    saved[key] = { pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset }
-                    savePositions()
-                    task.delay(0.05, function() tile.suppressClick = false end)
-                end
-            end
-        end
-    end))
-
-    -- el estado de cada botón sigue al del menú (también cuando lo cambias desde la ventana)
-    local acc = 0
-    track(RunService.Heartbeat:Connect(function(dt)
-        acc += dt
-        if acc < 0.2 then return end
-        acc = 0
-        for _, tile in pairs(tiles) do
-            local state = tile.def.get()
-            if state ~= tile.active then setActive(tile, state, false) end
-        end
-    end))
-
-    local function relayout()
-        local s = hudScale()
-        for i, def in ipairs(defs) do
-            local tile = tiles[def.key]
-            tile.scale.Scale = s
-            if not saved[def.key] then tile.btn.Position = defaultPosition(def, i) end
-        end
+        F.relayout()
     end
 
-    pcall(function()
-        getgenv().__BragaoHUDCleanup = function()
-            for _, c in ipairs(conns) do pcall(function() c:Disconnect() end) end
-            pcall(function() gui:Destroy() end)
+    function F.resetPositions()
+        for _, def in ipairs(BragaoUI.floatDefs) do
+            Config["BtnX_" .. def.id] = -1
+            Config["BtnY_" .. def.id] = -1
         end
-    end)
+        F.relayout()
+        save()
+    end
 
-    -- ---------- pestaña UI ----------
-    local UITab = Window:Tab({ Title = "UI", Icon = "palette" })
-    UITab:Paragraph({ Title = "Botones flotantes", Desc = "Toca un botón para prender/apagar la función. Arrástralo para moverlo; la posición se guarda." })
-    UITab:Toggle({
-        Title = "Mostrar botones flotantes",
-        Value = Config.HUDShow ~= false,
+    -- ---------- Pestaña "Botones" ----------
+    local BtnTab = Window:Tab({ Title = "Botones", Icon = "layout-grid" })
+        BtnTab:Sec({ Title = "Botones flotantes", Icon = "layout-grid", Desc = "Toca para encender/apagar. Arrástralo para moverlo." })
+    for _, def in ipairs(BragaoUI.floatDefs) do
+        BtnTab:Toggle({
+            Title = def.label:gsub("\n", " ") .. " Button",
+            Value = Config["BtnOn_" .. def.id],
+            Callback = function(v)
+                Config["BtnOn_" .. def.id] = v
+                if v then F.create(def) else F.destroy(def.id) end
+                F.relayout()
+                save()
+            end,
+        })
+    end
+    BtnTab:Sec({ Title = "Ajustes", Icon = "settings", Desc = "Posición, tamaño y sonidos" })
+    BtnTab:Toggle({
+        Title = "Bloquear posición de botones",
+        Value = Config.BtnLocked,
         Callback = function(v)
-            Config.HUDShow = v
-            gui.Enabled = v
+            Config.BtnLocked = v
+            F.locked = v
             save()
         end,
     })
-    UITab:Toggle({
-        Title = "Bloquear posición",
-        Value = Config.HUDLocked == true,
-        Callback = function(v)
-            Config.HUDLocked = v
-            save()
-        end,
-    })
-    UITab:Slider({
-        Title = "Tamaño de los botones (%)",
+    BtnTab:Slider({
+        Title = "Tamaño de botones (%)",
         Step = 5,
-        Value = { Min = 50, Max = 150, Default = Config.HUDScale or 100 },
+        Value = { Min = 40, Max = 150, Default = Config.BtnScale },
         Callback = function(v)
-            Config.HUDScale = v
-            relayout()
+            Config.BtnScale = v
+            F.relayout()
             save()
         end,
     })
-    UITab:Button({
-        Title = "Reiniciar posiciones",
-        Callback = function()
-            saved = {}
-            savePositions()
-            relayout()
-            Notify("Bragao Hub", "Botones colocados en su sitio", 2)
-        end,
-    })
-    UITab:Paragraph({ Title = "Sonido", Desc = "Clic al tocar botones y sonido al activar interruptores." })
-    UITab:Toggle({
-        Title = "Sonidos",
-        Value = Config.HUDSounds ~= false,
+    BtnTab:Toggle({
+        Title = "Sonidos de la UI",
+        Value = Config.UISounds,
         Callback = function(v)
-            Config.HUDSounds = v
+            Config.UISounds = v
             save()
         end,
     })
+    BtnTab:Button({
+        Title = "Restablecer posiciones",
+        Callback = function() F.resetPositions() end,
+    })
+
+    F.build()
+end
+
+-- ==================== 4EVR (fondos, colores y guardado) ====================
+do
+    local EV = Window:Tab({ Title = "4EVR", Icon = "sparkles" })
+    local function activeName()
+        local d = BragaoUI.themeImages[Config.UI_Theme] or BragaoUI.themeImages[1]
+        return Config.UI_BgOn and d.name or "Sin imagen"
+    end
+
+    -- ---------- Fondos ----------
+    local secBg = EV:Sec({ Title = "Fondos", Desc = "Activo: " .. activeName(), Icon = "image", Opened = true })
+    local bgToggle
+    for idx, t in ipairs(BragaoUI.themeImages) do
+        EV:Image({ Image = "rbxassetid://" .. t.id, AspectRatio = "16:9" })
+        EV:Button({
+            Title = "Usar " .. t.name,
+            Desc = "Poner este fondo en la ventana",
+            Callback = function()
+                Config.UI_Theme = idx
+                Config.UI_BgOn = true
+                if bgToggle then pcall(function() bgToggle:Set(true) end) end
+                BragaoUI.applyBackground()
+                pcall(function() secBg:SetDesc("Activo: " .. activeName()) end)
+                save()
+            end,
+        })
+    end
+    bgToggle = EV:Toggle({
+        Title = "Mostrar imagen de fondo",
+        Value = Config.UI_BgOn,
+        Callback = function(v)
+            Config.UI_BgOn = v
+            BragaoUI.applyBackground()
+            pcall(function() secBg:SetDesc("Activo: " .. activeName()) end)
+            save()
+        end,
+    })
+    EV:Slider({
+        Title = "Visibilidad de la imagen (%)",
+        Step = 5,
+        Value = { Min = 0, Max = 100, Default = Config.UI_BgVisible },
+        Callback = function(v)
+            Config.UI_BgVisible = v
+            BragaoUI.applyBackground()
+            save()
+        end,
+    })
+
+    -- ---------- Colores ----------
+    EV:Sec({ Title = "Colores de la UI", Desc = "Se aplican al instante y se guardan solos", Icon = "palette", Opened = true })
+    local pickers = {}
+    local function addPicker(key, title, desc)
+        pickers[key] = EV:Colorpicker({
+            Title = title,
+            Desc = desc,
+            Default = BragaoUI.col(key),
+            Callback = function(c)
+                Config[key] = BragaoUI.toHex(c)
+                BragaoUI.queueApply()
+            end,
+        })
+    end
+    addPicker("UI_ColText", "Letras", "Color del texto principal")
+    addPicker("UI_ColMuted", "Letras secundarias", "Descripciones y placeholders")
+    addPicker("UI_ColBg", "Fondo de la ventana", "Color base detrás de todo")
+    addPicker("UI_ColCard", "Tarjetas", "Fondo de cada opción")
+    addPicker("UI_ColAccent", "Acento", "Toggles, sliders y checks")
+    addPicker("UI_ColButton", "Botones", "Fondo de los botones")
+    addPicker("UI_ColIcon", "Iconos", "Color de los iconos")
+    addPicker("UI_ColBorder", "Bordes", "Contornos de la UI")
+    local cardSlider = EV:Slider({
+        Title = "Transparencia de tarjetas (%)",
+        Step = 5,
+        Value = { Min = 0, Max = 95, Default = Config.UI_CardAlpha },
+        Callback = function(v)
+            Config.UI_CardAlpha = v
+            BragaoUI.queueApply()
+        end,
+    })
+
+    -- ---------- Paletas rápidas ----------
+    EV:Sec({ Title = "Paletas rápidas", Desc = "Cambia todos los colores de una vez", Icon = "sparkles", Opened = false })
+    local PALETTES = {
+        { "Onyx (original)", { UI_ColBg = "#161619", UI_ColCard = "#18181b", UI_ColText = "#ffffff", UI_ColMuted = "#a1a1aa", UI_ColAccent = "#ffffff", UI_ColButton = "#3f3f46", UI_ColIcon = "#d4d4d8", UI_ColBorder = "#ffffff" }, 30 },
+        { "Sangre", { UI_ColBg = "#1a0a0c", UI_ColCard = "#2a1215", UI_ColText = "#fff1f2", UI_ColMuted = "#fda4af", UI_ColAccent = "#ef4444", UI_ColButton = "#7f1d1d", UI_ColIcon = "#fecaca", UI_ColBorder = "#ef4444" }, 30 },
+        { "Océano", { UI_ColBg = "#071a26", UI_ColCard = "#0f2b3d", UI_ColText = "#e0f2fe", UI_ColMuted = "#7dd3fc", UI_ColAccent = "#38bdf8", UI_ColButton = "#0c4a6e", UI_ColIcon = "#bae6fd", UI_ColBorder = "#38bdf8" }, 30 },
+        { "Violeta", { UI_ColBg = "#150b26", UI_ColCard = "#241540", UI_ColText = "#f5f3ff", UI_ColMuted = "#c4b5fd", UI_ColAccent = "#a855f7", UI_ColButton = "#5b21b6", UI_ColIcon = "#ddd6fe", UI_ColBorder = "#a855f7" }, 30 },
+        { "Esmeralda", { UI_ColBg = "#06180f", UI_ColCard = "#0e2a1c", UI_ColText = "#ecfdf5", UI_ColMuted = "#86efac", UI_ColAccent = "#22c55e", UI_ColButton = "#166534", UI_ColIcon = "#bbf7d0", UI_ColBorder = "#22c55e" }, 30 },
+    }
+    local function applyPalette(p)
+        for k, hex in pairs(p[2]) do
+            Config[k] = hex
+            if pickers[k] then pcall(function() pickers[k]:Set(BragaoUI.col(k)) end) end
+        end
+        Config.UI_CardAlpha = p[3]
+        pcall(function() cardSlider:Set(p[3]) end)
+        BragaoUI.applyTheme()
+        save()
+        Notify("Bragao Hub", "Paleta: " .. p[1], 2)
+    end
+    for _, p in ipairs(PALETTES) do
+        EV:Button({ Title = p[1], Callback = function() applyPalette(p) end })
+    end
+
+    EV:EndSec()
+    EV:Button({ Title = "Restablecer colores", Desc = "Vuelve a la paleta Onyx", Callback = function() applyPalette(PALETTES[1]) end })
 end
 
 task.defer(function()
