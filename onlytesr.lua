@@ -2,7 +2,7 @@
 -- FONDO DE IMAGEN: pega aquí el ID de TU imagen (debe ser un asset de tipo
 -- IMAGEN subido a Roblox, no un Decal). Solo los números, ej: "80687556099311"
 -- ==================================================================
-BRAGAO_BG_ID = "80687556099311"
+BRAGAO_BG_ID = "112468991492978"
 
 -- bragao Hub | WindUI
 repeat task.wait() until game:IsLoaded()
