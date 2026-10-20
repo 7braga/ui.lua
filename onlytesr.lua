@@ -3034,7 +3034,7 @@ end)
 do
     -- Imágenes de fondo (4EVR)
     BragaoUI.themeImages = {
-        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "80687556099311", direct = true },
+        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "112468991492978", cascade = true },
         { name = "Tema 1", key = "t1", id = "117499714135455" },
         { name = "Tema 2", key = "t2", id = "112468991492978" },
         { name = "Personalizado", key = "custom" },
@@ -3207,6 +3207,17 @@ function BragaoUI.resolveImage(entry)
     return result
 end
 
+-- Candidatos para un ID: imagen real del Decal, ID directo y ID-1 (los Decals suelen ser la imagen +1)
+function BragaoUI.candidates(entry)
+    local list, seen = {}, {}
+    local function add(v) if v and not seen[v] then seen[v] = true table.insert(list, v) end end
+    add(BragaoUI.resolveImage(entry))
+    add("rbxassetid://" .. entry.id)
+    local n = tonumber(entry.id)
+    if n then add(string.format("rbxassetid://%.0f", n - 1)) end
+    return list
+end
+
 function BragaoUI.findBg()
     if BragaoUI.bgLabel and BragaoUI.bgLabel.Parent then return BragaoUI.bgLabel end
     local found
@@ -3233,7 +3244,19 @@ function BragaoUI.applyBackground(silent)
             return
         end
         local l = BragaoUI.findBg()
-        if l then
+        if l and entry.cascade then
+            local okImg
+            for _, c in ipairs(BragaoUI.candidates(entry)) do
+                l.Image = c
+                l.ImageTransparency = BragaoUI.bgTransparency()
+                local t0 = os.clock()
+                repeat task.wait(0.1) until l.IsLoaded or os.clock() - t0 > 3
+                if l.IsLoaded then okImg = c break end
+            end
+            if okImg then img = okImg
+            elseif not silent then Notify("Bragao Hub", "El ID no cargó como imagen. Sube tu imagen como Image (no Decal) y usa ese ID", 5) end
+            BragaoUI.bgLabel = l
+        elseif l then
             l.Image = img
             l.ImageTransparency = BragaoUI.bgTransparency()
             BragaoUI.bgLabel = l
