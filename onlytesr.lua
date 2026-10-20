@@ -1,3 +1,9 @@
+-- ==================================================================
+-- FONDO DE IMAGEN: pega aquí el ID de TU imagen (debe ser un asset de tipo
+-- IMAGEN subido a Roblox, no un Decal). Solo los números, ej: "80687556099311"
+-- ==================================================================
+BRAGAO_BG_ID = "80687556099311"
+
 -- bragao Hub | WindUI
 repeat task.wait() until game:IsLoaded()
 
@@ -89,7 +95,7 @@ local Config = {
     AmbientEnabled = false, AmbientType = "Rain",
     MinecraftTex = false,
     -- 4EVR: fondo + colores de la UI (se guardan)
-    UI_Theme = 4, UI_Ver = 0, UI_CustomUrl = "", UI_BgOn = true, UI_BgVisible = 55, UI_CardAlpha = 30,
+    UI_Theme = 1, UI_Ver = 0, UI_CustomUrl = "", UI_BgOn = true, UI_BgVisible = 70, UI_CardAlpha = 30,
     UI_ColBg = "#161619", UI_ColText = "#ffffff", UI_ColMuted = "#a1a1aa", UI_ColAccent = "#ffffff",
     UI_ColCard = "#18181b", UI_ColButton = "#3f3f46", UI_ColIcon = "#d4d4d8", UI_ColBorder = "#ffffff",
     -- Blacklist persistence
@@ -177,7 +183,7 @@ local function LoadConfig()
 end
 
 LoadConfig()
-if Config.UI_Ver ~= 3 then Config.UI_Ver = 3; Config.UI_Theme = 4 end
+if Config.UI_Ver ~= 4 then Config.UI_Ver = 4; Config.UI_Theme = 1 end
 task.spawn(function()
     while true do
         task.wait(5)
@@ -3028,15 +3034,16 @@ end)
 do
     -- Imágenes de fondo (4EVR)
     BragaoUI.themeImages = {
+        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "80687556099311", direct = true },
         { name = "Tema 1", key = "t1", id = "117499714135455" },
         { name = "Tema 2", key = "t2", id = "112468991492978" },
         { name = "Personalizado", key = "custom" },
-        { name = "Bragao Hub", key = "wia", url = "https://raw.githubusercontent.com/7braga/png./main/wia.png" },
+        { name = "GitHub (wia)", key = "wia", url = "https://raw.githubusercontent.com/7braga/png./main/wia.png" },
     }
     -- Valor inicial para crear la ventana (siempre un rbxassetid válido); la imagen real se resuelve después
     function BragaoUI.bgString()
         local d = BragaoUI.themeImages[Config.UI_Theme]
-        if not d or not d.id then d = BragaoUI.themeImages[2] end
+        if not d or not d.id then d = BragaoUI.themeImages[1] end
         return "rbxassetid://" .. d.id
     end
     function BragaoUI.bgTransparency()
@@ -3165,6 +3172,8 @@ end
 -- 1) URL propia (GitHub raw...): se descarga y se usa getcustomasset
 -- 2) ID de Roblox: si es un Decal se convierte a su imagen real (Decal.Texture)
 function BragaoUI.resolveImage(entry)
+    -- Método directo (igual que el script de referencia): Image asset -> rbxassetid://ID, sin conversiones
+    if entry.direct then return "rbxassetid://" .. entry.id end
     local url = (entry.key == "custom") and Config.UI_CustomUrl or entry.url
     local cacheKey = entry.key .. "|" .. tostring(url or entry.id)
     if BragaoUI.imgCache[cacheKey] then return BragaoUI.imgCache[cacheKey] end
@@ -3212,7 +3221,7 @@ end
 
 function BragaoUI.applyBackground(silent)
     local tr = BragaoUI.bgTransparency()
-    local entry = BragaoUI.themeImages[Config.UI_Theme] or BragaoUI.themeImages[2]
+    local entry = BragaoUI.themeImages[Config.UI_Theme] or BragaoUI.themeImages[1]
     pcall(function() Window.BackgroundImageTransparency = tr end) -- para que al reabrir mantenga el valor
     local lbl = BragaoUI.findBg()
     if lbl then lbl.ImageTransparency = tr end
@@ -4559,7 +4568,7 @@ do
                 return
             end
             BragaoUI.imgCache = {}
-            useTheme(3)
+            useTheme(4)
         end,
     })
 
