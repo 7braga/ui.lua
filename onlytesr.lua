@@ -2,7 +2,7 @@
 -- FONDO DE IMAGEN: pega aquí el ID de TU imagen (debe ser un asset de tipo
 -- IMAGEN subido a Roblox, no un Decal). Solo los números, ej: "80687556099311"
 -- ==================================================================
-BRAGAO_BG_ID = "112468991492978"
+BRAGAO_BG_ID = "139086303945721"
 
 -- bragao Hub | WindUI
 repeat task.wait() until game:IsLoaded()
@@ -3034,9 +3034,9 @@ end)
 do
     -- Imágenes de fondo (4EVR)
     BragaoUI.themeImages = {
-        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "112468991492978", cascade = true },
+        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "139086303945721", cascade = true },
         { name = "Tema 1", key = "t1", id = "117499714135455" },
-        { name = "Tema 2", key = "t2", id = "112468991492978" },
+        { name = "Tema 2", key = "t2", id = "139086303945721" },
         { name = "Personalizado", key = "custom" },
         { name = "GitHub (wia)", key = "wia", url = "https://raw.githubusercontent.com/7braga/png./main/wia.png" },
     }
