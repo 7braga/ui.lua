@@ -3034,8 +3034,8 @@ end)
 do
     -- Imágenes de fondo (4EVR)
     BragaoUI.themeImages = {
-        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "80687556099311"):match("%d+") or "139086303945721", cascade = true },
-        { name = "Tema 1", key = "t1", id = "117499714135455" },
+        { name = "Bragao Hub", key = "main", id = tostring(BRAGAO_BG_ID or "105144035540619"):match("%d+") or "139086303945721", cascade = true },
+        { name = "Tema 1", key = "t1", id = "105144035540619" },
         { name = "Tema 2", key = "t2", id = "139086303945721" },
         { name = "Personalizado", key = "custom" },
         { name = "GitHub (wia)", key = "wia", url = "https://raw.githubusercontent.com/7braga/png./main/wia.png" },
