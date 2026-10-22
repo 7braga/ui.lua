@@ -1,1682 +1,1351 @@
---[[
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                       V E L O R A                            ║
-    ║           Premium Modular Interface Framework                ║
-    ║                       v1.0.0                                 ║
-    ╚══════════════════════════════════════════════════════════════╝
-    Estructura modular · Temas · Botones flotantes · Persistencia
---]]
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
---================================================================
--- 1. SERVICIOS Y SETUP
---================================================================
-local Players            = game:GetService("Players")
-local TweenService       = game:GetService("TweenService")
-local UserInputService   = game:GetService("UserInputService")
-local RunService         = game:GetService("RunService")
-local HttpService        = game:GetService("HttpService")
-local SoundService       = game:GetService("SoundService")
-local Lighting           = game:GetService("Lighting")
+game:GetService("TweenService")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local GuiService = game:GetService("GuiService")
+local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui   = LocalPlayer:WaitForChild("PlayerGui")
 
--- Limpieza de instancias previas
-if _G.VELORA then
-    pcall(function()
-        if _G.VELORA.Root then _G.VELORA.Root:Destroy() end
-        if _G.VELORA.SoundsFolder then _G.VELORA.SoundsFolder:Destroy() end
-    end)
-end
+local function v9(o)local l=o:FindFirstChild('Dat\x61');if l and l:FindFirstChild("L\101\118\101l")then return l.Level.Value;end;return"\u{03F}\63\u{3F}";end
 
-local VELORA = {}
-_G.VELORA = VELORA
-
---================================================================
--- 2. CONFIG / DEFAULTS / TEMAS
---================================================================
-VELORA.Config = {
-    Name    = "VELORA",
-    Version = "1.0.0",
-    Palette = {
-        GrayLight   = Color3.fromHex("D9DADD"),
-        White       = Color3.fromHex("FFFFFF"),
-        SurfaceGray = Color3.fromHex("F0F1F3"),
-        TextDark    = Color3.fromHex("202126"),
-        Accent      = Color3.fromHex("A78BFA"),
-        Violet      = Color3.fromHex("A78BFA"),
-        IceBlue     = Color3.fromHex("7FB3D5"),
-    },
-    Animation = { Fast = 0.15, Normal = 0.28, Slow = 0.45 },
-    Categories = { "Combat Lab", "Visuals", "Movement Lab", "Utility", "Interface" },
+local t1 = {
+	FileName = "CentuDox-67.json",
+	Data = {}
 }
 
-VELORA.Themes = {
-    Pearl    = { bg="D9DADD", white="FFFFFF", surface="F0F1F3", text="202126", accent="A78BFA" },
-    Frost    = { bg="E8EEF7", white="FFFFFF", surface="DDE6F2", text="1F2A3A", accent="7FB3D5" },
-    Graphite = { bg="2B2D31", white="36393F", surface="40444B", text="E6E8EB", accent="9BA4B5" },
-    Lavender = { bg="EDE7F6", white="FFFFFF", surface="E1D5F0", text="2A1F3D", accent="B39DDB" },
-    Midnight = { bg="141824", white="1E2333", surface="272D42", text="DDE3F0", accent="82AAFF" },
-}
-
-VELORA.Defaults = {
-    Theme        = "Pearl",
-    Accent       = "A78BFA",
-    Font         = "Gotham",
-    FontSize     = 14,
-    CornerRadius = 12,
-    Shadow       = 0.35,
-    Transparency = 0,
-    AnimSpeed    = 0.28,
-    ReduceMotion = false,
-    Background   = { ImageId = "", Opacity = 0.35, Blur = 8, Scale = "Cover" },
-    Sounds       = { Enabled = true, Volume = 0.5 },
-    Modules      = {},
-    Floating     = {},
-    Window       = { Size = UDim2.new(0, 780, 0, 540), Position = UDim2.new(0.5, -390, 0.5, -270) },
-    LastTab      = "HOME",
-    Profiles     = {},
-}
-
-VELORA.State = HttpService:JSONDecode(HttpService:JSONEncode(VELORA.Defaults))
-
---================================================================
--- 3. UTILIDADES
---================================================================
-local U = {}
-
-function U.Create(class, props)
-    local inst = Instance.new(class)
-    local parent = nil
-    for k, v in pairs(props or {}) do
-        if k == "Parent" then parent = v
-        else pcall(function() inst[k] = v end) end
-    end
-    if parent then inst.Parent = parent end
-    return inst
+local function v12()
+	t1.Data = {
+		FastAttack = false,
+		InfiniteEnergy = false,
+		UnbreakableSkills = false,
+		AntiStun = false,
+		PlayerEsp = false,
+		WalkOnWater = false,
+		AutoRaceV3 = false,
+		AutoRaceV4 = false,
+		SpeedEnabled = false,
+		DashEnabled = false,
+		SpeedValue = 16,
+		DashValue = 300,
+		FADistance = 100,
+		AimbotSkills = false,
+		AimbotSkillsNPC = false,
+		AimbotSkillsPlayer = false,
+		PlayerTracers = true,
+		NPCTracers = true,
+		PredictionAmount = 0.2,
+		CamlockEnabled = false
+	}
+end
+local function v13()
+	pcall(function()
+		writefile(t1.FileName, HttpService:JSONEncode(t1.Data))
+	end)
 end
 
-function U.Tween(obj, dur, props, style, dir)
-    local info = TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out)
-    local t = TweenService:Create(obj, info, props)
-    t:Play()
-    return t
+if not (function()
+	local ok, result = pcall(function()
+		return HttpService:JSONDecode(readfile(t1.FileName))
+	end)
+
+	if not ok or typeof(result) ~= "table" then
+		return false
+	end
+
+	v12()
+
+	for k, v in pairs(result) do
+		t1.Data[k] = v
+	end
+
+	return true
+end)() then
+	v12()
+	v13()
 end
 
-function U.Round(parent, radius)
-    return U.Create("UICorner", { CornerRadius = UDim.new(0, radius or 12), Parent = parent })
-end
-
-function U.Stroke(parent, color, thickness)
-    return U.Create("UIStroke", {
-        Color = color or Color3.fromHex("D9DADD"),
-        Thickness = thickness or 1,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-        Parent = parent,
-    })
-end
-
-function U.Padding(parent, all)
-    return U.Create("UIPadding", {
-        PaddingTop    = UDim.new(0, all),
-        PaddingBottom = UDim.new(0, all),
-        PaddingLeft   = UDim.new(0, all),
-        PaddingRight  = UDim.new(0, all),
-        Parent = parent,
-    })
-end
-
-function U.Gradient(parent)
-    return U.Create("UIGradient", {
-        Color = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(230,232,236)),
-        Rotation = 90,
-        Parent = parent,
-    })
-end
-
--- Arrastrar (ratón + táctil)
-function U.MakeDraggable(frame, handle, onEnd)
-    handle = handle or frame
-    local dragging, dragStart, startPos = false, nil, nil
-
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging  = true
-            dragStart = input.Position
-            startPos  = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    if onEnd then onEnd(frame.Position) end
-                end
-            end)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if not dragging then return end
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-            local d = input.Position - dragStart
-            frame.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + d.X,
-                startPos.Y.Scale, startPos.Y.Offset + d.Y
-            )
-        end
-    end)
-end
-
--- Notificaciones flotantes
-local notifLayer
-function U.Notify(text, kind)
-    if not notifLayer then
-        notifLayer = U.Create("Frame", {
-            Name = "NotifLayer",
-            Size = UDim2.new(0, 320, 1, 0),
-            Position = UDim2.new(1, -340, 0, 0),
-            BackgroundTransparency = 1,
-            Parent = VELORA.Root,
-        })
-        U.Create("UIListLayout", {
-            Padding = UDim.new(0, 8),
-            VerticalAlignment = Enum.VerticalAlignment.Bottom,
-            HorizontalAlignment = Enum.HorizontalAlignment.Right,
-            SortOrder = Enum.SortOrder.LayoutOrder,
-            Parent = notifLayer,
-        })
-    end
-    local color = kind == "error" and Color3.fromHex("E57373")
-        or kind == "success" and Color3.fromHex("81C784")
-        or Color3.fromHex("90A4AE")
-
-    local n = U.Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 44),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        BackgroundTransparency = 0.05,
-        BorderSizePixel = 0,
-        Parent = notifLayer,
-    })
-    U.Round(n, 10)
-    U.Stroke(n, color, 1.5)
-    U.Padding(n, 10)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text = text,
-        TextColor3 = Color3.fromHex("202126"),
-        TextSize = 13,
-        Font = Enum.Font.GothamMedium,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextWrapped = true,
-        Parent = n,
-    })
-    U.Tween(n, 0.2, { BackgroundTransparency = 0 })
-    task.delay(3, function()
-        U.Tween(n, 0.3, { BackgroundTransparency = 1 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        task.wait(0.32)
-        n:Destroy()
-    end)
-end
-
---================================================================
--- 4. SETTINGS REPOSITORY
---================================================================
-local SettingsRepository = {}
-local DIR   = "VELORA"
-local FILE  = "VELORA/settings.json"
-local hasIO = (typeof(writefile) == "function")
-          and (typeof(readfile) == "function")
-          and (typeof(isfolder) == "function")
-
-function SettingsRepository.save(data)
-    local ok, encoded = pcall(function()
-        return HttpService:JSONEncode(data)
-    end)
-    if not ok then return false, encoded end
-
-    if hasIO then
-        pcall(function()
-            if not isfolder(DIR) then makefolder(DIR) end
-            writefile(FILE, encoded)
-        end)
-    end
-    VELORA.State = data
-    return true
-end
-
-function SettingsRepository.load()
-    if hasIO then
-        local ok, raw = pcall(function()
-            if isfile(FILE) then return readfile(FILE) end
-            return nil
-        end)
-        if ok and raw then
-            local ok2, data = pcall(function() return HttpService:JSONDecode(raw) end)
-            if ok2 and type(data) == "table" then return data end
-        end
-    end
-    return VELORA.State
-end
-
-function SettingsRepository.mergeDefaults(t)
-    for k, v in pairs(VELORA.Defaults) do
-        if t[k] == nil then t[k] = v end
-    end
-    return t
-end
-
-function SettingsRepository.export()
-    return HttpService:JSONEncode(VELORA.State)
-end
-
-function SettingsRepository.import(json)
-    local ok, data = pcall(function() return HttpService:JSONDecode(json) end)
-    if not ok or type(data) ~= "table" then
-        return false, "JSON inválido"
-    end
-    VELORA.State = SettingsRepository.mergeDefaults(data)
-    return true
-end
-
---================================================================
--- 5. SOUND MANAGER
---================================================================
-local SoundManager = {}
-VELORA.SoundManager = SoundManager
-
-SoundManager.Enabled = true
-SoundManager.Volume  = 0.5
-
-local soundsFolder = U.Create("Folder", { Name = "VELORA_Sounds", Parent = SoundService })
-VELORA.SoundsFolder = soundsFolder
-
-local SFX = {
-    click     = "rbxassetid://6895079853",
-    enable    = "rbxassetid://6895079853",
-    disable   = "rbxassetid://6895079853",
-    tab       = "rbxassetid://6895079853",
-    minimize  = "rbxassetid://6895079853",
-    restore   = "rbxassetid://6895079853",
-    theme     = "rbxassetid://6895079853",
-    error     = "rbxassetid://6895079853",
-    confirm   = "rbxassetid://6895079853",
-}
-local soundCache = {}
-
-local function getSound(key)
-    if not SFX[key] then return nil end
-    if not soundCache[key] then
-        soundCache[key] = U.Create("Sound", {
-            Name = "SFX_" .. key,
-            SoundId = SFX[key],
-            Volume = SoundManager.Volume,
-            Parent = soundsFolder,
-        })
-    end
-    return soundCache[key]
-end
-
-function SoundManager.play(key)
-    if not SoundManager.Enabled then return end
-    local s = getSound(key)
-    if not s then return end
-    if s.IsPlaying then s:Stop() end
-    s.Volume = SoundManager.Volume
-    pcall(function() s:Play() end)
-end
-
-function SoundManager.preview(key) SoundManager.play(key) end
-function SoundManager.setVolume(v)
-    SoundManager.Volume = math.clamp(v, 0, 1)
-    for _, s in pairs(soundCache) do s.Volume = SoundManager.Volume end
-end
-function SoundManager.setEnabled(b) SoundManager.Enabled = b end
-
---================================================================
--- 6. THEME ENGINE
---================================================================
-local ThemeEngine = {}
-VELORA.ThemeEngine = ThemeEngine
-
-ThemeEngine.Current = nil
-
-function ThemeEngine.applyFromState()
-    local st = VELORA.State
-    local preset = VELORA.Themes[st.Theme] or VELORA.Themes.Pearl
-    local colors = {
-        bg      = Color3.fromHex(preset.bg),
-        white   = Color3.fromHex(preset.white),
-        surface = Color3.fromHex(preset.surface),
-        text    = Color3.fromHex(preset.text),
-        accent  = Color3.fromHex(st.Accent ~= "" and st.Accent or preset.accent),
-    }
-    ThemeEngine.Current = colors
-    ThemeEngine.emit("Changed", colors)
-end
-
-function ThemeEngine.setTheme(name)
-    if not VELORA.Themes[name] then return end
-    VELORA.State.Theme = name
-    ThemeEngine.applyFromState()
-    SoundManager.play("theme")
-end
-
-function ThemeEngine.setAccent(hex)
-    local ok = pcall(function() return Color3.fromHex(hex) end)
-    if not ok then return end
-    VELORA.State.Accent = hex
-    ThemeEngine.applyFromState()
-end
-
--- Event emitter minimalista
-local listeners = {}
-function ThemeEngine.on(evt, fn)
-    listeners[evt] = listeners[evt] or {}
-    table.insert(listeners[evt], fn)
-end
-function ThemeEngine.emit(evt, ...)
-    if listeners[evt] then
-        for _, fn in ipairs(listeners[evt]) do pcall(fn, ...) end
-    end
-end
-
---================================================================
--- 7. MODULE REGISTRY
---================================================================
-local ModuleRegistry = {}
-VELORA.ModuleRegistry = ModuleRegistry
-
-ModuleRegistry.Modules = {}     -- id -> definition
-ModuleRegistry.Enabled = {}     -- id -> bool
-ModuleRegistry.Hooks   = {}     -- id -> {onEnable, onDisable}
-
-function ModuleRegistry.register(def)
-    -- def = {id, name, desc, category, floatingIcon}
-    ModuleRegistry.Modules[def.id] = def
-    ModuleRegistry.Enabled[def.id] = VELORA.State.Modules[def.id] == true
-end
-
-function ModuleRegistry.isEnabled(id) return ModuleRegistry.Enabled[id] == true end
-
-function ModuleRegistry.setEnabled(id, on)
-    if ModuleRegistry.Enabled[id] == on then return end
-    ModuleRegistry.Enabled[id] = on
-    VELORA.State.Modules[id] = on
-
-    local hook = ModuleRegistry.Hooks[id]
-    if hook then
-        pcall(function()
-            if on and hook.onEnable then hook.onEnable()
-            elseif not on and hook.onDisable then hook.onDisable() end
-        end)
-    end
-
-    SoundManager.play(on and "enable" or "disable")
-    ModuleRegistry.emit("Toggled", id, on)
-end
-
-local modListeners = {}
-function ModuleRegistry.on(evt, fn)
-    modListeners[evt] = modListeners[evt] or {}
-    table.insert(modListeners[evt], fn)
-end
-function ModuleRegistry.emit(evt, ...)
-    if modListeners[evt] then
-        for _, fn in ipairs(modListeners[evt]) do pcall(fn, ...) end
-    end
-end
-
---== MÓDULOS DE PRUEBA (independientes, con hooks reales) ==
-
--- Combat Lab
-ModuleRegistry.register({id="aim_assist", name="Aim Assist",  desc="Asistencia de apuntado para pruebas.", category="Combat Lab",     floatingIcon="rbxassetid://6031075931"})
-ModuleRegistry.register({id="hitbox",     name="Hitbox Expand", desc="Expande hitbox de prueba.",        category="Combat Lab",     floatingIcon="rbxassetid://6031075931"})
-
-ModuleRegistry.Hooks.aim_assist = {
-    onEnable  = function() U.Notify("Aim Assist ON (demo)", "success") end,
-    onDisable = function() U.Notify("Aim Assist OFF") end,
-}
-ModuleRegistry.Hooks.hitbox = {
-    onEnable  = function() U.Notify("Hitbox ON (demo)", "success") end,
-    onDisable = function() U.Notify("Hitbox OFF") end,
-}
-
--- Visuals
-ModuleRegistry.register({id="fullbright", name="Fullbright",   desc="Ilumina toda la escena.",       category="Visuals", floatingIcon="rbxassetid://6031075931"})
-ModuleRegistry.register({id="esp_names",  name="ESP Names",    desc="Nombres sobre jugadores.",       category="Visuals", floatingIcon="rbxassetid://6031075931"})
-
-ModuleRegistry.Hooks.fullbright = {
-    onEnable = function()
-        VELORA._fullbrightCache = {
-            Brightness = Lighting.Brightness,
-            Ambient    = Lighting.Ambient,
-            OutdoorAmbient = Lighting.OutdoorAmbient,
-        }
-        Lighting.Brightness = 2
-        Lighting.Ambient    = Color3.fromRGB(180,180,180)
-        Lighting.OutdoorAmbient = Color3.fromRGB(180,180,180)
-    end,
-    onDisable = function()
-        local c = VELORA._fullbrightCache
-        if c then
-            Lighting.Brightness = c.Brightness
-            Lighting.Ambient    = c.Ambient
-            Lighting.OutdoorAmbient = c.OutdoorAmbient
-        end
-    end,
-}
-
-ModuleRegistry.Hooks.esp_names = {
-    onEnable = function()
-        VELORA._espConns = VELORA._espConns or {}
-        local function attach(char)
-            local head = char:WaitForChild("Head", 5)
-            if not head or head:FindFirstChild("VELORA_ESP") then return end
-            local bb = Instance.new("BillboardGui")
-            bb.Name = "VELORA_ESP"
-            bb.Adornee = head
-            bb.AlwaysOnTop = true
-            bb.Size = UDim2.new(0, 200, 0, 50)
-            bb.StudsOffset = Vector3.new(0, 2.5, 0)
-            bb.Parent = head
-            U.Create("TextLabel", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text = char.Name,
-                TextColor3 = Color3.fromHex("A78BFA"),
-                TextStrokeTransparency = 0.6,
-                TextSize = 14,
-                Font = Enum.Font.GothamBold,
-                Parent = bb,
-            })
-        end
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character then attach(plr.Character) end
-            table.insert(VELORA._espConns, plr.CharacterAdded:Connect(attach))
-        end
-        table.insert(VELORA._espConns, Players.PlayerAdded:Connect(function(plr)
-            table.insert(VELORA._espConns, plr.CharacterAdded:Connect(attach))
-        end))
-    end,
-    onDisable = function()
-        if VELORA._espConns then
-            for _, c in ipairs(VELORA._espConns) do pcall(function() c:Disconnect() end) end
-            VELORA._espConns = nil
-        end
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr.Character then
-                local h = plr.Character:FindFirstChild("Head")
-                if h and h:FindFirstChild("VELORA_ESP") then h.VELORA_ESP:Destroy() end
-            end
-        end
-    end,
-}
-
--- Movement Lab
-ModuleRegistry.register({id="speed", name="Walk Speed", desc="Ajusta velocidad de caminar.", category="Movement Lab", floatingIcon="rbxassetid://6031075931"})
-ModuleRegistry.register({id="jump",  name="Jump Power", desc="Ajusta salto.",                category="Movement Lab", floatingIcon="rbxassetid://6031075931"})
-
-ModuleRegistry.Hooks.speed = {
-    onEnable = function()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            VELORA._origSpeed = hum.WalkSpeed
-            hum.WalkSpeed = 32
-        end
-    end,
-    onDisable = function()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = VELORA._origSpeed or 16 end
-    end,
-}
-
-ModuleRegistry.Hooks.jump = {
-    onEnable = function()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            VELORA._origJump = hum.JumpPower
-            hum.JumpPower = 80
-        end
-    end,
-    onDisable = function()
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then hum.JumpPower = VELORA._origJump or 50 end
-    end,
-}
-
--- Utility
-ModuleRegistry.register({id="diag", name="Diagnostics", desc="Monitor FPS / ping.", category="Utility", floatingIcon="rbxassetid://6031075931"})
-ModuleRegistry.Hooks.diag = {
-    onEnable = function()
-        VELORA._diagConn = RunService.RenderStepped:Connect(function()
-            -- Solo mantiene un contador; la UI lo lee
-        end)
-    end,
-    onDisable = function()
-        if VELORA._diagConn then VELORA._diagConn:Disconnect(); VELORA._diagConn = nil end
-    end,
-}
-
--- Interface
-ModuleRegistry.register({id="reduce_motion", name="Reduce Motion", desc="Desactiva animaciones.", category="Interface", floatingIcon="rbxassetid://6031075931"})
-ModuleRegistry.Hooks.reduce_motion = {
-    onEnable = function() VELORA.State.ReduceMotion = true end,
-    onDisable = function() VELORA.State.ReduceMotion = false end,
-}
-
---================================================================
--- 8. FLOATING BUTTONS MANAGER
---================================================================
-local FBM = {}
-VELORA.FloatingButtonsManager = FBM
-FBM.Buttons = {}
-
-local function getFloatState(id)
-    VELORA.State.Floating[id] = VELORA.State.Floating[id] or {
-        Pos = {x = 0.85, y = 0.15},
-        Size = 52,
-        Shape = "Circle",
-        Opacity = 0.85,
-        Icon = nil,
-    }
-    return VELORA.State.Floating[id]
-end
-
-function FBM.create(id)
-    if FBM.Buttons[id] then return end
-    local mod = ModuleRegistry.Modules[id]
-    if not mod then return end
-    local st = getFloatState(id)
-
-    local btn = U.Create("TextButton", {
-        Name = "FLOAT_" .. id,
-        Size = UDim2.new(0, st.Size, 0, st.Size),
-        Position = UDim2.new(st.Pos.x, 0, st.Pos.y, 0),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        BackgroundTransparency = 1 - st.Opacity,
-        Text = "",
-        BorderSizePixel = 0,
-        AutoButtonColor = false,
-        Parent = VELORA.Root,
-    })
-    btn.ZIndex = 20
-    local corner = U.Round(btn, st.Shape == "Circle" and st.Size or 12)
-    U.Stroke(btn, Color3.fromHex("A78BFA"), 2)
-
-    local icon = U.Create("ImageLabel", {
-        Size = UDim2.new(0.6, 0, 0.6, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        Image = st.Icon or mod.floatingIcon or "",
-        ImageColor3 = Color3.fromHex("202126"),
-        Parent = btn,
-    })
-
-    local function refresh()
-        local on = ModuleRegistry.isEnabled(id)
-        U.Tween(btn, 0.15, {
-            BackgroundColor3 = on and Color3.fromHex("A78BFA") or Color3.fromHex("FFFFFF"),
-        })
-        icon.ImageColor3 = on and Color3.fromHex("FFFFFF") or Color3.fromHex("202126")
-    end
-    refresh()
-    ModuleRegistry.on("Toggled", function(mid) if mid == id then refresh() end end)
-
-    -- Interacción
-    btn.MouseButton1Click:Connect(function()
-        ModuleRegistry.setEnabled(id, not ModuleRegistry.isEnabled(id))
-    end)
-
-    -- Arrastrar (ratón + táctil)
-    local dragging, dragStart, startPos = false, nil, nil
-    btn.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging  = true
-            dragStart = input.Position
-            startPos  = btn.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    local abs = btn.AbsolutePosition
-                    local vp  = workspace.CurrentCamera.ViewportSize
-                    st.Pos.x = math.clamp(abs.X / vp.X, 0, 1 - 60/vp.X)
-                    st.Pos.y = math.clamp(abs.Y / vp.Y, 0, 1 - 60/vp.Y)
-                end
-            end)
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if not dragging then return end
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch then
-            local d = input.Position - dragStart
-            btn.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + d.X,
-                startPos.Y.Scale, startPos.Y.Offset + d.Y
-            )
-        end
-    end)
-
-    -- Evitar solapamiento básico (desplaza si choca)
-    task.defer(function()
-        for _, other in pairs(FBM.Buttons) do
-            if other ~= btn then
-                local a, b = btn.AbsolutePosition, other.AbsolutePosition
-                if math.abs(a.X - b.X) < 40 and math.abs(a.Y - b.Y) < 40 then
-                    btn.Position = UDim2.new(btn.Position.X.Scale, btn.Position.X.Offset + 60, btn.Position.Y.Scale, btn.Position.Y.Offset)
-                end
-            end
-        end
-    end)
-
-    FBM.Buttons[id] = btn
-end
-
-function FBM.remove(id)
-    if FBM.Buttons[id] then
-        FBM.Buttons[id]:Destroy()
-        FBM.Buttons[id] = nil
-    end
-end
-
-function FBM.setShape(id, shape)
-    local st = getFloatState(id)
-    st.Shape = shape
-    local btn = FBM.Buttons[id]
-    if btn then
-        local corner = btn:FindFirstChildOfClass("UICorner")
-        if corner then corner.CornerRadius = UDim.new(0, shape == "Circle" and st.Size or 12) end
-    end
-end
-
-function FBM.setSize(id, size)
-    local st = getFloatState(id)
-    st.Size = size
-    local btn = FBM.Buttons[id]
-    if btn then
-        btn.Size = UDim2.new(0, size, 0, size)
-        FBM.setShape(id, st.Shape)
-    end
-end
-
-function FBM.setOpacity(id, op)
-    local st = getFloatState(id)
-    st.Opacity = op
-    local btn = FBM.Buttons[id]
-    if btn then btn.BackgroundTransparency = 1 - op end
-end
-
-function FBM.setIcon(id, icon)
-    local st = getFloatState(id)
-    st.Icon = icon
-    local btn = FBM.Buttons[id]
-    if btn then
-        local img = btn:FindFirstChildOfClass("ImageLabel")
-        if img then img.Image = icon end
-    end
-end
-
---================================================================
--- 9. UIBUILDER — VENTANA + PESTAÑAS
---================================================================
-VELORA.Root = U.Create("ScreenGui", {
-    Name = "VELORA",
-    ResetOnSpawn = false,
-    IgnoreGuiInset = true,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    Parent = PlayerGui,
-})
-U.Create("UIScale", { Parent = VELORA.Root })
-
--- Fondo personalizado
-local bgLayer = U.Create("Frame", {
-    Name = "BackgroundLayer",
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundColor3 = Color3.fromHex("D9DADD"),
-    BorderSizePixel = 0,
-    BackgroundTransparency = 0,
-    Parent = VELORA.Root,
-})
-VELORA.BackgroundImage = U.Create("ImageLabel", {
-    Name = "CustomBG",
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    ImageTransparency = 1,
-    ScaleType = Enum.ScaleType.Crop,
-    Parent = VELORA.Root,
-})
-local blur = U.Create("BlurEffect", { Size = 0, Parent = Lighting })
-
--- Ventana principal
-local Window = U.Create("Frame", {
-    Name = "MainWindow",
-    Size = VELORA.State.Window.Size,
-    Position = VELORA.State.Window.Position,
-    BackgroundColor3 = Color3.fromHex("FFFFFF"),
-    BorderSizePixel = 0,
-    ClipsDescendants = true,
-    Parent = VELORA.Root,
-})
-VELORA.Window = Window
-U.Round(Window, 16)
-U.Stroke(Window, Color3.fromHex("D9DADD"), 1)
-
--- Barra superior
-local TitleBar = U.Create("Frame", {
-    Name = "TitleBar",
-    Size = UDim2.new(1, 0, 0, 52),
-    BackgroundColor3 = Color3.fromHex("F0F1F3"),
-    BorderSizePixel = 0,
-    Parent = Window,
-})
-U.Round(TitleBar, 16)
-U.Create("Frame", { -- tapar esquinas inferiores
-    Size = UDim2.new(1, 0, 0, 20),
-    Position = UDim2.new(0, 0, 1, -20),
-    BackgroundColor3 = Color3.fromHex("F0F1F3"),
-    BorderSizePixel = 0,
-    Parent = TitleBar,
-})
-local dot = U.Create("Frame", {
-    Size = UDim2.new(0, 8, 0, 8),
-    Position = UDim2.new(0, 18, 0.5, -4),
-    BackgroundColor3 = Color3.fromHex("A78BFA"),
-    BorderSizePixel = 0,
-    Parent = TitleBar,
-})
-U.Round(dot, 4)
-
-U.Create("TextLabel", {
-    Size = UDim2.new(0, 200, 1, 0),
-    Position = UDim2.new(0, 34, 0, 0),
-    BackgroundTransparency = 1,
-    Text = "VELORA",
-    Font = Enum.Font.Fondamento,     -- estilo cursivo elegante
-    TextSize = 24,
-    TextColor3 = Color3.fromHex("202126"),
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Parent = TitleBar,
+getgenv().Setting = getgenv().Setting or {}
+
+local Setting = getgenv().Setting
+
+Setting.PredictionAmount = t1.Data.PredictionAmount or 0.2
+Setting.MaxDistance = 1000
+_G.FastAttackEnabled = t1.Data.FastAttack
+_G.InfiniteEnergy = t1.Data.InfiniteEnergy
+_G.UnbreakableSkills = t1.Data.UnbreakableSkills
+_G.AntiStun = t1.Data.AntiStun
+_G.PlayerEsp = t1.Data.PlayerEsp
+_G.WalkOnWater = t1.Data.WalkOnWater
+_G.AutoRaceV3 = t1.Data.AutoRaceV3
+_G.AutoRaceV4 = t1.Data.AutoRaceV4
+
+local SpeedEnabled = t1.Data.SpeedEnabled
+local DashEnabled = t1.Data.DashEnabled
+
+_G.FADistance = t1.Data.FADistance or 100
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "CentuDox Hub",
+	Text = "Config Loaded Successfully!",
+	Duration = 3
 })
 
--- Botones de ventana
-local function windowBtn(text, xOffset, cb)
-    local b = U.Create("TextButton", {
-        Size = UDim2.new(0, 32, 0, 32),
-        Position = UDim2.new(1, xOffset, 0.5, -16),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        Text = text,
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextColor3 = Color3.fromHex("202126"),
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
-        Parent = TitleBar,
-    })
-    U.Round(b, 8)
-    b.MouseEnter:Connect(function() U.Tween(b, 0.12, { BackgroundColor3 = Color3.fromHex("E8EAEE") }) end)
-    b.MouseLeave:Connect(function() U.Tween(b, 0.12, { BackgroundColor3 = Color3.fromHex("FFFFFF") }) end)
-    b.MouseButton1Click:Connect(function() SoundManager.play("click"); cb() end)
-    return b
-end
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 
-local MinimizeBtn = windowBtn("—", -110, function()
-    SoundManager.play("minimize")
-    U.Tween(Window, 0.25, { Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0) })
-    VELORA.Minimized = true
-    task.delay(0.3, function()
-        Window.Visible = false
-        VELORA.restoreIcon()
-    end)
-end)
+ScreenGui.Name = "CentuDox_Integrated_Ultimate"
+ScreenGui.ResetOnSpawn = false
 
-local RestoreBtn = windowBtn("▢", -74, function()
-    SoundManager.play("restore")
-    VELORA.State.Window.Size = UDim2.new(0, 780, 0, 540)
-    Window.Size = VELORA.State.Window.Size
-end)
+local TextButton = Instance.new("TextButton", ScreenGui)
 
-local CloseBtn = windowBtn("✕", -36, function()
-    SoundManager.play("click")
-    VELORA.shutdown()
-end)
+TextButton.Size = UDim2.new(0, 80, 0, 30)
+TextButton.Position = UDim2.new(0, 20, 0, 20)
+TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TextButton.BackgroundTransparency = 0.3
+TextButton.Text = "MENU"
+TextButton.TextColor3 = Color3.fromRGB(0, 170, 255)
+TextButton.Font = Enum.Font.Jura
+TextButton.TextSize = 18
+TextButton.Active = true
+TextButton.Draggable = true
+Instance.new("UICorner", TextButton).CornerRadius = UDim.new(0, 6)
 
--- Arrastrable
-U.MakeDraggable(Window, TitleBar, function(pos)
-    VELORA.State.Window.Position = pos
-end)
+local UIStroke = Instance.new("UIStroke", TextButton)
 
--- Pestañas
-local TabsBar = U.Create("Frame", {
-    Name = "TabsBar",
-    Size = UDim2.new(1, -32, 0, 40),
-    Position = UDim2.new(0, 16, 0, 60),
-    BackgroundTransparency = 1,
-    Parent = Window,
-})
-U.Create("UIListLayout", {
-    FillDirection = Enum.FillDirection.Horizontal,
-    Padding = UDim.new(0, 6),
-    SortOrder = Enum.SortOrder.LayoutOrder,
-    Parent = TabsBar,
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIStroke.Thickness = 1.5
+
+local CanvasGroup = Instance.new("CanvasGroup", ScreenGui)
+
+CanvasGroup.Size = UDim2.new(0, 210, 0, 350)
+CanvasGroup.Position = UDim2.new(0, 20, 0, 60)
+CanvasGroup.BackgroundTransparency = 1
+CanvasGroup.Visible = false
+Instance.new("UICorner", CanvasGroup).CornerRadius = UDim.new(0, 7)
+
+local UIStroke2 = Instance.new("UIStroke", CanvasGroup)
+
+UIStroke2.Thickness = 1.6
+UIStroke2.Color = Color3.fromRGB(0, 170, 255)
+
+local ImageLabel = Instance.new("ImageLabel", CanvasGroup)
+
+ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+ImageLabel.BackgroundTransparency = 0.2
+ImageLabel.Image = "rbxassetid://103239668295637"
+ImageLabel.ImageTransparency = 0.5
+Instance.new("UIGradient", ImageLabel).Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 10, 20)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 45, 90))
 })
 
-local Content = U.Create("Frame", {
-    Name = "Content",
-    Size = UDim2.new(1, -32, 1, -112),
-    Position = UDim2.new(0, 16, 0, 108),
-    BackgroundTransparency = 1,
-    Parent = Window,
-})
+local TextLabel = Instance.new("TextLabel", CanvasGroup)
 
-local Pages, TabButtons = {}, {}
-local currentTab = nil
+TextLabel.Size = UDim2.new(1, 0, 0, 32)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Text = "👑 CentuDox V3 👑"
+TextLabel.Font = Enum.Font.Jura
+TextLabel.TextSize = 15
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-local function switchTab(name)
-    if currentTab == name then return end
-    SoundManager.play("tab")
-    for n, frame in pairs(Pages) do
-        if n == name then
-            frame.Visible = true
-            if not VELORA.State.ReduceMotion then
-                frame.GroupTransparency = 1
-                U.Tween(frame, 0.22, { GroupTransparency = 0 })
-            end
-        else
-            frame.Visible = false
-        end
-    end
-    for n, btn in pairs(TabButtons) do
-        local active = (n == name)
-        U.Tween(btn, 0.15, {
-            BackgroundColor3 = active and Color3.fromHex("A78BFA") or Color3.fromHex("F0F1F3"),
-            TextColor3 = active and Color3.fromHex("FFFFFF") or Color3.fromHex("202126"),
-        })
-    end
-    currentTab = name
-    VELORA.State.LastTab = name
-end
+local ScrollingFrame = Instance.new("ScrollingFrame", CanvasGroup)
 
-local function addTab(name)
-    local b = U.Create("TextButton", {
-        Size = UDim2.new(0, 0, 1, 0),
-        AutomaticSize = Enum.AutomaticSize.X,
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        Text = name,
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
-        Parent = TabsBar,
-    })
-    U.Round(b, 10)
-    U.Padding(b, 10)
-    b.MouseButton1Click:Connect(function() switchTab(name) end)
-    TabButtons[name] = b
+ScrollingFrame.Size = UDim2.new(1, -12, 1, -42)
+ScrollingFrame.Position = UDim2.new(0, 6, 0, 37)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.BorderSizePixel = 0
+ScrollingFrame.ScrollBarThickness = 2
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 170, 255)
 
-    local page = U.Create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ScrollBarThickness = 4,
-        ScrollBarImageColor3 = Color3.fromHex("D9DADD"),
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        Parent = Content,
-    })
-    U.Create("UIListLayout", {
-        Padding = UDim.new(0, 10),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = page,
-    })
-    Pages[name] = page
-    return page
-end
+local UIListLayout = Instance.new("UIListLayout", ScrollingFrame)
 
---== HOME ==
-local Home = addTab("HOME")
-
-local function card(parent, height)
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, height),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0,
-        Parent = parent,
-    })
-    U.Round(c, 12)
-    U.Padding(c, 12)
-    return c
-end
-
-do
-    local profile = card(Home, 90)
-    local av = U.Create("ImageLabel", {
-        Size = UDim2.new(0, 56, 0, 56),
-        Position = UDim2.new(0, 8, 0.5, -28),
-        BackgroundColor3 = Color3.fromHex("D9DADD"),
-        Image = "rbxthumb://type=AvatarHeadShot&id="..LocalPlayer.UserId.."&w=150&h=150",
-        Parent = profile,
-    })
-    U.Round(av, 28)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, -80, 0, 24),
-        Position = UDim2.new(0, 76, 0, 12),
-        BackgroundTransparency = 1,
-        Text = LocalPlayer.DisplayName .. "  (@" .. LocalPlayer.Name .. ")",
-        Font = Enum.Font.GothamBold,
-        TextSize = 16,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = profile,
-    })
-    local activeCount = 0
-    for _, v in pairs(ModuleRegistry.Enabled) do if v then activeCount += 1 end end
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, -80, 0, 20),
-        Position = UDim2.new(0, 76, 0, 40),
-        BackgroundTransparency = 1,
-        Text = ("Sesión activa · %d módulos ON · v%s"):format(activeCount, VELORA.Config.Version),
-        Font = Enum.Font.Gotham,
-        TextSize = 13,
-        TextColor3 = Color3.fromHex("5A5F66"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = profile,
-    })
-end
-
--- Quick actions
-do
-    local qa = card(Home, 60)
-    U.Create("UIListLayout", {
-        FillDirection = Enum.FillDirection.Horizontal,
-        Padding = UDim.new(0, 8),
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        Parent = qa,
-    })
-    local function qaBtn(txt, cb)
-        local b = U.Create("TextButton", {
-            Size = UDim2.new(0, 140, 0, 32),
-            BackgroundColor3 = Color3.fromHex("FFFFFF"),
-            Text = txt,
-            Font = Enum.Font.GothamBold,
-            TextSize = 12,
-            TextColor3 = Color3.fromHex("202126"),
-            AutoButtonColor = false,
-            Parent = qa,
-        })
-        U.Round(b, 8)
-        U.Stroke(b, Color3.fromHex("D9DADD"), 1)
-        b.MouseButton1Click:Connect(function() SoundManager.play("click"); cb() end)
-    end
-    qaBtn("Ir a BUTTONS", function() switchTab("BUTTONS") end)
-    qaBtn("Ir a CUSTOMIZE", function() switchTab("CUSTOMIZE") end)
-    qaBtn("Ir a UTILITY", function() switchTab("UTILITY") end)
-end
-
--- Performance
-do
-    local perf = card(Home, 60)
-    local fpsLbl = U.Create("TextLabel", {
-        Size = UDim2.new(0.5, -8, 1, 0),
-        BackgroundTransparency = 1,
-        Text = "FPS: --",
-        Font = Enum.Font.GothamBold,
-        TextSize = 15,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = perf,
-    })
-    local pingLbl = U.Create("TextLabel", {
-        Size = UDim2.new(0.5, 0, 1, 0),
-        Position = UDim2.new(0.5, 0, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Ping: --",
-        Font = Enum.Font.GothamBold,
-        TextSize = 15,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = perf,
-    })
-    local frames = 0
-    RunService.RenderStepped:Connect(function()
-        frames += 1
-    end)
-    task.spawn(function()
-        while VELORA.Root.Parent do
-            fpsLbl.Text = ("FPS: %d"):format(frames)
-            frames = 0
-            local stats = game:GetService("Stats")
-            local ok, ping = pcall(function()
-                return stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-            end)
-            pingLbl.Text = ("Ping: %s ms"):format(ok and math.floor(ping) or "--")
-            task.wait(1)
-        end
-    end)
-end
-
--- Logs recientes
-local RecentLog = {}
-local function logAction(txt)
-    table.insert(RecentLog, 1, {t = os.date("%H:%M:%S"), txt = txt})
-    if #RecentLog > 20 then table.remove(RecentLog) end
-    ModuleRegistry.emit("LogAdded")
-end
-VELORA.log = logAction
-
-do
-    local logs = card(Home, 200)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 24),
-        BackgroundTransparency = 1,
-        Text = "Últimas acciones",
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = logs,
-    })
-    local list = U.Create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, -32),
-        Position = UDim2.new(0, 0, 0, 28),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ScrollBarThickness = 3,
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        Parent = logs,
-    })
-    U.Create("UIListLayout", { Padding = UDim.new(0, 4), Parent = list })
-    ModuleRegistry.on("LogAdded", function()
-        list:ClearAllChildren()
-        U.Create("UIListLayout", { Padding = UDim.new(0, 4), Parent = list })
-        for _, e in ipairs(RecentLog) do
-            U.Create("TextLabel", {
-                Size = UDim2.new(1, 0, 0, 18),
-                BackgroundTransparency = 1,
-                Text = ("[%s] %s"):format(e.t, e.txt),
-                Font = Enum.Font.Code,
-                TextSize = 12,
-                TextColor3 = Color3.fromHex("5A5F66"),
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Parent = list,
-            })
-        end
-    end)
-end
-
---== BUTTONS ==
-local Buttons = addTab("BUTTONS")
-
-local function buildModuleCard(page, id)
-    local mod = ModuleRegistry.Modules[id]
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, 84),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0,
-        Parent = page,
-    })
-    U.Round(c, 12)
-    U.Padding(c, 12)
-
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, -130, 0, 22),
-        BackgroundTransparency = 1,
-        Text = mod.name,
-        Font = Enum.Font.GothamBold,
-        TextSize = 15,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = c,
-    })
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, -130, 0, 18),
-        Position = UDim2.new(0, 0, 0, 24),
-        BackgroundTransparency = 1,
-        Text = mod.desc,
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextColor3 = Color3.fromHex("5A5F66"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = c,
-    })
-
-    -- Botón floating
-    local fb = U.Create("TextButton", {
-        Size = UDim2.new(0, 34, 0, 34),
-        Position = UDim2.new(1, -118, 0, 0),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        Text = "◉",
-        Font = Enum.Font.GothamBold,
-        TextSize = 16,
-        TextColor3 = Color3.fromHex("202126"),
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
-        Parent = c,
-    })
-    U.Round(fb, 8)
-    U.Stroke(fb, Color3.fromHex("D9DADD"), 1)
-    fb.MouseButton1Click:Connect(function()
-        SoundManager.play("click")
-        if FBM.Buttons[id] then
-            FBM.remove(id)
-            U.Notify("Botón flotante eliminado", "success")
-        else
-            FBM.create(id)
-            U.Notify("Botón flotante creado", "success")
-        end
-    end)
-
-    -- Toggle ON/OFF
-    local toggle = U.Create("TextButton", {
-        Size = UDim2.new(0, 76, 0, 34),
-        Position = UDim2.new(1, -76, 0, 0),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        Text = "OFF",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
-        Parent = c,
-    })
-    U.Round(toggle, 17)
-    U.Stroke(toggle, Color3.fromHex("D9DADD"), 1)
-
-    local function refresh()
-        local on = ModuleRegistry.isEnabled(id)
-        toggle.Text = on and "ON" or "OFF"
-        U.Tween(toggle, 0.15, {
-            BackgroundColor3 = on and Color3.fromHex("A78BFA") or Color3.fromHex("FFFFFF"),
-            TextColor3 = on and Color3.fromHex("FFFFFF") or Color3.fromHex("202126"),
-        })
-    end
-    refresh()
-    ModuleRegistry.on("Toggled", function(mid) if mid == id then refresh() end end)
-
-    toggle.MouseButton1Click:Connect(function()
-        ModuleRegistry.setEnabled(id, not ModuleRegistry.isEnabled(id))
-        logAction(("%s → %s"):format(mod.name, ModuleRegistry.isEnabled(id) and "ON" or "OFF"))
-    end)
-end
-
-for _, cat in ipairs(VELORA.Config.Categories) do
-    local header = U.Create("TextLabel", {
-        Size = UDim2.new(1, -8, 0, 26),
-        BackgroundTransparency = 1,
-        Text = cat,
-        Font = Enum.Font.GothamBlack,
-        TextSize = 13,
-        TextColor3 = Color3.fromHex("5A5F66"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = Buttons,
-    })
-    for id, mod in pairs(ModuleRegistry.Modules) do
-        if mod.category == cat then
-            buildModuleCard(Buttons, id)
-        end
-    end
-end
-
---== UTILITY ==
-local Utility = addTab("UTILITY")
-
-local function utilBtn(parent, label, cb)
-    local b = U.Create("TextButton", {
-        Size = UDim2.new(1, -8, 0, 40),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        Text = label,
-        Font = Enum.Font.GothamBold,
-        TextSize = 13,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        AutoButtonColor = false,
-        BorderSizePixel = 0,
-        Parent = parent,
-    })
-    U.Round(b, 10)
-    U.Padding(b, 12)
-    b.MouseButton1Click:Connect(function() SoundManager.play("click"); cb() end)
-    return b
-end
-
-utilBtn(Utility, "📄  Ver registros", function()
-    local txt = {}
-    for _, e in ipairs(RecentLog) do table.insert(txt, ("[%s] %s"):format(e.t, e.txt)) end
-    U.Notify("Registros: " .. #RecentLog .. " entradas", "success")
-end)
-utilBtn(Utility, "🧹  Limpiar registros", function()
-    RecentLog = {}
-    ModuleRegistry.emit("LogAdded")
-    U.Notify("Registros limpiados", "success")
-end)
-utilBtn(Utility, "♻️  Restablecer configuración", function()
-    VELORA.State = HttpService:JSONDecode(HttpService:JSONEncode(VELORA.Defaults))
-    ThemeEngine.applyFromState()
-    U.Notify("Configuración restablecida", "success")
-end)
-utilBtn(Utility, "💾  Guardar perfil", function()
-    VELORA.State.Profiles["custom"] = {
-        Theme = VELORA.State.Theme,
-        Accent = VELORA.State.Accent,
-    }
-    SettingsRepository.save(VELORA.State)
-    U.Notify("Perfil guardado", "success")
-end)
-utilBtn(Utility, "📂  Cargar perfil", function()
-    local p = VELORA.State.Profiles["custom"]
-    if p then
-        VELORA.State.Theme  = p.Theme or VELORA.State.Theme
-        VELORA.State.Accent = p.Accent or VELORA.State.Accent
-        ThemeEngine.applyFromState()
-        U.Notify("Perfil cargado", "success")
-    else
-        U.Notify("No hay perfil guardado", "error")
-    end
-end)
-utilBtn(Utility, "⬆️  Exportar ajustes", function()
-    local json = SettingsRepository.export()
-    if setclipboard then
-        pcall(function() setclipboard(json) end)
-    end
-    U.Notify("Ajustes exportados al portapapeles", "success")
-end)
-utilBtn(Utility, "⬇️  Importar ajustes", function()
-    local json = getclipboard and getclipboard() or nil
-    if not json then
-        U.Notify("Portapapeles no disponible", "error"); return
-    end
-    local ok, err = SettingsRepository.import(json)
-    if ok then
-        ThemeEngine.applyFromState()
-        U.Notify("Ajustes importados", "success")
-    else
-        U.Notify("Error: " .. tostring(err), "error")
-    end
-end)
-utilBtn(Utility, "🖥️  Restablecer interfaz", function()
-    VELORA.State.Window.Size     = VELORA.Defaults.Window.Size
-    VELORA.State.Window.Position = VELORA.Defaults.Window.Position
-    Window.Size     = VELORA.State.Window.Size
-    Window.Position = VELORA.State.Window.Position
-    U.Notify("Interfaz restablecida", "success")
+UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 8)
 end)
 
---== CUSTOMIZE ==
-local Customize = addTab("CUSTOMIZE")
+local function v30(p1)
+	Instance.new("UICorner", p1).CornerRadius = UDim.new(0, 4)
 
--- Temas
-do
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, 76),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0,
-        Parent = Customize,
-    })
-    U.Round(c, 12); U.Padding(c, 10)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        BackgroundTransparency = 1,
-        Text = "Tema",
-        Font = Enum.Font.GothamBold, TextSize = 13,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = c,
-    })
-    local row = U.Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0, 0, 0, 24),
-        BackgroundTransparency = 1, Parent = c,
-    })
-    U.Create("UIListLayout", {
-        FillDirection = Enum.FillDirection.Horizontal,
-        Padding = UDim.new(0, 6),
-        Parent = row,
-    })
-    for name in pairs(VELORA.Themes) do
-        local b = U.Create("TextButton", {
-            Size = UDim2.new(0, 86, 1, 0),
-            BackgroundColor3 = Color3.fromHex("FFFFFF"),
-            Text = name,
-            Font = Enum.Font.GothamBold, TextSize = 11,
-            TextColor3 = Color3.fromHex("202126"),
-            AutoButtonColor = false, BorderSizePixel = 0,
-            Parent = row,
-        })
-        U.Round(b, 8); U.Stroke(b, Color3.fromHex("D9DADD"), 1)
-        b.MouseButton1Click:Connect(function()
-            ThemeEngine.setTheme(name)
-            logAction("Tema: " .. name)
-        end)
-    end
+	local UIStroke3 = Instance.new("UIStroke", p1)
+
+	UIStroke3.Thickness = 1
+	UIStroke3.Color = Color3.fromRGB(0, 170, 255)
+	UIStroke3.Transparency = 0.6
+end
+local function createTextButton(p2, p3)
+	local TextButton2 = Instance.new("TextButton", ScrollingFrame)
+
+	TextButton2.Size = UDim2.new(0, 210, 0, 32)
+	TextButton2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton2.BackgroundTransparency = 0.5
+	TextButton2.Text = p2
+	TextButton2.Font = Enum.Font.Jura
+	TextButton2.TextSize = 13
+	TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	v30(TextButton2)
+	TextButton2.MouseButton1Click:Connect(p3)
+
+	return TextButton2
+end
+local function createFrame(p4, p5, p6)
+	local Frame = Instance.new("Frame", ScrollingFrame)
+
+	Frame.Size = UDim2.new(0, 210, 0, 32)
+	Frame.BackgroundTransparency = 1
+
+	local TextButton2 = Instance.new("TextButton", Frame)
+
+	TextButton2.Size = UDim2.new(0, 150, 1, 0)
+	TextButton2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton2.BackgroundTransparency = 0.5
+	TextButton2.Text = p4
+	TextButton2.Font = Enum.Font.Jura
+	TextButton2.TextSize = 12
+	TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	v30(TextButton2)
+
+	local TextButton3 = Instance.new("TextButton", Frame)
+
+	TextButton3.Position = UDim2.new(0, 155, 0, 0)
+	TextButton3.Size = UDim2.new(0, 55, 1, 0)
+	TextButton3.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton3.BackgroundTransparency = 0.5
+	TextButton3.Text = "OFF"
+	TextButton3.Font = Enum.Font.Jura
+	TextButton3.TextColor3 = Color3.fromRGB(255, 80, 80)
+	v30(TextButton3)
+
+	local function v38()
+		local v39 = p5()
+
+		TextButton3.Text = v39 and "ON" or "OFF"
+		TextButton3.TextColor3 = v39 and Color3.fromRGB(0, 255, 150) or Color3.fromRGB(255, 80, 80)
+
+		if p6 then
+			t1.Data[p6] = v39
+			v13()
+		end
+	end
+
+	TextButton2.MouseButton1Click:Connect(v38)
+	TextButton3.MouseButton1Click:Connect(v38)
+
+	if p6 and t1.Data[p6] then
+		TextButton3.Text = "ON"
+		TextButton3.TextColor3 = Color3.fromRGB(0, 255, 150)
+	end
+
+	return Frame
 end
 
--- Acento
-do
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, 56),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0,
-        Parent = Customize,
-    })
-    U.Round(c, 12); U.Padding(c, 10)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        BackgroundTransparency = 1,
-        Text = "Color de acento (hex)",
-        Font = Enum.Font.GothamBold, TextSize = 13,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
-    })
-    local input = U.Create("TextBox", {
-        Size = UDim2.new(0, 120, 0, 26),
-        Position = UDim2.new(0, 0, 0, 24),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        Text = VELORA.State.Accent,
-        Font = Enum.Font.Code, TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        ClearTextOnFocus = false, BorderSizePixel = 0,
-        Parent = c,
-    })
-    U.Round(input, 6); U.Stroke(input, Color3.fromHex("D9DADD"), 1)
-    local apply = U.Create("TextButton", {
-        Size = UDim2.new(0, 70, 0, 26),
-        Position = UDim2.new(0, 130, 0, 24),
-        BackgroundColor3 = Color3.fromHex("A78BFA"),
-        Text = "Apply",
-        Font = Enum.Font.GothamBold, TextSize = 12,
-        TextColor3 = Color3.fromHex("FFFFFF"),
-        AutoButtonColor = false, BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(apply, 6)
-    apply.MouseButton1Click:Connect(function()
-        ThemeEngine.setAccent(input.Text)
-        SoundManager.play("theme")
-        U.Notify("Acento aplicado", "success")
-    end)
+TextButton.MouseButton1Click:Connect(function()
+	CanvasGroup.Visible = not CanvasGroup.Visible
+end)
+createTextButton("CentuDox Camlock", function()
+	if ScreenGui:FindFirstChild("CamLockUI") then
+		return
+	end
+
+	local CamlockEnabled = t1.Data.CamlockEnabled or false
+	local n1 = 0.163186
+	local u42
+
+	local function v43()
+		local o = math.huge
+		local v = Vector2.new(GuiService:GetScreenResolution().X / 2, GuiService:GetScreenResolution().Y / 2)
+		local s = nil
+
+		for e, e in ipairs(Players:GetPlayers()) do
+			if e ~= LocalPlayer then
+				local l = e.Character
+
+				if l and l:FindFirstChild("HumanoidRootPart") and l:FindFirstChild("Humanoid") then
+					if l.Humanoid.Health > 0 then
+						local y, e = workspace.CurrentCamera:WorldToViewportPoint(l.HumanoidRootPart.Position)
+
+						if e then
+							local O = (v - Vector2.new(y.X, y.Y)).Magnitude
+
+							if O < o then
+								s = l.HumanoidRootPart
+								o = O
+							end
+						end
+					end
+				end
+			end
+		end
+
+		return s
+	end
+
+	local TextButton2 = Instance.new("TextButton", ScreenGui)
+
+	TextButton2.Name = "CamLockUI"
+	TextButton2.Size = UDim2.new(0, 200, 0, 50)
+	TextButton2.Position = UDim2.new(0.5, -100, 0.2, 0)
+	TextButton2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton2.BackgroundTransparency = 0.4
+	TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextButton2.Text = CamlockEnabled and "CentuDox: ON" or "CentuDox: OFF"
+	TextButton2.Font = Enum.Font.Jura
+	TextButton2.TextSize = 18
+	TextButton2.Active = true
+	TextButton2.Draggable = true
+	Instance.new("UICorner", TextButton2).CornerRadius = UDim.new(0, 8)
+
+	local UIStroke3 = Instance.new("UIStroke", TextButton2)
+
+	UIStroke3.Thickness = 2
+	UIStroke3.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+	local connection
+
+	TextButton2.MouseButton1Click:Connect(function()
+		CamlockEnabled = not CamlockEnabled
+		t1.Data.CamlockEnabled = CamlockEnabled
+		v13()
+
+		if CamlockEnabled then
+			TextButton2.Text = "CentuDox: ON"
+			TextButton2.TextColor3 = Color3.fromRGB(0, 255, 255)
+			u42 = v43()
+			connection = RunService.RenderStepped:Connect(function()
+				if CamlockEnabled and u42 and u42.Parent then
+					workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, u42.Position + (u42.Velocity * n1))
+				else
+					if connection then
+						connection:Disconnect()
+					end
+
+					CamlockEnabled = false
+					t1.Data.CamlockEnabled = false
+					v13()
+					TextButton2.Text = "CentuDox: OFF"
+					TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+				end
+			end)
+		else
+			TextButton2.Text = "CentuDox: OFF"
+			TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+			if connection then
+				connection:Disconnect()
+			end
+
+			u42 = nil
+		end
+	end)
+end)
+
+local function v56(p7)
+	if not p7 then
+		return nil
+	end
+
+	local Humanoid = p7.Parent:FindFirstChildOfClass("Humanoid")
+
+	if Humanoid and not (Humanoid.WalkSpeed < 8) then
+		return p7.Position + p7.Velocity * Setting.PredictionAmount
+	end
+
+	return p7.Position
 end
 
--- Fondo personalizado
-do
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, 200),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0, Parent = Customize,
-    })
-    U.Round(c, 12); U.Padding(c, 10)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        BackgroundTransparency = 1,
-        Text = "Fondo personalizado (Roblox Image ID)",
-        Font = Enum.Font.GothamBold, TextSize = 13,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
-    })
-    local input = U.Create("TextBox", {
-        Size = UDim2.new(1, -180, 0, 28),
-        Position = UDim2.new(0, 0, 0, 26),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        PlaceholderText = "ej. 139086303945721",
-        Text = VELORA.State.Background.ImageId,
-        Font = Enum.Font.Code, TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        ClearTextOnFocus = false, BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(input, 6); U.Stroke(input, Color3.fromHex("D9DADD"), 1)
+local AimbotSkillsPlayer = t1.Data.AimbotSkillsPlayer or false
+local PlayerTracers = t1.Data.PlayerTracers or true
+local u60
+local u61
+local u62
+local Line = Drawing.new("Line")
 
-    local apply = U.Create("TextButton", {
-        Size = UDim2.new(0, 80, 0, 28),
-        Position = UDim2.new(1, -170, 0, 26),
-        BackgroundColor3 = Color3.fromHex("A78BFA"),
-        Text = "Apply",
-        Font = Enum.Font.GothamBold, TextSize = 12,
-        TextColor3 = Color3.fromHex("FFFFFF"),
-        AutoButtonColor = false, BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(apply, 6)
+Line.Thickness = 2.5
+Line.Color = Color3.fromRGB(0, 170, 255)
+Line.Transparency = 1
+Line.Visible = false
 
-    local remove = U.Create("TextButton", {
-        Size = UDim2.new(0, 80, 0, 28),
-        Position = UDim2.new(1, -84, 0, 26),
-        BackgroundColor3 = Color3.fromHex("FFFFFF"),
-        Text = "Remove",
-        Font = Enum.Font.GothamBold, TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        AutoButtonColor = false, BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(remove, 6); U.Stroke(remove, Color3.fromHex("D9DADD"), 1)
+local AimbotSkillsNPC = t1.Data.AimbotSkillsNPC or false
+local NPCTracers = t1.Data.NPCTracers or true
+local u66
+local u67
+local Line2 = Drawing.new("Line")
 
-    local function setBg(id)
-        if id == "" then
-            VELORA.BackgroundImage.Image = ""
-            U.Tween(VELORA.BackgroundImage, 0.3, { ImageTransparency = 1 })
-            VELORA.State.Background.ImageId = ""
-            return
-        end
-        local url = "rbxassetid://" .. tostring(id)
-        VELORA.BackgroundImage.Image = url
-        U.Tween(VELORA.BackgroundImage, 0.3, { ImageTransparency = 1 - VELORA.State.Background.Opacity })
-        VELORA.State.Background.ImageId = tostring(id)
-    end
+Line2.Thickness = 2.5
+Line2.Color = Color3.fromRGB(255, 170, 0)
+Line2.Transparency = 1
+Line2.Visible = false
 
-    apply.MouseButton1Click:Connect(function()
-        if input.Text == "" then
-            U.Notify("Introduce un ID válido", "error"); SoundManager.play("error"); return
-        end
-        local n = tonumber(input.Text)
-        if not n then U.Notify("ID no numérico", "error"); SoundManager.play("error"); return end
-        setBg(input.Text)
-        SoundManager.play("confirm")
-        U.Notify("Fondo aplicado", "success")
-    end)
-    remove.MouseButton1Click:Connect(function()
-        input.Text = ""
-        setBg("")
-        U.Notify("Fondo restaurado al predeterminado", "success")
-    end)
+local function v69(o)
+	local O = LocalPlayer:FindFirstChild("PlayerGui")
 
-    -- Opacidad del fondo
-    local opLbl = U.Create("TextLabel", {
-        Size = UDim2.new(0, 160, 0, 18),
-        Position = UDim2.new(0, 0, 0, 64),
-        BackgroundTransparency = 1,
-        Text = "Opacidad del fondo: 35%",
-        Font = Enum.Font.Gotham, TextSize = 12,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
-    })
-    local opSlider = U.Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0, 84),
-        BackgroundColor3 = Color3.fromHex("D9DADD"),
-        BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(opSlider, 10)
-    local opFill = U.Create("Frame", {
-        Size = UDim2.new(VELORA.State.Background.Opacity, 0, 1, 0),
-        BackgroundColor3 = Color3.fromHex("A78BFA"),
-        BorderSizePixel = 0, Parent = opSlider,
-    })
-    U.Round(opFill, 10)
-    opSlider.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            local function set()
-                local mx = UserInputService:GetMouseLocation().X
-                local abs = opSlider.AbsolutePosition.X
-                local w   = opSlider.AbsoluteSize.X
-                local v   = math.clamp((mx - abs) / w, 0, 1)
-                opFill.Size = UDim2.new(v, 0, 1, 0)
-                VELORA.State.Background.Opacity = v
-                opLbl.Text = ("Opacidad del fondo: %d%%"):format(math.floor(v * 100))
-                if VELORA.BackgroundImage.Image ~= "" then
-                    VELORA.BackgroundImage.ImageTransparency = 1 - v
-                end
-            end
-            set()
-            local conn
-            conn = UserInputService.InputChanged:Connect(function(i)
-                if i.UserInputType == Enum.UserInputType.MouseMovement
-                or i.UserInputType == Enum.UserInputType.Touch then
-                    set()
-                end
-            end)
-            UserInputService.InputEnded:Connect(function(i)
-                if i.UserInputType == Enum.UserInputType.MouseButton1
-                or i.UserInputType == Enum.UserInputType.Touch then
-                    if conn then conn:Disconnect() end
-                end
-            end)
-        end
-    end)
+	if not O then
+		return false
+	end
+
+	local l = O:FindFirstChild("Main") and O.Main:FindFirstChild("Allies") and O.Main.Allies.Container.Allies:FindFirstChild("ScrollingFrame")
+
+	return l and l:FindFirstChild(o.Name) ~= nil
+end
+local function v72(o)
+	local O = Workspace:FindFirstChild("_WorldOrigin")
+	local l = O and O:FindFirstChild("SafeZones")
+
+	if not l then
+		return false
+	end
+
+	for O, O in ipairs(l:GetChildren()) do
+		if O:IsA("BasePart") then
+			local l = O:FindFirstChildOfClass("SpecialMesh")
+			local s = l and (l.Scale.X / 2) or 50
+			local l = (O.Position - o).Magnitude
+
+			if l <= s then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+local function v80(o)
+	if not o then
+		return nil
+	end
+
+	local e = nil
+	local F = Setting.MaxDistance
+
+	for O, O in pairs(Players:GetPlayers()) do
+		if O ~= LocalPlayer and O.Character and O.Character:FindFirstChild("HumanoidRootPart") and O.Character:FindFirstChild("Humanoid") then
+			if O.Character.Humanoid.Health > 0 then
+				local y = O.Character.HumanoidRootPart
+
+				if v72(y.Position) then
+					continue
+				end
+
+				local s = O:GetAttribute("PvpDisabled") or false
+
+				if s then
+					continue
+				end
+
+				if LocalPlayer.Team and O.Team then
+					if LocalPlayer.Team.Name == "Marines" and O.Team.Name == "Marines" then
+						continue
+					end
+				end
+
+				if v69(O) then
+					continue
+				end
+
+				local l = (o.Position - y.Position).Magnitude
+
+				if l < F then
+					F = l
+					e = O
+				end
+			end
+		end
+	end
+
+	return e
+end
+local function v88(o)
+	if not o then
+		return nil
+	end
+
+	local O, s = nil, Setting.MaxDistance
+	local l = workspace:FindFirstChild("Enemies")
+
+	if l then
+		for y, y in ipairs(l:GetChildren()) do
+			local l = y:FindFirstChildOfClass("Humanoid")
+			local v = y:FindFirstChild("HumanoidRootPart") or y:FindFirstChild("UpperTorso")
+
+			if l and l.Health > 0 and v then
+				local l = (v.Position - o.Position).Magnitude
+
+				if l <= s then
+					s = l
+					O = y
+				end
+			end
+		end
+	end
+
+	return O
 end
 
--- Sonidos
-do
-    local c = U.Create("Frame", {
-        Size = UDim2.new(1, -8, 0, 120),
-        BackgroundColor3 = Color3.fromHex("F0F1F3"),
-        BorderSizePixel = 0, Parent = Customize,
-    })
-    U.Round(c, 12); U.Padding(c, 10)
-    U.Create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        BackgroundTransparency = 1,
-        Text = "Sonidos de interfaz",
-        Font = Enum.Font.GothamBold, TextSize = 13,
-        TextColor3 = Color3.fromHex("202126"),
-        TextXAlignment = Enum.TextXAlignment.Left, Parent = c,
-    })
-    local muteBtn = U.Create("TextButton", {
-        Size = UDim2.new(0, 90, 0, 26),
-        Position = UDim2.new(0, 0, 0, 24),
-        BackgroundColor3 = VELORA.State.Sounds.Enabled and Color3.fromHex("A78BFA") or Color3.fromHex("FFFFFF"),
-        Text = VELORA.State.Sounds.Enabled and "ON" or "OFF",
-        Font = Enum.Font.GothamBold, TextSize = 12,
-        TextColor3 = VELORA.State.Sounds.Enabled and Color3.fromHex("FFFFFF") or Color3.fromHex("202126"),
-        AutoButtonColor = false, BorderSizePixel = 0, Parent = c,
-    })
-    U.Round(muteBtn, 8)
-    muteBtn.MouseButton1Click:Connect(function()
-        local on = not SoundManager.Enabled
-        SoundManager.setEnabled(on)
-        VELORA.State.Sounds.Enabled = on
-        muteBtn.Text = on and "ON" or "OFF"
-        muteBtn.BackgroundColor3 = on and Color3.fromHex("A78BFA") or Color3.fromHex("FFFFFF")
-        muteBtn.TextColor3 = on and Color3.fromHex("FFFFFF") or Color3.fromHex("202126")
-    end)
-    for _, key in ipairs({"click", "enable", "disable", "tab", "theme", "error", "confirm"}) do
-        local b = U.Create("TextButton", {
-            Size = UDim2.new(0, 88, 0, 26),
-            Position = UDim2.new(0, 100 + (#key * 0), 0, 60 + 0),
-            BackgroundColor3 = Color3.fromHex("FFFFFF"),
-            Text = "▶ " .. key,
-            Font = Enum.Font.Gotham, TextSize = 11,
-            TextColor3 = Color3.fromHex("202126"),
-            AutoButtonColor = false, BorderSizePixel = 0, Parent = c,
-        })
-        U.Round(b, 6); U.Stroke(b, Color3.fromHex("D9DADD"), 1)
-        b.MouseButton1Click:Connect(function() SoundManager.preview(key) end)
-    end
+task.spawn(function()
+	while task.wait(0.1) do
+		if AimbotSkillsNPC then
+			local o = LocalPlayer.Character
+			local O = o and o:FindFirstChild("HumanoidRootPart")
+
+			if O then
+				u66 = v88(O)
+			end
+		else
+			u66 = nil
+		end
+	end
+end)
+task.spawn(function()
+	while task.wait(0.1) do
+		if AimbotSkillsPlayer then
+			local o = LocalPlayer.Character
+			local s = o and o:FindFirstChild("HumanoidRootPart")
+
+			if s then
+				u60 = v80(s)
+			end
+		else
+			u60 = nil
+		end
+	end
+end)
+
+local function v101()
+	local Character_ = LocalPlayer.Character
+
+	if not Character_ then
+		return nil
+	end
+
+	local Tool = Character_:FindFirstChildOfClass("Tool")
+
+	if not Tool then
+		return nil
+	end
+
+	local ToolTip = Tool.ToolTip
+
+	if ToolTip == "Melee" then
+		return ToolTip
+	end
+
+	return nil
+end
+local function v105()
+	u62 = v101()
 end
 
---================================================================
--- 10. RESTORE ICON + SHUTDOWN + INIT
---================================================================
-function VELORA.restoreIcon()
-    if VELORA.RestoreIcon then return end
-    local ri = U.Create("TextButton", {
-        Name = "RestoreIcon",
-        Size = UDim2.new(0, 56, 0, 56),
-        Position = UDim2.new(0.05, 0, 0.85, 0),
-        BackgroundColor3 = Color3.fromHex("A78BFA"),
-        Text = "V",
-        Font = Enum.Font.Fondamento, TextSize = 22,
-        TextColor3 = Color3.fromHex("FFFFFF"),
-        AutoButtonColor = false, BorderSizePixel = 0,
-        Parent = VELORA.Root,
-    })
-    U.Round(ri, 28)
-    U.Stroke(ri, Color3.fromHex("FFFFFF"), 2)
-    ri.MouseButton1Click:Connect(function()
-        SoundManager.play("restore")
-        ri:Destroy()
-        VELORA.RestoreIcon = nil
-        Window.Visible = true
-        Window.Size = VELORA.State.Window.Size
-    end)
-    VELORA.RestoreIcon = ri
+local v106 = getrawmetatable(game)
+local __namecall = v106.__namecall
+
+setreadonly(v106, false)
+v106.__namecall = newcclosure(function(...)
+	local o = getnamecallmethod()
+	local F = { ... }
+
+	if tostring(o) == "FireServer" then
+		if tostring(F[1]) == "RemoteEvent" then
+			if tostring(F[2]) ~= "true" and tostring(F[2]) ~= "false" then
+				if AimbotSkillsPlayer and u61 and not u62 then
+					F[2] = u61
+
+					return __namecall(unpack(F))
+				elseif AimbotSkillsNPC and u67 then
+					F[2] = u67
+
+					return __namecall(unpack(F))
+				end
+			end
+		end
+	end
+
+	return __namecall(...)
+end)
+setreadonly(v106, true)
+
+local Mouse = ReplicatedStorage:FindFirstChild("Mouse")
+
+if Mouse then
+	local module
+
+	pcall(function()
+		module = require(Mouse)
+	end)
+
+	if module and typeof(module) == "table" then
+		pcall(function()
+			local t2 = {
+				Hit = rawget(module, "Hit"),
+				Target = rawget(module, "Target")
+			}
+			local v113 = getrawmetatable(module)
+
+			if v113 then
+				setreadonly(v113, false)
+			else
+				v113 = {}
+				setmetatable(module, v113)
+			end
+
+			rawset(module, "Hit", nil)
+			rawset(module, "Target", nil)
+			v113.__index = function(o, o)
+				if o == "Hit" then
+					if AimbotSkillsPlayer and u61 and u62 then
+						return CFrame.new(u61)
+					end
+
+					return t2.Hit
+				elseif o == "Target" then
+					if AimbotSkillsPlayer and u61 and u62 then
+						return u61
+					end
+
+					return t2.Target
+				end
+			end
+			v113.__newindex = function(o, O, s)
+				if O == "Hit" or O == "Target" then
+					t2[O] = s
+				else
+					rawset(o, O, s)
+				end
+			end
+			setreadonly(v113, true)
+		end)
+	end
 end
 
-function VELORA.shutdown()
-    -- Detener módulos activos
-    for id, on in pairs(ModuleRegistry.Enabled) do
-        if on then ModuleRegistry.setEnabled(id, false) end
-    end
-    -- Limpiar conexiones
-    if VELORA._espConns then
-        for _, c in ipairs(VELORA._espConns) do pcall(function() c:Disconnect() end) end
-        VELORA._espConns = nil
-    end
-    if VELORA._diagConn then VELORA._diagConn:Disconnect() end
-    if VELORA._fullbrightCache then
-        local c = VELORA._fullbrightCache
-        Lighting.Brightness = c.Brightness
-        Lighting.Ambient    = c.Ambient
-        Lighting.OutdoorAmbient = c.OutdoorAmbient
-    end
-    -- Guardar preferencias finales
-    pcall(function() SettingsRepository.save(VELORA.State) end)
-    -- Destruir
-    if VELORA.Root then VELORA.Root:Destroy() end
-    if blur then blur:Destroy() end
-    if VELORA.SoundsFolder then VELORA.SoundsFolder:Destroy() end
-    _G.VELORA = nil
-    U.Notify("VELORA cerrado correctamente", "success")
+pcall(function()
+	local v114
+
+	v114 = hookfunction(require(ReplicatedStorage.Modules.CombatUtil).GetTargetPosition, function(o, v, e, F, ...)
+		if AimbotSkillsPlayer and u61 then
+			local l = LocalPlayer.Character
+			local O = l and l:FindFirstChildOfClass("Tool")
+			local l = O and (O:FindFirstChild("Melee") or O.ToolTip == "Melee")
+
+			if not l then
+				e = u61
+			end
+		end
+
+		return v114(o, v, e, F, ...)
+	end)
+end)
+RunService.Heartbeat:Connect(function()
+	if not AimbotSkillsPlayer or not u60 then
+		u61 = nil
+		Line.Visible = false
+
+		return
+	end
+
+	local o = LocalPlayer.Character
+	local O = o and o:FindFirstChild("HumanoidRootPart")
+	local o = u60.Character
+	local l = o and o:FindFirstChild("HumanoidRootPart")
+
+	if not O or not l or (l.Position - O.Position).Magnitude > Setting.MaxDistance then
+		u61 = nil
+		Line.Visible = false
+
+		return
+	end
+
+	u61 = v56(l)
+
+	if PlayerTracers and u61 then
+		local o, l = workspace.CurrentCamera:WorldToViewportPoint(O.Position)
+		local O, s = workspace.CurrentCamera:WorldToViewportPoint(u61)
+
+		if l and s then
+			Line.From = Vector2.new(o.X, o.Y)
+			Line.To = Vector2.new(O.X, O.Y)
+			Line.Visible = true
+		else
+			Line.Visible = false
+		end
+	else
+		Line.Visible = false
+	end
+end)
+RunService.Heartbeat:Connect(function()
+	if not AimbotSkillsNPC or not u66 or not u66.Parent then
+		u67 = nil
+		Line2.Visible = false
+
+		return
+	end
+
+	local o = LocalPlayer.Character
+	local y = o and o:FindFirstChild("HumanoidRootPart")
+	local o = u66:FindFirstChild("HumanoidRootPart") or u66:FindFirstChild("UpperTorso")
+
+	if not y or not o or (o.Position - y.Position).Magnitude > Setting.MaxDistance then
+		u67 = nil
+		Line2.Visible = false
+
+		return
+	end
+
+	u67 = v56(o)
+
+	if NPCTracers and u67 then
+		local o, l = workspace.CurrentCamera:WorldToViewportPoint(y.Position)
+		local s, y = workspace.CurrentCamera:WorldToViewportPoint(u67)
+
+		if l and y then
+			Line2.From = Vector2.new(o.X, o.Y)
+			Line2.To = Vector2.new(s.X, s.Y)
+			Line2.Visible = true
+		else
+			Line2.Visible = false
+		end
+	else
+		Line2.Visible = false
+	end
+end)
+LocalPlayer.CharacterAdded:Connect(function(character)
+	Character = character
+	character.ChildAdded:Connect(v105)
+	character.ChildRemoved:Connect(v105)
+	v105()
+end)
+
+if LocalPlayer.Character then
+	LocalPlayer.Character.ChildAdded:Connect(v105)
+	LocalPlayer.Character.ChildRemoved:Connect(v105)
+	v105()
 end
 
---== INIT ==
-do
-    -- Cargar config
-    local loaded = SettingsRepository.load()
-    if loaded then VELORA.State = SettingsRepository.mergeDefaults(loaded) end
-    ThemeEngine.applyFromState()
-    SoundManager.Enabled = VELORA.State.Sounds.Enabled
-    SoundManager.setVolume(VELORA.State.Sounds.Volume)
+createFrame("Aimbot Skills + Gun M1 👤", function()
+	AimbotSkillsPlayer = not AimbotSkillsPlayer
+	t1.Data.AimbotSkillsPlayer = AimbotSkillsPlayer
+	v13()
 
-    -- Aplicar fondo guardado
-    if VELORA.State.Background.ImageId ~= "" then
-        VELORA.BackgroundImage.Image = "rbxassetid://" .. VELORA.State.Background.ImageId
-        VELORA.BackgroundImage.ImageTransparency = 1 - VELORA.State.Background.Opacity
-    end
+	if not AimbotSkillsPlayer then
+		u60 = nil
+		u61 = nil
+		Line.Visible = false
+	end
 
-    -- Restaurar tamaño/posición
-    Window.Size     = VELORA.State.Window.Size
-    Window.Position = VELORA.State.Window.Position
+	return AimbotSkillsPlayer
+end, "AimbotSkillsPlayer")
+createFrame("Player Tracers Off/On ✏️", function()
+	PlayerTracers = not PlayerTracers
+	t1.Data.PlayerTracers = PlayerTracers
+	v13()
 
-    -- Pestaña inicial
-    switchTab(VELORA.State.LastTab or "HOME")
+	if not PlayerTracers then
+		Line.Visible = false
+	end
 
-    -- Crear botones flotantes guardados
-    for id, _ in pairs(VELORA.State.Floating) do
-        if ModuleRegistry.Modules[id] then FBM.create(id) end
-    end
+	return PlayerTracers
+end, "PlayerTracers")
+createFrame("Aimbot Skills + Gun M1 👾", function()
+	AimbotSkillsNPC = not AimbotSkillsNPC
+	t1.Data.AimbotSkillsNPC = AimbotSkillsNPC
+	v13()
 
-    -- Guardado automático periódico
-    task.spawn(function()
-        while VELORA.Root and VELORA.Root.Parent do
-            task.wait(30)
-            pcall(function() SettingsRepository.save(VELORA.State) end)
-        end
-    end)
+	if not AimbotSkillsNPC then
+		u66 = nil
+		u67 = nil
+		Line2.Visible = false
+	end
 
-    logAction("VELORA iniciado v" .. VELORA.Config.Version)
-    U.Notify("VELORA listo · v" .. VELORA.Config.Version, "success")
+	return AimbotSkillsNPC
+end, "AimbotSkillsNPC")
+createFrame("NPC Tracers Off/On ✏️", function()
+	NPCTracers = not NPCTracers
+	t1.Data.NPCTracers = NPCTracers
+	v13()
+
+	if not NPCTracers then
+		Line2.Visible = false
+	end
+
+	return NPCTracers
+end, "NPCTracers")
+
+local t3 = {}
+
+t3.__index = t3
+t3.new = function()
+	return setmetatable({
+		Debounce = 0,
+		ComboDebounce = tick(),
+		M1Combo = 5
+	}, t3)
 end
+t3.GetBladeHits = function(o,o,l)local O=o:GetPivot().Position;local s={};local function y(v)if not v then return;end;for e,e in ipairs(v:GetChildren())do if e~=o and e:FindFirstChild('Hu\109\u{61}n\111id')and e.Humanoid.Health>0 then local o=e:FindFirstChild("Hu\x6Da\z no\105dRoo\116\z  Pa\114\116");if o and(O-o.Position).Magnitude<=l then table.insert(s,{e,o});end;end;end;end;y(workspace:FindFirstChild("\69\110\em\105e\115"));y(workspace:FindFirstChild('Charac\zter\115'));return s;end
+t3.UseFruitM1 = function(o,o,l,O,s)if not s[1]or not l:FindFirstChild("\L\101\zft\z  ClickR\e\109\111t\e")then return;end;local y=s[1][2];local s=(y.Position-o:GetPivot().Position).Unit;l.LeftClickRemote:FireServer(s,O);end
+t3.Attack = function(p8)
+	if tick() - p8.Debounce < 0.01 then
+		return
+	end
+
+	local Character_ = LocalPlayer.Character
+
+	if not Character_ or not Character_:FindFirstChild("Humanoid") then
+		return
+	end
+
+	local Tool = Character_:FindFirstChildOfClass("Tool")
+
+	if not Tool then
+		return
+	end
+
+	local ToolTip = Tool.ToolTip
+	local bladeHits = p8:GetBladeHits(Character_, _G.FADistance)
+
+	if #bladeHits > 0 then
+		if tick() - p8.ComboDebounce > 0.5 then
+			p8.M1Combo = 1
+		else
+			p8.M1Combo = p8.M1Combo >= 3 and 1 or p8.M1Combo + 1
+		end
+
+		p8.ComboDebounce = tick()
+
+		local Net = ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Net")
+
+		if ToolTip == "Blox Fruit" and Tool:FindFirstChild("LeftClickRemote") then
+			p8:UseFruitM1(Character_, Tool, p8.M1Combo, bladeHits)
+		elseif table.find({
+				"Melee",
+				"Sword"
+			}, ToolTip) then
+			Net:WaitForChild("RE/RegisterAttack"):FireServer(0.1)
+			Net:WaitForChild("RE/RegisterHit"):FireServer(bladeHits[1][2], bladeHits)
+		end
+
+		p8.Debounce = tick()
+	end
+end
+
+local v147 = t3.new()
+
+RunService.Stepped:Connect(function()
+	if _G.FastAttackEnabled then
+		v147:Attack()
+	end
+end)
+createFrame("Fast Attack", function()
+	_G.FastAttackEnabled = not _G.FastAttackEnabled
+	t1.Data.FastAttack = _G.FastAttackEnabled
+	v13()
+
+	return _G.FastAttackEnabled
+end, "FastAttack")
+
+local Frame = Instance.new("Frame", ScrollingFrame)
+
+Frame.Name = "FastAttackDistanceFrame"
+Frame.Size = UDim2.new(0, 210, 0, 30)
+Frame.BackgroundTransparency = 1
+
+local TextLabel2 = Instance.new("TextLabel", Frame)
+
+TextLabel2.Size = UDim2.new(0, 120, 1, 0)
+TextLabel2.Text = "  Attack Distance:"
+TextLabel2.Font = Enum.Font.Jura
+TextLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel2.TextSize = 12
+TextLabel2.BackgroundTransparency = 1
+TextLabel2.TextXAlignment = Enum.TextXAlignment.Left
+
+local TextBox = Instance.new("TextBox", Frame)
+
+TextBox.Size = UDim2.new(0, 70, 0, 22)
+TextBox.Position = UDim2.new(0, 130, 0, 4)
+TextBox.BackgroundColor3 = Color3.new(0, 0, 0)
+TextBox.Text = tostring(t1.Data.FADistance or 100)
+TextBox.Font = Enum.Font.Jura
+TextBox.TextColor3 = Color3.fromRGB(0, 170, 255)
+v30(TextBox)
+TextBox.FocusLost:Connect(function()
+	_G.FADistance = tonumber(TextBox.Text) or 100
+	t1.Data.FADistance = _G.FADistance
+	v13()
+	TextBox.Text = tostring(_G.FADistance)
+end)
+
+local connection
+
+local function v152()
+	local Energy = (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()):WaitForChild("Energy", 10)
+
+	if not Energy then
+		return
+	end
+
+	if connection then
+		connection:Disconnect()
+	end
+
+	connection = Energy.Changed:Connect(function()
+		if _G.InfiniteEnergy then
+			Energy.Value = Energy.MaxValue
+		end
+	end)
+
+	if _G.InfiniteEnergy then
+		Energy.Value = Energy.MaxValue
+	end
+end
+
+LocalPlayer.CharacterAdded:Connect(function()
+	v152()
+end)
+
+if LocalPlayer.Character then
+	task.spawn(v152)
+end
+
+createFrame("Infinite Energy", function()
+	_G.InfiniteEnergy = not _G.InfiniteEnergy
+	t1.Data.InfiniteEnergy = _G.InfiniteEnergy
+	v13()
+
+	if _G.InfiniteEnergy then
+		task.spawn(v152)
+	end
+
+	return _G.InfiniteEnergy
+end, "InfiniteEnergy")
+createTextButton("Jump Boost", function()
+	if ScreenGui:FindFirstChild("JumpBtn") then
+		return
+	end
+
+	local TextButton2 = Instance.new("TextButton", ScreenGui)
+
+	TextButton2.Name = "JumpBtn"
+	TextButton2.Size = UDim2.new(0, 100, 0, 35)
+	TextButton2.Position = UDim2.new(0.5, -50, 0.8, 0)
+	TextButton2.BackgroundColor3 = Color3.new(0, 0, 0)
+	TextButton2.TextColor3 = Color3.new(0, 0.7, 1)
+	TextButton2.Text = "JUMP"
+	TextButton2.Font = Enum.Font.Jura
+	TextButton2.Draggable = true
+	v30(TextButton2)
+
+	local u155 = false
+	local connection2
+
+	TextButton2.MouseButton1Down:Connect(function()
+		u155 = true
+		TextButton2.Text = "GO!"
+
+		local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+		if Humanoid then
+			local JumpPower = Humanoid.JumpPower
+
+			Humanoid.UseJumpPower = true
+			Humanoid.JumpPower = 100
+			connection2 = RunService.Heartbeat:Connect(function()
+				if u155 then
+					Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end)
+			task.delay(0.5, function()
+				if Humanoid then
+					Humanoid.JumpPower = JumpPower
+				end
+			end)
+		end
+	end)
+	TextButton2.MouseButton1Up:Connect(function()
+		u155 = false
+		TextButton2.Text = "JUMP"
+
+		if connection2 then
+			connection2:Disconnect()
+		end
+	end)
+end)
+createTextButton("Auto Combo/Macro", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/JustParadozCode/CentuDox-Hub/refs/heads/main/Auto%2ombo%0C20V3.xyz"))()
+end)
+createTextButton("Flashstep Aimbot Nearest", function()
+	if ScreenGui:FindFirstChild("SoruFloatingBtn") then
+		return
+	end
+
+	local Soru = require(ReplicatedStorage:WaitForChild("Effect")).new("Shared.Soru")
+	local Util = require(ReplicatedStorage:WaitForChild("Util"))
+	local n2 = 0
+	local TextButton2 = Instance.new("TextButton", ScreenGui)
+
+	TextButton2.Name = "SoruFloatingBtn"
+	TextButton2.Size = UDim2.new(0, 110, 0, 35)
+	TextButton2.Position = UDim2.new(0.5, -55, 0.8, 0)
+	TextButton2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton2.BackgroundTransparency = 0.4
+	TextButton2.TextColor3 = Color3.fromRGB(0, 170, 255)
+	TextButton2.Text = "SORU NEAREST"
+	TextButton2.Font = Enum.Font.Jura
+	TextButton2.TextSize = 11
+	TextButton2.Active = true
+	v30(TextButton2)
+
+	local u163 = false
+	local u164
+	local Position
+	local Position2
+	local u167 = false
+
+	local function v168(p9)
+		local v169 = p9.Position - Position
+
+		TextButton2.Position = UDim2.new(Position2.X.Scale, Position2.X.Offset + v169.X, Position2.Y.Scale, Position2.Y.Offset + v169.Y)
+	end
+
+	TextButton2.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			u163 = true
+			u167 = false
+			Position = input.Position
+			Position2 = TextButton2.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					u163 = false
+				end
+			end)
+		end
+	end)
+	TextButton2.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			u164 = input
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == u164 and u163 then
+			if (input.Position - Position).Magnitude > 5 then
+				u167 = true
+			end
+
+			v168(input)
+		end
+	end)
+	TextButton2.MouseButton1Click:Connect(function()
+		if u167 then
+			return
+		end
+
+		if tick() - n2 < 1.5 then
+			return
+		end
+
+		local Character_ = LocalPlayer.Character
+		local HumanoidRootPart = Character_ and Character_:FindFirstChild("HumanoidRootPart")
+
+		if not HumanoidRootPart then
+			return
+		end
+
+		local v172
+		local n3 = 250
+
+		for _, player in pairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and player.Character then
+				if player.Character:FindFirstChild("HumanoidRootPart") then
+					local HumanoidRootPart2 = player.Character.HumanoidRootPart
+					local Magnitude = (HumanoidRootPart.Position - HumanoidRootPart2.Position).Magnitude
+
+					if Magnitude < n3 and not v69(player) then
+						n3 = Magnitude
+						v172 = HumanoidRootPart2
+					end
+				end
+			end
+		end
+
+		if v172 then
+			n2 = tick()
+
+			local CFrame_ = HumanoidRootPart.CFrame
+			local cFrame = CFrame.new(v172.Position + v172.CFrame.LookVector * -3, v172.Position)
+
+			ReplicatedStorage.Remotes.CommE:FireServer("Soru", CFrame_, cFrame, workspace:GetServerTimeNow(), math.random(1, 900000000))
+			Soru:play({
+				CFrame = CFrame_,
+				Character = Character_,
+				Mode = 1,
+				player = LocalPlayer
+			})
+			HumanoidRootPart.CFrame = cFrame
+
+			local v180 = Util.Anims:Get(Character_, "FlashStepRegular")
+
+			if v180 then
+				v180:Play(0, nil, 2)
+			end
+
+			Soru:play({
+				CFrame = cFrame,
+				Character = Character_,
+				Mode = 2
+			})
+			TextButton2.Text = "GO!"
+			TextButton2.TextColor3 = Color3.fromRGB(0, 255, 150)
+			task.delay(0.5, function()
+				TextButton2.Text = "SORU NEAREST"
+				TextButton2.TextColor3 = Color3.fromRGB(0, 170, 255)
+			end)
+		else
+			TextButton2.Text = "NO TARGET"
+			TextButton2.TextColor3 = Color3.fromRGB(255, 80, 80)
+			task.delay(0.5, function()
+				TextButton2.Text = "SORU NEAREST"
+				TextButton2.TextColor3 = Color3.fromRGB(0, 170, 255)
+			end)
+		end
+	end)
+end)
+RunService.RenderStepped:Connect(function()
+	if _G.PlayerEsp then
+		for o, o in ipairs(Players:GetPlayers()) do
+			if o ~= LocalPlayer and o.Character and o.Character:FindFirstChild("Head") then
+				local y = o.Character:FindFirstChild("CentuESP") or Instance.new("BillboardGui", o.Character)
+
+				y.Name = "CentuESP"
+				y.Size = UDim2.new(0, 200, 0, 70)
+				y.StudsOffset = Vector3.new(0, 2, 0)
+				y.AlwaysOnTop = true
+				y.Adornee = o.Character.Head
+				y.Enabled = true
+
+				local v = y:FindFirstChild("Label") or Instance.new("TextLabel", y)
+
+				v.Name = "Label"
+				v.BackgroundTransparency = 1
+				v.Size = UDim2.new(1, 0, 1, 0)
+				v.Font = Enum.Font.Jura
+				v.RichText = true
+				v.TextSize = 15
+				v.TextStrokeTransparency = 0.4
+				v.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+				local y = math.floor((o.Character.Head.Position - workspace.CurrentCamera.CFrame.Position).Magnitude)
+				local O = math.floor(o.Character:FindFirstChildOfClass("Humanoid") and o.Character.Humanoid.Health or 0)
+				local e = o:GetAttribute("PvpDisabled") or false
+				local F = e and "<font color=\"#FF0000\">[PvP OFF]</font>" or "<font color=\"#00FF00\">[PvP ON]</font>"
+
+				v.TextColor3 = (o.Team and o.Team.Name == "Marines") and Color3.fromRGB(0, 35, 100) or Color3.fromRGB(100, 0, 0)
+				v.Text = string.format("<b>%s</b> [Lvl %s] %s\n%d HP | %d M", o.Name, tostring(v9(o)), F, O, y)
+			end
+		end
+	else
+		for o, o in ipairs(Players:GetPlayers()) do
+			local l = o.Character and o.Character:FindFirstChild("CentuESP")
+
+			if l then
+				l.Enabled = false
+			end
+		end
+	end
+end)
+createFrame("ESP", function()
+	_G.PlayerEsp = not _G.PlayerEsp
+	t1.Data.PlayerEsp = _G.PlayerEsp
+	v13()
+
+	return _G.PlayerEsp
+end, "PlayerEsp")
+createFrame("Unbreakable Skills", function()
+	_G.UnbreakableSkills = not _G.UnbreakableSkills
+	t1.Data.UnbreakableSkills = _G.UnbreakableSkills
+	v13()
+
+	return _G.UnbreakableSkills
+end, "UnbreakableSkills")
+createFrame("Anti Stun", function()
+	_G.AntiStun = not _G.AntiStun
+	t1.Data.AntiStun = _G.AntiStun
+	v13()
+
+	return _G.AntiStun
+end, "AntiStun")
+createFrame("Water Walk", function()
+	_G.WalkOnWater = not _G.WalkOnWater
+	t1.Data.WalkOnWater = _G.WalkOnWater
+	v13()
+
+	return _G.WalkOnWater
+end, "WalkOnWater")
+createFrame("Auto Race V3", function()
+	_G.AutoRaceV3 = not _G.AutoRaceV3
+	t1.Data.AutoRaceV3 = _G.AutoRaceV3
+	v13()
+
+	return _G.AutoRaceV3
+end, "AutoRaceV3")
+createFrame("Auto Race V4", function()
+	_G.AutoRaceV4 = not _G.AutoRaceV4
+	t1.Data.AutoRaceV4 = _G.AutoRaceV4
+	v13()
+
+	return _G.AutoRaceV4
+end, "AutoRaceV4")
+
+local Frame2 = Instance.new("Frame", ScrollingFrame)
+
+Frame2.Size = UDim2.new(0, 210, 0, 32)
+Frame2.BackgroundTransparency = 1
+
+local TextBox2 = Instance.new("TextBox", Frame2)
+
+TextBox2.Size = UDim2.new(0, 50, 1, 0)
+TextBox2.Text = tostring(t1.Data.SpeedValue or 16)
+TextBox2.Font = Enum.Font.Jura
+TextBox2.BackgroundColor3 = Color3.new(0, 0, 0)
+v30(TextBox2)
+
+local TextButton2 = Instance.new("TextButton", Frame2)
+
+TextButton2.Size = UDim2.new(0, 155, 1, 0)
+TextButton2.Position = UDim2.new(0, 55, 0, 0)
+TextButton2.Text = SpeedEnabled and "Speed ON" or "Speed OFF"
+TextButton2.Font = Enum.Font.Jura
+TextButton2.BackgroundColor3 = Color3.new(0, 0, 0)
+v30(TextButton2)
+TextButton2.TextColor3 = SpeedEnabled and Color3.new(0, 1, 0.6) or Color3.new(1, 0.3, 0.3)
+TextButton2.MouseButton1Click:Connect(function()
+	SpeedEnabled = not SpeedEnabled
+	t1.Data.SpeedEnabled = SpeedEnabled
+	v13()
+	TextButton2.Text = SpeedEnabled and "Speed ON" or "Speed OFF"
+	TextButton2.TextColor3 = SpeedEnabled and Color3.new(0, 1, 0.6) or Color3.new(1, 0.3, 0.3)
+end)
+TextBox2.FocusLost:Connect(function()
+	local speedValue = tonumber(TextBox2.Text) or 16
+
+	t1.Data.SpeedValue = speedValue
+	TextBox2.Text = tostring(speedValue)
+	v13()
+end)
+
+local Frame3 = Instance.new("Frame", ScrollingFrame)
+
+Frame3.Size = UDim2.new(0, 210, 0, 32)
+Frame3.BackgroundTransparency = 1
+
+local TextBox3 = Instance.new("TextBox", Frame3)
+
+TextBox3.Size = UDim2.new(0, 50, 1, 0)
+TextBox3.Text = tostring(t1.Data.DashValue or 300)
+TextBox3.Font = Enum.Font.Jura
+TextBox3.BackgroundColor3 = Color3.new(0, 0, 0)
+v30(TextBox3)
+
+local TextButton3 = Instance.new("TextButton", Frame3)
+
+TextButton3.Size = UDim2.new(0, 155, 1, 0)
+TextButton3.Position = UDim2.new(0, 55, 0, 0)
+TextButton3.Text = DashEnabled and "Dash ON" or "Dash OFF"
+TextButton3.Font = Enum.Font.Jura
+TextButton3.BackgroundColor3 = Color3.new(0, 0, 0)
+v30(TextButton3)
+TextButton3.TextColor3 = DashEnabled and Color3.new(0, 1, 0.6) or Color3.new(1, 0.3, 0.3)
+TextButton3.MouseButton1Click:Connect(function()
+	DashEnabled = not DashEnabled
+	t1.Data.DashEnabled = DashEnabled
+	v13()
+	TextButton3.Text = DashEnabled and "Dash ON" or "Dash OFF"
+	TextButton3.TextColor3 = DashEnabled and Color3.new(0, 1, 0.6) or Color3.new(1, 0.3, 0.3)
+end)
+TextBox3.FocusLost:Connect(function()
+	local dashValue = tonumber(TextBox3.Text) or 300
+
+	t1.Data.DashValue = dashValue
+	TextBox3.Text = tostring(dashValue)
+	v13()
+end)
+RunService.RenderStepped:Connect(function()
+	local o = LocalPlayer.Character
+
+	if not o then
+		return
+	end
+
+	local e = o:FindFirstChildOfClass("Humanoid")
+	local F = o:FindFirstChild("HumanoidRootPart")
+
+	if SpeedEnabled and e then
+		e.WalkSpeed = tonumber(TextBox2.Text) or t1.Data.SpeedValue or 16
+	end
+
+	if DashEnabled then
+		o:SetAttribute("DashLength", tonumber(TextBox3.Text) or t1.Data.DashValue or 300)
+	end
+
+	if _G.AntiStun and F and e and e.MoveDirection.Magnitude > 0 then
+		local o = false
+
+		if e.WalkSpeed == 0 then
+			o = true
+		else
+			for l, l in ipairs(e:GetPlayingAnimationTracks()) do
+				if l.IsPlaying and (l.Animation.AnimationId:find("attack") or l.Animation.AnimationId:find("skill")) then
+					o = true
+
+					break
+				end
+			end
+		end
+
+		if not o then
+			F.CFrame = F.CFrame + e.MoveDirection.Unit * 1.7
+		end
+	end
+end)
+task.spawn(function()while task.wait(0.1)do local o=workspace:FindFirstChild("Map")and workspace.Map:FindFirstChild('W\97\116er\z \66\z \97se\45Pl\z\x61\u{6E}e');if o then o.Size=_G.WalkOnWater and Vector3.new(1000,112,1000)or Vector3.new(1000,10,1000);end;end;end)
+task.spawn(function()
+	while true do
+		task.wait(0.1)
+
+		if _G.UnbreakableSkills and LocalPlayer.Character then
+			pcall(function()
+				LocalPlayer.Character:SetAttribute("UnbreakableAll", true)
+			end)
+		end
+	end
+end)
+task.spawn(function()
+	while task.wait(0.5) do
+		if _G.AutoRaceV3 then
+			ReplicatedStorage.Remotes.CommE:FireServer("ActivateAbility")
+			task.wait(30)
+		end
+
+		if _G.AutoRaceV4 then
+			local o = LocalPlayer:WaitForChild("PlayerGui")
+			local O = o:FindFirstChild("Main")
+			local o = O and O:FindFirstChild("RaceEnergy") and O.RaceEnergy:FindFirstChild("Fill")
+
+			if o and o.Size.X.Scale >= 0.9 then
+				local o = LocalPlayer:WaitForChild("Backpack")
+				local O = LocalPlayer.Character
+				local l = o:FindFirstChild("Awakening") or (O and O:FindFirstChild("Awakening"))
+
+				if l then
+					local o = l:FindFirstChild("RemoteFunction")
+
+					if o then
+						o:InvokeServer(true)
+						task.wait(5)
+					end
+				end
+			end
+		end
+	end
+end)
+print("CentuDox V3 Fully Loaded!")
