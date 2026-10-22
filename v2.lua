@@ -13,7 +13,7 @@ local LocalPlayer = Players.LocalPlayer
 local function v9(o)local l=o:FindFirstChild('Dat\x61');if l and l:FindFirstChild("L\101\118\101l")then return l.Level.Value;end;return"\u{03F}\63\u{3F}";end
 
 local t1 = {
-	FileName = "CentuDox-67.json",
+	FileName = "VELOR$-67.json",
 	Data = {}
 }
 
@@ -88,14 +88,14 @@ local DashEnabled = t1.Data.DashEnabled
 
 _G.FADistance = t1.Data.FADistance or 100
 game:GetService("StarterGui"):SetCore("SendNotification", {
-	Title = "CentuDox Hub",
+	Title = "VELOR$ Hub",
 	Text = "Config Loaded Successfully!",
 	Duration = 3
 })
 
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 
-ScreenGui.Name = "CentuDox_Integrated_Ultimate"
+ScreenGui.Name = "VELOR$_Integrated_Ultimate"
 ScreenGui.ResetOnSpawn = false
 
 local TextButton = Instance.new("TextButton", ScreenGui)
@@ -145,7 +145,7 @@ local TextLabel = Instance.new("TextLabel", CanvasGroup)
 
 TextLabel.Size = UDim2.new(1, 0, 0, 32)
 TextLabel.BackgroundTransparency = 1
-TextLabel.Text = "👑 CentuDox V3 👑"
+TextLabel.Text = "👑 VELOR$ V3 👑"
 TextLabel.Font = Enum.Font.Jura
 TextLabel.TextSize = 15
 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -246,7 +246,7 @@ end
 TextButton.MouseButton1Click:Connect(function()
 	CanvasGroup.Visible = not CanvasGroup.Visible
 end)
-createTextButton("CentuDox Camlock", function()
+createTextButton("VELOR$ Camlock", function()
 	if ScreenGui:FindFirstChild("CamLockUI") then
 		return
 	end
@@ -292,7 +292,7 @@ createTextButton("CentuDox Camlock", function()
 	TextButton2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	TextButton2.BackgroundTransparency = 0.4
 	TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextButton2.Text = CamlockEnabled and "CentuDox: ON" or "CentuDox: OFF"
+	TextButton2.Text = CamlockEnabled and "VELOR$: ON" or "VELOR$: OFF"
 	TextButton2.Font = Enum.Font.Jura
 	TextButton2.TextSize = 18
 	TextButton2.Active = true
@@ -312,7 +312,7 @@ createTextButton("CentuDox Camlock", function()
 		v13()
 
 		if CamlockEnabled then
-			TextButton2.Text = "CentuDox: ON"
+			TextButton2.Text = "VELOR$: ON"
 			TextButton2.TextColor3 = Color3.fromRGB(0, 255, 255)
 			u42 = v43()
 			connection = RunService.RenderStepped:Connect(function()
@@ -326,12 +326,12 @@ createTextButton("CentuDox Camlock", function()
 					CamlockEnabled = false
 					t1.Data.CamlockEnabled = false
 					v13()
-					TextButton2.Text = "CentuDox: OFF"
+					TextButton2.Text = "VELOR$: OFF"
 					TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
 				end
 			end)
 		else
-			TextButton2.Text = "CentuDox: OFF"
+			TextButton2.Text = "VELOR$: OFF"
 			TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 			if connection then
@@ -972,7 +972,7 @@ createTextButton("Jump Boost", function()
 	end)
 end)
 createTextButton("Auto Combo/Macro", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/JustParadozCode/CentuDox-Hub/refs/heads/main/Auto%2ombo%0C20V3.xyz"))()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/JustParadozCode/VELOR$-Hub/refs/heads/main/Auto%2ombo%0C20V3.xyz"))()
 end)
 createTextButton("Flashstep Aimbot Nearest", function()
 	if ScreenGui:FindFirstChild("SoruFloatingBtn") then
@@ -1348,4 +1348,4 @@ task.spawn(function()
 		end
 	end
 end)
-print("CentuDox V3 Fully Loaded!")
+print("VELOR$ V3 Fully Loaded!")
