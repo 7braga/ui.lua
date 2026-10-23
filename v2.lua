@@ -3484,6 +3484,17 @@ local function CreateGUI()
     local ACCENT_LIGHT = Color3.fromRGB(210, 160, 255)
     local LOGO_ASSET_ID = "rbxassetid://132533655213092"
 
+    -- ============ [CHANGE 1] RESPONSIVE DETECTION ============
+    local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
+    local SIDEBAR_W = isMobile and 150 or 256
+    local defaultSize = isMobile
+        and UDim2.new(0.94, 0, 0.80, 0)
+        or  UDim2.fromOffset(780, 500)
+    local defaultPos = isMobile
+        and UDim2.new(0.03, 0, 0.10, 0)
+        or  UDim2.new(0.5, -390, 0.5, -250)
+    -- =========================================================
+
     local GuiParent
     pcall(function() GuiParent = gethui() end)
     if not GuiParent then pcall(function() GuiParent = game:GetService("CoreGui") end) end
@@ -3503,10 +3514,11 @@ local function CreateGUI()
         elseif protectgui then protectgui(ScreenGui) end
     end)
 
+    -- ============ [CHANGE 2] MAIN CON + DRAG HELPER ============
     local Main = Instance.new("Frame", ScreenGui)
     Main.Name = "MainMenu"
-    Main.Size = UDim2.fromOffset(780, 500)
-    Main.Position = UDim2.new(0.5, -390, 0.5, -250)
+    Main.Size = defaultSize
+    Main.Position = defaultPos
     Main.BackgroundColor3 = Color3.fromRGB(5,5,5)
     Main.BorderSizePixel = 0
     Main.Visible = true
@@ -3517,27 +3529,38 @@ local function CreateGUI()
     MS.Color = ACCENT_DARK
     MS.Transparency = 0.3
 
-    local dragging, dragStart, startPos
-    Main.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = i.Position
-            startPos = Main.Position
-        end
-    end)
-    Main.InputEnded:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-    end)
+    -- Drag helpers (mouse + touch)
+    local dragging, dragStart, startPos = false, nil, nil
+    local function MakeDrag(handle, excludeFn)
+        handle.InputBegan:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1
+            or i.UserInputType == Enum.UserInputType.Touch then
+                if excludeFn and excludeFn(i.Position) then return end
+                dragging = true
+                dragStart = i.Position
+                startPos = Main.Position
+            end
+        end)
+        handle.InputEnded:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseButton1
+            or i.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+    end
     UIS.InputChanged:Connect(function(i)
-        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement
+        or i.UserInputType == Enum.UserInputType.Touch) then
             local delta = i.Position - dragStart
             Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
+    -- =========================================================
 
+    -- ============ [CHANGE 3] SIDEBAR RESPONSIVE ============
     local Sidebar = Instance.new("Frame", Main)
-    Sidebar.Size = UDim2.new(0, 256, 1, 0)
+    Sidebar.Size = UDim2.new(0, SIDEBAR_W, 1, 0)
     Sidebar.BackgroundColor3 = Color3.new(0,0,0)
     Sidebar.BackgroundTransparency = 0.4
     Sidebar.BorderSizePixel = 0
@@ -3584,6 +3607,8 @@ local function CreateGUI()
     LogoDiv.BackgroundColor3 = ACCENT
     LogoDiv.BackgroundTransparency = 0.5
     LogoDiv.BorderSizePixel = 0
+
+    MakeDrag(LogoBox)
 
     local TabHold = Instance.new("Frame", Sidebar)
     TabHold.Size = UDim2.new(1,0,1,-160)
@@ -3637,8 +3662,8 @@ local function CreateGUI()
     PStatus.TextXAlignment = Enum.TextXAlignment.Left
 
     local ContentBg = Instance.new("Frame", Main)
-    ContentBg.Size = UDim2.new(1,-256,1,0)
-    ContentBg.Position = UDim2.fromOffset(256,0)
+    ContentBg.Size = UDim2.new(1, -SIDEBAR_W, 1, 0)
+    ContentBg.Position = UDim2.fromOffset(SIDEBAR_W, 0)
     ContentBg.BackgroundTransparency = 1
 
     local Topbar = Instance.new("Frame", ContentBg)
@@ -3664,7 +3689,7 @@ local function CreateGUI()
     TopIconBg.ImageColor3 = Color3.fromRGB(255,255,255)
 
     local TopTitle = Instance.new("TextLabel", Topbar)
-    TopTitle.Size = UDim2.new(1,-200,1,0)
+    TopTitle.Size = UDim2.new(1, isMobile and -136 or -256, 1, 0)
     TopTitle.Position = UDim2.fromOffset(84,0)
     TopTitle.BackgroundTransparency = 1
     TopTitle.Text = "combat"
@@ -3672,10 +3697,11 @@ local function CreateGUI()
     TopTitle.TextSize = 20
     TopTitle.TextColor3 = Color3.new(1,1,1)
     TopTitle.TextXAlignment = Enum.TextXAlignment.Left
+    TopTitle.TextTruncate = Enum.TextTruncate.AtEnd
 
     local SessionBadge = Instance.new("Frame", Topbar)
-    SessionBadge.Size = UDim2.fromOffset(140,30)
-    SessionBadge.Position = UDim2.new(1,-152,0.5,-15)
+    SessionBadge.Size = UDim2.fromOffset(120,30)
+    SessionBadge.Position = UDim2.new(1,-172,0.5,-15)
     SessionBadge.BackgroundColor3 = Color3.new(0,0,0)
     SessionBadge.BackgroundTransparency = 0.4
     SessionBadge.BorderSizePixel = 0
@@ -3689,6 +3715,84 @@ local function CreateGUI()
     SBLabel.Font = Enum.Font.GothamMedium
     SBLabel.TextSize = 10
     SBLabel.TextColor3 = ACCENT_LIGHT
+
+    local SessionBadgeBaseVisible = not isMobile
+    SessionBadge.Visible = SessionBadgeBaseVisible
+
+    -- ============ [CHANGE 4] BOTÓN MINIMIZAR ============
+    local MinimizeBtn = Instance.new("TextButton", Topbar)
+    MinimizeBtn.Name = "MinimizeBtn"
+    MinimizeBtn.Size = UDim2.fromOffset(32, 32)
+    MinimizeBtn.Position = UDim2.new(1, -12, 0.5, 0)
+    MinimizeBtn.AnchorPoint = Vector2.new(1, 0.5)
+    MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 25)
+    MinimizeBtn.BackgroundTransparency = 0.3
+    MinimizeBtn.BorderSizePixel = 0
+    MinimizeBtn.Text = "—"
+    MinimizeBtn.TextColor3 = Color3.new(1,1,1)
+    MinimizeBtn.Font = Enum.Font.GothamBold
+    MinimizeBtn.TextSize = 18
+    MinimizeBtn.AutoButtonColor = false
+    Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", MinimizeBtn).Color = ACCENT_DARK
+
+    MinimizeBtn.MouseEnter:Connect(function()
+        TweenService:Create(MinimizeBtn, TweenInfo.new(0.12),
+            {BackgroundTransparency = 0, BackgroundColor3 = ACCENT_DARK}):Play()
+    end)
+    MinimizeBtn.MouseLeave:Connect(function()
+        TweenService:Create(MinimizeBtn, TweenInfo.new(0.12),
+            {BackgroundTransparency = 0.3, BackgroundColor3 = Color3.fromRGB(30,20,25)}):Play()
+    end)
+
+    local isMinimized = false
+    local savedSize = nil
+    local savedContentSize = UDim2.new(1, -SIDEBAR_W, 1, 0)
+
+    local function SetMinimized(state)
+        isMinimized = state
+        if state then
+            savedSize = Main.Size
+            savedContentSize = ContentBg.Size
+            Sidebar.Visible = false
+            PageHost.Visible = false
+            SessionBadge.Visible = false
+            ContentBg.Position = UDim2.fromOffset(0, 0)
+            ContentBg.Size = UDim2.new(1, 0, 1, 0)
+            Main.Size = UDim2.new(savedSize.X.Scale, savedSize.X.Offset, 0, 80)
+            MinimizeBtn.Text = "▢"
+        else
+            Sidebar.Visible = true
+            PageHost.Visible = true
+            SessionBadge.Visible = SessionBadgeBaseVisible
+            ContentBg.Position = UDim2.fromOffset(SIDEBAR_W, 0)
+            ContentBg.Size = savedContentSize
+            Main.Size = savedSize or defaultSize
+            local cam = Workspace.CurrentCamera
+            local vp = cam and cam.ViewportSize or Vector2.new(1920, 1080)
+            local w = (Main.Size.X.Scale * vp.X) + Main.Size.X.Offset
+            local h = (Main.Size.Y.Scale * vp.Y) + Main.Size.Y.Offset
+            local absX = Main.AbsolutePosition.X
+            local absY = Main.AbsolutePosition.Y
+            Main.Position = UDim2.fromOffset(
+                math.clamp(absX, 0, math.max(0, vp.X - w)),
+                math.clamp(absY, 0, math.max(0, vp.Y - h))
+            )
+            MinimizeBtn.Text = "—"
+        end
+    end
+
+    MinimizeBtn.MouseButton1Click:Connect(function()
+        SetMinimized(not isMinimized)
+    end)
+
+    MakeDrag(Topbar, function(pos)
+        local ap = MinimizeBtn.AbsolutePosition
+        local asz = MinimizeBtn.AbsoluteSize
+        return pos.X >= ap.X and pos.X <= ap.X + asz.X
+            and pos.Y >= ap.Y and pos.Y <= ap.Y + asz.Y
+    end)
+    -- =========================================================
 
     local PageHost = Instance.new("Frame", ContentBg)
     PageHost.Size = UDim2.new(1,-64,1,-112)
@@ -3750,6 +3854,7 @@ local function CreateGUI()
         tLbl.TextSize = 14
         tLbl.TextColor3 = Color3.fromRGB(156,163,175)
         tLbl.TextXAlignment = Enum.TextXAlignment.Left
+        tLbl.TextTruncate = Enum.TextTruncate.AtEnd
 
         local page = Instance.new("ScrollingFrame", PageHost)
         page.Size = UDim2.fromScale(1,1)
@@ -3870,22 +3975,8 @@ local function CreateGUI()
             callback("")
             Cleanup()
         end)
-
-        local function onOutsideClick(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local pos = input.Position
-                local absPos = prompt.AbsolutePosition
-                local absSize = prompt.AbsoluteSize
-                if not (pos.X >= absPos.X and pos.X <= absPos.X + absSize.X and
-                        pos.Y >= absPos.Y and pos.Y <= absPos.Y + absSize.Y) then
-                    Cleanup()
-                end
-            end
-        end
-        UIS.InputBegan:Connect(onOutsideClick)
     end
 
-    -- GUI Functions
     local GUI = {}
 
     function GUI.AddHeader(parent, text)
@@ -4043,17 +4134,20 @@ local function CreateGUI()
 
         local draggingSlider = false
         hitBtn.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
                 draggingSlider = true
             end
         end)
         UIS.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
                 draggingSlider = false
             end
         end)
         UIS.InputChanged:Connect(function(input)
-            if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+            if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch) then
                 local pct = math.clamp((input.Position.X - sBg.AbsolutePosition.X) / sBg.AbsoluteSize.X, 0, 1)
                 fill.Size = UDim2.fromScale(pct, 1)
                 local val = math.floor(mn + (mx - mn) * pct)
@@ -4267,7 +4361,6 @@ local function CreateGUI()
         r.MouseButton1Click:Connect(callback)
     end
 
-    -- Aura Functions
     local function CycleAuraType()
         local idx = table.find(AURA_ORDER, Settings.auraType) or 1
         idx = idx % #AURA_ORDER + 1
@@ -4290,14 +4383,12 @@ local function CreateGUI()
         if Settings.auraEnabled then ApplyAura() end
     end
 
-    -- Tab Creation
     local pCombat, bCombat = CreateTab("rbxassetid://10709818534", "combat")
     local pVisuals, bVisuals = CreateTab("rbxassetid://10723346959", "visuals")
     local pPlayer, bPlayer = CreateTab("rbxassetid://10747382750", "player")
     local pFarm, bFarm = CreateTab("rbxassetid://10734883356", "auto farm")
     local pHUD, bHUD = CreateTab("rbxassetid://10734950309", "hud")
 
-    -- COMBAT TAB
     GUI.AddHeader(pCombat, "  aimbot & kill")
     GUI.AddToggleWithBind(pCombat, "rbxassetid://10734977012", "silent aim (sheriff)",
         function() return Settings.silent end,
@@ -4380,7 +4471,6 @@ local function CreateGUI()
         function(k) Keybinds.teleportSheriff = k end
     )
 
-    -- VISUALS TAB
     GUI.AddHeader(pVisuals, "  esp")
     GUI.AddToggle(pVisuals, "rbxassetid://10734976528", "esp",
         function() return Settings.esp end,
@@ -4505,7 +4595,6 @@ local function CreateGUI()
         end
     )
 
-    -- PLAYER TAB
     GUI.AddHeader(pPlayer, "  movement")
     GUI.AddToggleWithBind(pPlayer, "rbxassetid://10723354521", "fly",
         function() return Settings.fly end,
@@ -4557,9 +4646,7 @@ local function CreateGUI()
     GUI.AddHeader(pPlayer, "  bhop")
     GUI.AddToggle(pPlayer, "rbxassetid://10734976528", "bhop enabled",
         function() return Settings.bhopEnabled end,
-        function(v)
-            toggleBHop(v)
-        end
+        function(v) toggleBHop(v) end
     )
     GUI.AddSlider(pPlayer, "rbxassetid://10734941018", "bhop speed",
         function() return Settings.bhopSpeed end,
@@ -4570,14 +4657,11 @@ local function CreateGUI()
                 task.wait(0.1)
                 startBHop()
             end
-        end,
-        10, 100
+        end, 10, 100
     )
     GUI.AddSlider(pPlayer, "rbxassetid://10734941018", "bhop multiplier",
         function() return Settings.bhopMultiplier end,
-        function(v)
-            Settings.bhopMultiplier = v
-        end,
+        function(v) Settings.bhopMultiplier = v end,
         1.0, 2.0
     )
 
@@ -4593,12 +4677,9 @@ local function CreateGUI()
     GUI.AddHeader(pPlayer, "  tp tool")
     GUI.AddToggle(pPlayer, "rbxassetid://10734976528", "tp tool (click to teleport)",
         function() return Settings.tpToolEnabled end,
-        function(v)
-            ToggleTPTool(v)
-        end
+        function(v) ToggleTPTool(v) end
     )
 
-    -- AUTO FARM TAB
     GUI.AddHeader(pFarm, "  farm settings")
     GUI.AddToggle(pFarm, "rbxassetid://10734883356", "auto farm",
         function() return Settings.autoFarm end,
@@ -4636,7 +4717,6 @@ local function CreateGUI()
         100, 1000
     )
 
-    -- HUD TAB
     GUI.AddHeader(pHUD, "  display")
     GUI.AddToggle(pHUD, "rbxassetid://10723407389", "watermark",
         function() return Settings.showWatermark end,
@@ -4649,7 +4729,6 @@ local function CreateGUI()
 
     SelectTab(bCombat, pCombat, "combat", "rbxassetid://10709818534")
 
-    -- Watermark and Hotkeys
     local Watermark = Instance.new("TextLabel", ScreenGui)
     Watermark.Size = UDim2.fromOffset(200, 30)
     Watermark.Position = UDim2.new(0.02, 0, 0.02, 0)
@@ -4724,7 +4803,7 @@ local function CreateGUI()
 
     RunService.RenderStepped:Connect(UpdateHUD)
 
-    -- Mini Icon
+    -- ============ [CHANGE 5] MINI ICON CON DRAG TÁCTIL ============
     local isVisible = true
     local MiniIcon = Instance.new("ImageButton", ScreenGui)
     MiniIcon.Size = UDim2.fromOffset(50, 50)
@@ -4741,17 +4820,22 @@ local function CreateGUI()
 
     local dragIcon, iconDragStart, iconStartPos
     MiniIcon.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
             dragIcon = true
             iconDragStart = i.Position
             iconStartPos = MiniIcon.Position
         end
     end)
     MiniIcon.InputEnded:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragIcon = false end
+        if i.UserInputType == Enum.UserInputType.MouseButton1
+        or i.UserInputType == Enum.UserInputType.Touch then
+            dragIcon = false
+        end
     end)
     UIS.InputChanged:Connect(function(i)
-        if dragIcon and i.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragIcon and (i.UserInputType == Enum.UserInputType.MouseMovement
+        or i.UserInputType == Enum.UserInputType.Touch) then
             local delta = i.Position - iconDragStart
             MiniIcon.Position = UDim2.new(iconStartPos.X.Scale, iconStartPos.X.Offset + delta.X,
                                            iconStartPos.Y.Scale, iconStartPos.Y.Offset + delta.Y)
@@ -4780,7 +4864,6 @@ local function CreateGUI()
             end
         end
     end)
-
 end -- end of CreateGUI
 
 -- ============================================================
