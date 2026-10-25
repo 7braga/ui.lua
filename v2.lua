@@ -1,6 +1,6 @@
 --[[
     WindUI (ScreenGui)
-    Hermanos'Dev | PVP
+    VER$
     
 ]]
 
@@ -28345,7 +28345,7 @@ G.DisplayName.BorderSizePixel = 0
 G.DisplayName.Size = UDim2.new(1, -27, 0, 0)
 G.DisplayName.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
 G.DisplayName.RichText = true
-G.DisplayName.Text = "Cracked by Darling"
+G.DisplayName.Text = "by 6call"
 G.DisplayName.TextColor3 = Color3.fromRGB(255, 255, 255)
 G.DisplayName.TextSize = 17
 G.DisplayName.TextTruncate = Enum.TextTruncate.AtEnd
@@ -28362,7 +28362,7 @@ G.UserName.BorderSizePixel = 0
 G.UserName.Size = UDim2.new(1, -27, 0, 0)
 G.UserName.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium, Enum.FontStyle.Normal)
 G.UserName.RichText = true
-G.UserName.Text = "@Darling"
+G.UserName.Text = "@6call"
 G.UserName.TextColor3 = Color3.fromRGB(255, 255, 255)
 G.UserName.TextSize = 15
 G.UserName.TextTransparency = 0.60000002384185791
@@ -28443,7 +28443,7 @@ G.Title_2.BackgroundTransparency = 1
 G.Title_2.BorderSizePixel = 0
 G.Title_2.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
 G.Title_2.RichText = true
-G.Title_2.Text = "Hermanos'Dev | PVP"
+G.Title_2.Text = "VWR$'Dev | PVP"
 G.Title_2.TextColor3 = Color3.fromRGB(255, 255, 255)
 G.Title_2.TextSize = 16
 G.Title_2.TextXAlignment = Enum.TextXAlignment.Left
@@ -28459,7 +28459,7 @@ G.Author.BorderSizePixel = 0
 G.Author.LayoutOrder = 2
 G.Author.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium, Enum.FontStyle.Normal)
 G.Author.RichText = true
-G.Author.Text = "[⚔️] Cracked by Darling"
+G.Author.Text = "[⚔️] by 6call"
 G.Author.TextColor3 = Color3.fromRGB(255, 255, 255)
 G.Author.TextSize = 13
 G.Author.TextTransparency = 0
@@ -28687,7 +28687,7 @@ G.TextLabel_237.BackgroundTransparency = 1
 G.TextLabel_237.BorderSizePixel = 0
 G.TextLabel_237.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
 G.TextLabel_237.RichText = true
-G.TextLabel_237.Text = "discord.gg/hermanos-dev"
+G.TextLabel_237.Text = "discord.gg/VWR$-dev"
 G.TextLabel_237.TextColor3 = Color3.new(0.05000000074505806, 0.05000000074505806, 0.05000000074505806)
 G.TextLabel_237.TextSize = 14
 G.TextLabel_237.Parent = G.Content_23
@@ -29002,7 +29002,7 @@ G.TextLabel_238.BackgroundTransparency = 1
 G.TextLabel_238.BorderSizePixel = 0
 G.TextLabel_238.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium, Enum.FontStyle.Normal)
 G.TextLabel_238.RichText = true
-G.TextLabel_238.Text = "Hermanos'Dev | Cracked by Darling"
+G.TextLabel_238.Text = "VWR$'Dev | "
 G.TextLabel_238.TextColor3 = Color3.fromRGB(255, 255, 255)
 G.TextLabel_238.TextSize = 17
 G.TextLabel_238.Parent = G.TextButton_15
@@ -29059,7 +29059,7 @@ G.ToolTips.Name = "ToolTips"
 G.ToolTips.Parent = G.WindUI
 
 -- ========================================================
--- [Cracked by Darling] - Full Interactivity & Controls System
+-- [ver$] - Full Interactivity & Controls System
 -- ========================================================
 
 local TweenService = game:GetService("TweenService")
@@ -29095,16 +29095,16 @@ end
 
 -- Fix Author & Title formatting
 if G.Title_2 then
-    G.Title_2.Text = "Hermanos'Dev | PVP"
+    G.Title_2.Text = "VWR$'Dev | PVP"
     G.Title_2.TextColor3 = Color3.fromRGB(255, 255, 255)
 end
 if G.Author then
-    G.Author.Text = "[⚔️] Cracked by Darling"
+    G.Author.Text = "[⚔️]"
     G.Author.TextColor3 = Color3.fromRGB(0, 255, 170)
     G.Author.TextTransparency = 0
 end
 if G.TextLabel_238 then
-    G.TextLabel_238.Text = "Hermanos'Dev | Cracked by Darling"
+    G.TextLabel_238.Text = "VWR$'Dev |"
     G.TextLabel_238.TextColor3 = Color3.fromRGB(0, 255, 170)
 end
 
@@ -29520,7 +29520,7 @@ setupActionButton(G.ImageButton_100)
 pcall(function()
     if localPlayer then
         if G.DisplayName then
-            G.DisplayName.Text = "Cracked by Darling"
+            G.DisplayName.Text = "Ver$"
         end
         if G.UserName then
             G.UserName.Text = "@" .. localPlayer.Name
@@ -29550,8 +29550,8 @@ end)
 G.WindUI.Parent = targetGui
 
 print("--------------------------------------------------")
-print("[+] Hermanos'Dev Blox Fruit PVP")
-print("[+] Cracked by Darling - Fully Interactive UI")
+print("[+] VWR$'Dev Blox Fruit PVP")
+print("[+]  - Fully Interactive UI")
 print("[+] Controls: RightControl or Insert to Minimize/Toggle")
 print("--------------------------------------------------")
 
