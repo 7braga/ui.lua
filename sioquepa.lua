@@ -562,7 +562,7 @@ do
 		Icon = "solar:planet-bold",
 		Author = "Murder Mystery 2",
 		Folder = "OnyxV2",
-		Background = "https://raw.githubusercontent.com/onyx-scripts/main/main/onyxscripts.png",
+		Background = "https://raw.githubusercontent.com/7braga/ui.lua/refs/heads/main/1379590.png",
 		Size = UDim2.fromOffset(math.max(560, math.min(850, (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)).X - 24)), math.max(350, math.min(560, (workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)).Y - 24))),
 	}
 
