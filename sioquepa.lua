@@ -1,7 +1,4 @@
--- Тһіѕ Filе Ԝaѕ Dеоbfusсаtеԁ By lua-x
--- https://lua-x.online
 
--- [ lua-x ] loader: this script fetches https://github.com/Footagesus/WindUI/releases/latest/download/main.lua at run time
 if getgenv().TFjhJhggCUo then
 	print("You have already executed PinokioScripts!")
 	return
