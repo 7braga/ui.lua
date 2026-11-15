@@ -1,3367 +1,3677 @@
----@source Deоbfuѕсаtеԁ Ѕucсesѕfullу Вy lua-x
----@see https://lua-x.online
-
-local workspaceService = game:GetService("Workspace")
-local runService = game:GetService("RunService")
-local players = game:GetService("Players")
-local userInputService = game:GetService("UserInputService")
-local statsService = game:GetService("Stats")
-local coreGui = game:GetService("CoreGui")
-local tweenService = game:GetService("TweenService")
-local replicatedStorage = game:GetService("ReplicatedStorage")
-
-if typeof(getgenv) == "function" then
-  local genv = getgenv()
-
-  if genv and genv._HYP_BB_R and type(genv._HYP_BB_R.Destroy) == "function" then
-    pcall(function() genv._HYP_BB_R:Destroy() end)
-    genv._HYP_BB_R = nil
-  end
-end
-
-local v1 = {
-  Workspace = workspaceService,
-  RunService = runService,
-  Players = players,
-  UserInputService = userInputService,
-  Stats = statsService,
-  CoreGui = coreGui,
-  TweenService = tweenService,
-  ReplicatedStorage = replicatedStorage,
-}
-
-local localPlayer = v1.Players.LocalPlayer
-assert(localPlayer, "LocalPlayer required")
-local currentCamera = v1.Workspace.CurrentCamera
-local v2 = type(Drawing) == "table" and type(Drawing.new) == "function"
-
-local function f1()
-  local identifyExecutor = syn and syn.identify_executor or identify_executor
-    or identifyexecutor or getexecutorname
-
-  if identifyExecutor then
-    local ok, result = pcall(identifyExecutor)
-
-    if ok and result and result ~= "" then
-      return tostring(result)
-    end
-  end
-
-  return "Universal"
-end
-
-local v3 = {
-  Default = {
-    Bg = Color3.fromRGB(13, 14, 17),
-    Sidebar = Color3.fromRGB(10, 11, 14),
-    Card = Color3.fromRGB(17, 18, 23),
-    CardHover = Color3.fromRGB(24, 25, 33),
-    Elevated = Color3.fromRGB(22, 23, 29),
-    HoverCard = Color3.fromRGB(28, 29, 38),
-    Stroke = Color3.fromRGB(32, 34, 43),
-    StrokeDim = Color3.fromRGB(24, 25, 33),
-    StrokeActive = Color3.fromRGB(42, 45, 58),
-    Accent = Color3.fromRGB(255, 255, 255),
-    AccentCyan = Color3.fromRGB(240, 242, 250),
-    AccentGreen = Color3.fromRGB(34, 197, 94),
-    AccentRed = Color3.fromRGB(239, 68, 68),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSub = Color3.fromRGB(123, 126, 140),
-    Muted = Color3.fromRGB(75, 78, 90),
-    Danger = Color3.fromRGB(239, 68, 68),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-  },
-  Neverlose = {
-    Bg = Color3.fromRGB(10, 12, 18),
-    Sidebar = Color3.fromRGB(8, 10, 15),
-    Card = Color3.fromRGB(14, 18, 26),
-    CardHover = Color3.fromRGB(20, 26, 38),
-    Elevated = Color3.fromRGB(18, 24, 36),
-    HoverCard = Color3.fromRGB(24, 32, 46),
-    Stroke = Color3.fromRGB(28, 38, 56),
-    StrokeDim = Color3.fromRGB(20, 28, 42),
-    StrokeActive = Color3.fromRGB(36, 50, 75),
-    Accent = Color3.fromRGB(0, 162, 255),
-    AccentCyan = Color3.fromRGB(0, 220, 255),
-    AccentGreen = Color3.fromRGB(34, 197, 94),
-    AccentRed = Color3.fromRGB(239, 68, 68),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSub = Color3.fromRGB(130, 145, 170),
-    Muted = Color3.fromRGB(80, 95, 120),
-    Danger = Color3.fromRGB(239, 68, 68),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-  },
-  Cyberpunk = {
-    Bg = Color3.fromRGB(14, 11, 19),
-    Sidebar = Color3.fromRGB(11, 8, 15),
-    Card = Color3.fromRGB(20, 16, 28),
-    CardHover = Color3.fromRGB(28, 22, 38),
-    Elevated = Color3.fromRGB(27, 21, 38),
-    HoverCard = Color3.fromRGB(36, 28, 50),
-    Stroke = Color3.fromRGB(48, 36, 68),
-    StrokeDim = Color3.fromRGB(32, 24, 46),
-    StrokeActive = Color3.fromRGB(65, 48, 92),
-    Accent = Color3.fromRGB(168, 85, 247),
-    AccentCyan = Color3.fromRGB(192, 132, 252),
-    AccentGreen = Color3.fromRGB(34, 197, 94),
-    AccentRed = Color3.fromRGB(239, 68, 68),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSub = Color3.fromRGB(150, 135, 165),
-    Muted = Color3.fromRGB(95, 80, 110),
-    Danger = Color3.fromRGB(239, 68, 68),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-  },
-  Vampire = {
-    Bg = Color3.fromRGB(16, 10, 12),
-    Sidebar = Color3.fromRGB(12, 7, 9),
-    Card = Color3.fromRGB(24, 14, 17),
-    CardHover = Color3.fromRGB(34, 19, 24),
-    Elevated = Color3.fromRGB(34, 18, 22),
-    HoverCard = Color3.fromRGB(45, 24, 30),
-    Stroke = Color3.fromRGB(56, 28, 34),
-    StrokeDim = Color3.fromRGB(38, 18, 22),
-    StrokeActive = Color3.fromRGB(78, 38, 48),
-    Accent = Color3.fromRGB(255, 42, 66),
-    AccentCyan = Color3.fromRGB(255, 75, 95),
-    AccentGreen = Color3.fromRGB(34, 197, 94),
-    AccentRed = Color3.fromRGB(255, 42, 66),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSub = Color3.fromRGB(165, 135, 140),
-    Muted = Color3.fromRGB(110, 80, 85),
-    Danger = Color3.fromRGB(255, 42, 66),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-  },
-  Old = {
-    Bg = Color3.fromRGB(15, 15, 15),
-    Sidebar = Color3.fromRGB(22, 22, 22),
-    Card = Color3.fromRGB(28, 28, 28),
-    CardHover = Color3.fromRGB(36, 36, 36),
-    Elevated = Color3.fromRGB(35, 35, 35),
-    HoverCard = Color3.fromRGB(44, 44, 44),
-    Stroke = Color3.fromRGB(50, 50, 50),
-    StrokeDim = Color3.fromRGB(40, 40, 40),
-    StrokeActive = Color3.fromRGB(65, 65, 65),
-    Accent = Color3.fromRGB(160, 160, 160),
-    AccentCyan = Color3.fromRGB(190, 190, 190),
-    AccentGreen = Color3.fromRGB(34, 197, 94),
-    AccentRed = Color3.fromRGB(239, 68, 68),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextSub = Color3.fromRGB(140, 140, 140),
-    Muted = Color3.fromRGB(90, 90, 90),
-    Danger = Color3.fromRGB(239, 68, 68),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-  },
-}
-
-local v4 = "Default"
-
-local v5 = {
-  Bg = v3.Default.Bg,
-  Sidebar = v3.Default.Sidebar,
-  Card = v3.Default.Card,
-  CardHover = v3.Default.CardHover,
-  Elevated = v3.Default.Elevated,
-  HoverCard = v3.Default.HoverCard,
-  Accent = v3.Default.Accent,
-  AccentCyan = v3.Default.AccentCyan,
-  AccentGreen = v3.Default.AccentGreen,
-  AccentRed = v3.Default.AccentRed,
-  Stroke = v3.Default.Stroke,
-  StrokeDim = v3.Default.StrokeDim,
-  StrokeActive = v3.Default.StrokeActive,
-  Text = v3.Default.Text,
-  TextSub = v3.Default.TextSub,
-  Muted = v3.Default.Muted,
-  Danger = v3.Default.Danger,
-  Success = v3.Default.Success,
-  Warning = v3.Default.Warning,
-  Font = Enum.Font.Ubuntu,
-  FontBold = Enum.Font.Ubuntu,
-  Radius = 12,
-  CardRadius = 8,
-  MainW = 720,
-  MainH = 470,
-  TitleH = 38,
-}
-
-local v6 = {
-  ActivePreset = "Competitive",
-  TimingOffset = 0,
-  AutoParry = true,
-  ClashMode = true,
-  ClashDistance = 28,
-  HeadingCheck = true,
-  CurvePrediction = true,
-  AutoTarget = true,
-  AutoTargetMode = "Closest",
-  CustomTargetPlayer = "",
-  AutoTargetSilent = true,
-  AutoTargetVisual = true,
-  UseCooldown = false,
-  FrameDebounce = 0.01,
-  ClashDebounce = 0.003,
-  DirectionResetGuard = true,
-  LegacyCooldown = 0.25,
-  BaseReactionWindow = 0.14,
-  ParryHitboxRadius = 4.5,
-  FastBallLeadFactor = 0.0006,
-  PingMultiplier = 0.5,
-  VisualsEnabled = true,
-  VisualRangeRing = true,
-  VisualThickness = 2,
-  BallHighlight = true,
-  BallTracers = false,
-  BallDistanceTag = true,
-  PlayerESP = false,
-  AutoFaceBall = false,
-  AutoJumpOnParry = false,
-  AntiAFK = false,
-  CustomSpeed = false,
-  WalkSpeedValue = 16,
-  CustomJump = false,
-  JumpPowerValue = 50,
-  InfiniteJump = false,
-  CustomFOV = false,
-  FOVValue = 70,
-  EmergencyDodge = false,
-  ActiveMatchGuard = true,
-  StreamerMode = false,
-  MenuKeybind = Enum.KeyCode.RightShift,
-}
-
-local state = {
-  LastParryTime = 0,
-  WasMovingAway = false,
-  LastTargetAttribute = nil,
-  HasParriedCurrentFlight = false,
-  LastDeflectionTick = 0,
-  ActiveBall = nil,
-  LastBallPos = nil,
-  LastBallTime = 0,
-  LastDistance = math.huge,
-  SmoothedVelocity = Vector3.zero,
-  History = {},
-  Connections = {},
-  ScreenGui = nil,
-  MainFrame = nil,
-  IsMenuOpen = true,
-  ActiveTab = "Home",
-  TabContainers = {},
-  TabButtons = {},
-  TabScrolls = {},
-  DrawingElements = {},
-  SearchFeatures = {},
-  SearchContainer = nil,
-  SearchScroll = nil,
-  SearchBox = nil,
-  ClearSearchBtn = nil,
-  Stats = {
-    BallName = "Awaiting match...",
-    Distance = 0,
-    Speed = 0,
-    ETA = 0,
-    TriggerWindow = 0.14,
-    TargetingYou = false,
-    PingMs = 0,
-    Status = "Ready",
-    ParryCount = 0,
-    InMatch = false,
-  },
-}
-
-local v7 = "RobloxHUD_" .. string.format("%08X", math.random(10000000, 99999999))
-
-local function f2(screenGui)
-end
-
-local function f3()
-  local v8 = gethui or getgenv and getgenv().gethui or get_hidden_gui or get_hidden_ui
-
-  if type(v8) == "function" then
-    local ok2, result2 = pcall(v8)
-
-    if ok2 and result2 then
-      return result2
-    end
-  end
-
-  local ok3, result3 = pcall(function() return v1.CoreGui.Name end)
-
-  if ok3 then
-    return v1.CoreGui
-  end
-
-  return nil
-end
-
-local function getHumanoidRootPart()
-  local character = localPlayer.Character
-
-  if not character then
-    return nil
-  end
-
-  local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-
-  if humanoidRootPart and humanoidRootPart:IsA("BasePart") then
-    return humanoidRootPart
-  end
-
-  return nil
-end
-
-local function getHumanoid()
-  local character2 = localPlayer.Character
-
-  if not character2 then
-    return nil
-  end
-
-  return character2:FindFirstChildOfClass("Humanoid")
-end
-
-local function f4()
-  if not v6.ActiveMatchGuard then
-    return true
-  end
-
-  local character3 = localPlayer.Character
-
-  if not character3 then
-    return false
-  end
-
-  local alive = v1.Workspace:FindFirstChild("Alive")
-
-  if alive and character3.Parent == alive then
-    return true
-  end
-
-  if character3.Parent == v1.Workspace and not character3:FindFirstChild("ForceField") then
-    return true
-  end
-
-  return false
-end
-
-local function f5()
-  local ok4, result4 = pcall(function()
-    local serverStatsItem = v1.Stats:FindFirstChild("ServerStatsItem")
-
-    if serverStatsItem then
-      local dataPing = serverStatsItem:FindFirstChild("Data Ping")
-
-      if dataPing and dataPing:IsA("DoubleConstValue") then
-        return dataPing:GetValue() / 1000
-      end
-    end
-
-    return localPlayer:GetNetworkPing()
-  end)
-
-  if ok4 and type(result4) == "number" and result4 > 0 then
-    state.Stats.PingMs = math.floor(result4 * 1000)
-    return result4
-  end
-
-  state.Stats.PingMs = 45
-  return 0.045
-end
-
-local function f6()
-  pcall(function()
-    local humanoid = getHumanoid()
-    local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
-
-    if not animator then
-      return
-    end
-
-    for _, value in ipairs(animator:GetPlayingAnimationTracks()) do
-      local lower = value.Name:lower()
-
-      if lower:find("parry") or lower:find("slash") or lower:find("swing") then
-        value:Play()
-        return
-      end
-    end
-  end)
-end
-
-local function f7()
-  local playerGui = localPlayer:FindFirstChildOfClass("PlayerGui")
-
-  if not playerGui then
-    return nil
-  end
-
-  local hotbar = playerGui:FindFirstChild("Hotbar")
-
-  if hotbar then
-    local block = hotbar:FindFirstChild("Block") or hotbar:FindFirstChild("Parry")
-
-    if block then
-      return block
-    end
-  end
-
-  local mobileButtons = playerGui:FindFirstChild("MobileButtons")
-    or playerGui:FindFirstChild("MobileHUD")
-
-  if mobileButtons then
-    local block2 = mobileButtons:FindFirstChild("Block")
-      or mobileButtons:FindFirstChild("Parry")
-
-    if block2 then
-      return block2
-    end
-  end
-
-  for _, value2 in ipairs(playerGui:GetChildren()) do
-    if value2:IsA("ScreenGui") then
-      local findFirstChild = value2:FindFirstChild("Block", true)
-        or value2:FindFirstChild("Parry", true)
-
-      if findFirstChild
-        and (findFirstChild:IsA("TextButton") or findFirstChild:IsA("ImageButton")) then
-        return findFirstChild
-      end
-    end
-  end
-
-  return nil
-end
-
-local function f8()
-  local humanoidRootPart2 = getHumanoidRootPart()
-
-  if not humanoidRootPart2 then
-    return nil, nil, false
-  end
-
-  local position = humanoidRootPart2.Position
-  local list = {}
-  local alive2 = v1.Workspace:FindFirstChild("Alive")
-
-  if alive2 then
-    for _, value3 in ipairs(alive2:GetChildren()) do
-      if value3:IsA("Model") and value3 ~= localPlayer.Character then
-        local humanoidRootPart3 = value3:FindFirstChild("HumanoidRootPart")
-        local humanoid2 = value3:FindFirstChildOfClass("Humanoid")
-
-        if humanoidRootPart3 and humanoid2 and humanoid2.Health > 0
-          and not value3:FindFirstChild("ForceField") then
-          table.insert(list, { char = value3, root = humanoidRootPart3, hum = humanoid2 })
-        end
-      end
-    end
-  end
-
-  if #list == 0 then
-    for _, value4 in ipairs(v1.Players:GetPlayers()) do
-      if value4 ~= localPlayer and value4.Character
-        and value4.Character ~= localPlayer.Character then
-        local character4 = value4.Character
-        local humanoidRootPart4 = character4:FindFirstChild("HumanoidRootPart")
-        local humanoid3 = character4:FindFirstChildOfClass("Humanoid")
-
-        if humanoidRootPart4 and humanoid3 and humanoid3.Health > 0
-          and not character4:FindFirstChild("ForceField") then
-          table.insert(list, { char = character4, root = humanoidRootPart4, hum = humanoid3 })
-        end
-      end
-    end
-  end
-
-  if #list == 0 then
-    return nil, nil, false
-  end
-
-  if v6.AutoTargetMode == "Specific"
-    or v6.CustomTargetPlayer and v6.CustomTargetPlayer ~= "" and v6.CustomTargetPlayer ~= "None" then
-    local gsub = tostring(v6.CustomTargetPlayer):lower():gsub("^%s*(.-)%s*$", "%1")
-
-    if gsub ~= "" then
-      for _, value5 in ipairs(list) do
-        local lower2 = value5.char.Name:lower()
-        local getPlayerFromCharacter = v1.Players:GetPlayerFromCharacter(value5.char)
-
-        local lower3 = getPlayerFromCharacter and getPlayerFromCharacter.DisplayName:lower()
-          or value5.char:GetAttribute("DisplayName")
-            and tostring(value5.char:GetAttribute("DisplayName")):lower()
-          or lower2
-
-        if lower2 == gsub or lower3 == gsub then
-          return value5.root, value5.char, true
-        end
-      end
-
-      for _, value6 in ipairs(list) do
-        local lower4 = value6.char.Name:lower()
-        local getPlayerFromCharacter2 = v1.Players:GetPlayerFromCharacter(value6.char)
-
-        local lower5 = getPlayerFromCharacter2 and getPlayerFromCharacter2.DisplayName:lower()
-          or value6.char:GetAttribute("DisplayName")
-            and tostring(value6.char:GetAttribute("DisplayName")):lower()
-          or lower4
-
-        if lower4:find(gsub, 1, true) or lower5:find(gsub, 1, true) then
-          return value6.root, value6.char, true
-        end
-      end
-
-      for _, value7 in ipairs(v1.Players:GetPlayers()) do
-        if value7 ~= localPlayer then
-          if value7.Name:lower():find(gsub, 1, true)
-            or value7.DisplayName:lower():find(gsub, 1, true) then
-            if value7.Character and value7.Character:FindFirstChild("HumanoidRootPart") then
-              local humanoid4 = value7.Character:FindFirstChildOfClass("Humanoid")
-
-              if humanoid4 and humanoid4.Health > 0
-                and not value7.Character:FindFirstChild("ForceField") then
-                return value7.Character.HumanoidRootPart, value7.Character, true
-              end
-            end
-          end
-        end
-      end
-    end
-  end
-
-  local root = nil
-  local char = nil
-
-  if v6.AutoTargetMode == "Cursor" and currentCamera then
-    local getMouseLocation = v1.UserInputService:GetMouseLocation()
-    local huge = math.huge
-
-    for _, value8 in ipairs(list) do
-      local screenPoint, onScreen = currentCamera:WorldToViewportPoint(value8.root.Position)
-
-      if onScreen then
-        local magnitude = (Vector2.new(screenPoint.X, screenPoint.Y) - getMouseLocation).Magnitude
-
-        if magnitude < huge then
-          huge = magnitude
-          root = value8.root
-          char = value8.char
-        end
-      end
-    end
-  elseif v6.AutoTargetMode == "Random" then
-    local roll = math.random(1, #list)
-    root = list[roll].root
-    char = list[roll].char
-  else
-    local huge2 = math.huge
-
-    for _, value9 in ipairs(list) do
-      local magnitude2 = (value9.root.Position - position).Magnitude
-
-      if magnitude2 < huge2 then
-        huge2 = magnitude2
-        root = value9.root
-        char = value9.char
-      end
-    end
-  end
-
-  return root, char, false
-end
-
-local function f9()
-  if not v6.AutoTarget then
-    return
-  end
-
-  local v9, v10 = f8()
-
-  if not v9 or not currentCamera then
-    return
-  end
-
-  local humanoidRootPart5 = getHumanoidRootPart()
-  local v11 = v9.Position + Vector3.new(0, 1.5, 0)
-  local cframe = currentCamera.CFrame
-
-  if humanoidRootPart5 then
-    humanoidRootPart5.CFrame = CFrame.lookAt(humanoidRootPart5.Position, Vector3.new(
-      v11.X, humanoidRootPart5.Position.Y, v11.Z
-    ))
-  end
-
-  currentCamera.CFrame = CFrame.lookAt(currentCamera.CFrame.Position, v11)
-
-  if v6.AutoTargetSilent then
-    task.defer(function()
-      if currentCamera and cframe then
-        currentCamera.CFrame = cframe
-      end
-    end)
-  end
-end
-
-local function f10(clashMode)
-  local now = os.clock()
-
-  if now - state.LastParryTime < 0.04 then
-    return
-  end
-
-  state.LastParryTime = now
-  state.HasParriedCurrentFlight = true
-  state.LastDeflectionTick = now
-  state.Stats.ParryCount = state.Stats.ParryCount + 1
-  state.Stats.Status = clashMode and "CLASH DEFLECTION" or "PRECISION DEFLECTION"
-
-  f9()
-  local flag = false
-  local v12 = getgenv and getgenv().keypress or keypress or key_press
-  local v13 = getgenv and getgenv().keyrelease or keyrelease or key_release
-  local v14 = getgenv and getgenv().mouse1click or mouse1click
-  local v15 = getgenv and getgenv().mouse1press or mouse1press or mouse_press
-  local v16 = getgenv and getgenv().mouse1release or mouse1release or mouse_release
-
-  if type(v12) == "function" and type(v13) == "function" then
-    pcall(v13, 70)
-    pcall(v12, 70)
-
-    task.defer(function() pcall(v13, 70) end)
-    flag = true
-  end
-
-  if type(v14) == "function" then
-    pcall(v14)
-    flag = true
-  elseif type(v15) == "function" and type(v16) == "function" then
-    pcall(v16)
-    pcall(v15)
-
-    task.defer(function() pcall(v16) end)
-    flag = true
-  end
-
-  if not flag then
-    local v17 = f7()
-
-    if v17 then
-      local v18 = getgenv and getgenv().firesignal or firesignal
-
-      if type(v18) == "function" then
-        pcall(v18, v17.InputBegan, {
-          UserInputType = Enum.UserInputType.MouseButton1,
-          UserInputState = Enum.UserInputState.Begin,
-          Position = Vector3.new(0, 0, 0),
-        })
-
-        pcall(v18, v17.Activated)
-        flag = true
-      elseif type(getconnections) == "function" then
-        pcall(function()
-          for _, value10 in ipairs(getconnections(v17.Activated)) do
-            if type(value10.Fire) == "function" then
-              value10:Fire()
-              flag = true
-            end
-          end
-        end)
-      end
-    end
-  end
-
-  f6()
-
-  if v6.AutoJumpOnParry then
-    local humanoid5 = getHumanoid()
-
-    if humanoid5 then
-      humanoid5:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-  end
-end
-
-local function f11()
-  local humanoidRootPart6 = getHumanoidRootPart()
-  local position2 = humanoidRootPart6 and humanoidRootPart6.Position or Vector3.zero
-  local balls = v1.Workspace:FindFirstChild("Balls")
-
-  if not balls then
-    return nil
-  end
-
-  local v19 = nil
-  local huge3 = math.huge
-
-  for _, value11 in ipairs(balls:GetChildren()) do
-    local primaryPart = nil
-
-    if value11:IsA("BasePart") then
-      primaryPart = value11
-    elseif value11:IsA("Model") then
-      primaryPart = value11.PrimaryPart or value11:FindFirstChildWhichIsA("BasePart")
-    end
-
-    if primaryPart then
-      local magnitude3 = (primaryPart.Position - position2).Magnitude
-
-      if magnitude3 < huge3 then
-        huge3 = magnitude3
-        v19 = primaryPart
-      end
-    end
-  end
-
-  return v19
-end
-
-local function getSmoothedVelocity(activeBall, now2)
-  local position3 = activeBall.Position
-  local zero = Vector3.zero
-  local zero2 = Vector3.zero
-
-  if state.LastBallPos and state.LastBallTime > 0 then
-    local v20 = now2 - state.LastBallTime
-
-    if v20 > 0.0001 and v20 < 0.3 then
-      zero = (position3 - state.LastBallPos) / v20
-    end
-  end
-
-  if zero.Magnitude < 1 and activeBall.AssemblyLinearVelocity.Magnitude > 1 then
-    zero = activeBall.AssemblyLinearVelocity
-  end
-
-  if state.SmoothedVelocity.Magnitude > 2 and zero.Magnitude > 2 then
-    local dot = state.SmoothedVelocity.Unit:Dot(zero.Unit)
-
-    if dot < 0.2 then
-      state.SmoothedVelocity = zero
-      table.clear(state.History)
-    else
-      state.SmoothedVelocity = state.SmoothedVelocity:Lerp(zero, 0.75)
-    end
-  else
-    state.SmoothedVelocity = zero
-  end
-
-  local magnitude4 = state.SmoothedVelocity.Magnitude
-
-  state.LastBallPos = position3
-  state.LastBallTime = now2
-
-  table.insert(state.History, { pos = position3, time = now2 })
-
-  while #state.History > 8 do
-    table.remove(state.History, 1)
-  end
-
-  local v21 = #state.History
-
-  if v21 >= 3 then
-    local v22 = state.History[v21].time - state.History[v21 - 1].time
-    local v23 = state.History[v21 - 1].time - state.History[v21 - 2].time
-
-    if v22 > 0.0001 and v23 > 0.0001 then
-      local v24 = (state.History[v21].pos - state.History[v21 - 1].pos) / v22
-      local v25 = (state.History[v21 - 1].pos - state.History[v21 - 2].pos) / v23
-      zero2 = (v24 - v25) / ((v22 + v23) * 0.5)
-    end
-  end
-
-  return state.SmoothedVelocity, magnitude4, zero2
-end
-
-local function f12(position4, position5, p1, p2, assemblyLinearVelocity)
-  local list2 = {}
-  local magnitude5 = (position5 - position4).Magnitude
-  local v26 = 0
-  local v27 = position5
-  local v28 = p1
-  local v29 = 0.025
-  local v30 = 28
-  table.insert(list2, v27)
-
-  for i = 1, v30 do
-    local v31 = i * v29
-    local v32 = math.exp(-v31 * 0.4)
-    v28 = v28 + p2 * v32 * v29
-    v27 = v27 + v28 * v29
-    table.insert(list2, v27)
-    local v33 = position4 + assemblyLinearVelocity * v31
-    local magnitude6 = (v27 - v33).Magnitude
-
-    if magnitude6 < magnitude5 then
-      magnitude5 = magnitude6
-      v26 = v31
-    end
-  end
-
-  return v26, magnitude5, list2
-end
-
-local function f13()
-  for _, value12 in pairs(state.DrawingElements) do
-    pcall(function() value12:Remove() end)
-  end
-
-  table.clear(state.DrawingElements)
-end
-
-local function f14(p3, position6, clamped, p4, p5, activeBall2)
-  if not v6.VisualsEnabled or not v2 or not currentCamera then
-    f13()
-    return
-  end
-
-  local danger = p5 and v5.Danger or p4 and v5.Warning or v5.AccentCyan
-  local highest = math.max(0, #p3 - 1)
-
-  for j = 1, highest do
-    local v34 = "Line_" .. tostring(j)
-    local line = state.DrawingElements[v34]
-
-    if not line then
-      line = Drawing.new("Line")
-      line.Thickness = v6.VisualThickness
-      state.DrawingElements[v34] = line
-    end
-
-    local screenPoint2, onScreen2 = currentCamera:WorldToViewportPoint(p3[j])
-    local screenPoint3, onScreen3 = currentCamera:WorldToViewportPoint(p3[j + 1])
-
-    if onScreen2 and onScreen3 then
-      line.Visible = true
-      line.Thickness = v6.VisualThickness
-      line.From = Vector2.new(screenPoint2.X, screenPoint2.Y)
-      line.To = Vector2.new(screenPoint3.X, screenPoint3.Y)
-      line.Color = danger
-      line.Transparency = math.clamp(1 - j / highest * 0.6, 0.4, 1)
-    else
-      line.Visible = false
-    end
-  end
-
-  for k = highest + 1, 30 do
-    local v35 = "Line_" .. tostring(k)
-    local v36 = state.DrawingElements[v35]
-
-    if v36 then
-      v36.Visible = false
-    end
-  end
-
-  if v6.VisualRangeRing then
-    local rangeRing = state.DrawingElements.RangeRing
-
-    if not rangeRing then
-      rangeRing = Drawing.new("Circle")
-      rangeRing.Thickness = 1.5
-      rangeRing.NumSides = 36
-      rangeRing.Filled = false
-
-      state.DrawingElements.RangeRing = rangeRing
-    end
-
-    local screenPoint4, onScreen4 = currentCamera:WorldToViewportPoint(position6)
-
-    if onScreen4 then
-      local v37 = position6 + currentCamera.CFrame.RightVector * clamped
-      local screenPoint5, onScreen5 = currentCamera:WorldToViewportPoint(v37)
-
-      local magnitude7 = onScreen5
-          and (Vector2.new(screenPoint5.X, screenPoint5.Y)
-            - Vector2.new(screenPoint4.X, screenPoint4.Y)).Magnitude
-        or 80
-
-      rangeRing.Visible = true
-      rangeRing.Position = Vector2.new(screenPoint4.X, screenPoint4.Y)
-      rangeRing.Radius = magnitude7
-      rangeRing.Color = danger
-      rangeRing.Transparency = p5 and 0.85 or 0.45
-    else
-      rangeRing.Visible = false
-    end
-  else
-    local rangeRing2 = state.DrawingElements.RangeRing
-
-    if rangeRing2 then
-      rangeRing2.Visible = false
-    end
-  end
-
-  if activeBall2 and activeBall2:IsDescendantOf(v1.Workspace) then
-    local position7 = activeBall2.Position
-    local screenPoint6, onScreen6 = currentCamera:WorldToViewportPoint(position7)
-
-    if v6.BallHighlight and onScreen6 then
-      local ballCircle = state.DrawingElements.BallCircle
-
-      if not ballCircle then
-        ballCircle = Drawing.new("Circle")
-        ballCircle.Thickness = 2
-        ballCircle.NumSides = 24
-        ballCircle.Filled = false
-
-        state.DrawingElements.BallCircle = ballCircle
-      end
-
-      ballCircle.Visible = true
-      ballCircle.Position = Vector2.new(screenPoint6.X, screenPoint6.Y)
-      ballCircle.Radius = 14
-      ballCircle.Color = danger
-    else
-      local ballCircle2 = state.DrawingElements.BallCircle
-
-      if ballCircle2 then
-        ballCircle2.Visible = false
-      end
-    end
-
-    if v6.BallTracers and onScreen6 then
-      local ballTracer = state.DrawingElements.BallTracer
-
-      if not ballTracer then
-        ballTracer = Drawing.new("Line")
-        ballTracer.Thickness = 1.5
-        state.DrawingElements.BallTracer = ballTracer
-      end
-
-      ballTracer.Visible = true
-
-      ballTracer.From = Vector2.new(
-        currentCamera.ViewportSize.X / 2, currentCamera.ViewportSize.Y
-      )
-
-      ballTracer.To = Vector2.new(screenPoint6.X, screenPoint6.Y)
-      ballTracer.Color = danger
-    else
-      local ballTracer2 = state.DrawingElements.BallTracer
-
-      if ballTracer2 then
-        ballTracer2.Visible = false
-      end
-    end
-
-    if v6.BallDistanceTag and onScreen6 then
-      local ballText = state.DrawingElements.BallText
-
-      if not ballText then
-        ballText = Drawing.new("Text")
-        ballText.Size = 13
-        ballText.Center = true
-        ballText.Outline = true
-
-        state.DrawingElements.BallText = ballText
-      end
-
-      ballText.Visible = true
-      ballText.Position = Vector2.new(screenPoint6.X, screenPoint6.Y - 26)
-
-      ballText.Text = string.format(
-        "[%d studs | %d spd]", state.Stats.Distance, state.Stats.Speed
-      )
-
-      ballText.Color = danger
-    else
-      local ballText2 = state.DrawingElements.BallText
-
-      if ballText2 then
-        ballText2.Visible = false
-      end
-    end
-  else
-    local ballCircle3 = state.DrawingElements.BallCircle
-
-    if ballCircle3 then
-      ballCircle3.Visible = false
-    end
-
-    local ballTracer3 = state.DrawingElements.BallTracer
-
-    if ballTracer3 then
-      ballTracer3.Visible = false
-    end
-
-    local ballText3 = state.DrawingElements.BallText
-
-    if ballText3 then
-      ballText3.Visible = false
-    end
-  end
-
-  if v6.AutoTarget and v6.AutoTargetVisual and currentCamera then
-    local v38, v39, v40 = f8()
-
-    if v38 then
-      local screenPoint7, onScreen7 = currentCamera:WorldToViewportPoint(v38.Position
-        + Vector3.new(0, 1.5, 0))
-
-      if onScreen7 then
-        local targetLockCircle = state.DrawingElements.TargetLockCircle
-
-        if not targetLockCircle then
-          targetLockCircle = Drawing.new("Circle")
-          targetLockCircle.Thickness = 2
-          targetLockCircle.NumSides = 24
-          targetLockCircle.Filled = false
-
-          state.DrawingElements.TargetLockCircle = targetLockCircle
-        end
-
-        targetLockCircle.Visible = true
-        targetLockCircle.Position = Vector2.new(screenPoint7.X, screenPoint7.Y)
-        targetLockCircle.Radius = v40 and 18 or 14
-        targetLockCircle.Color = v40 and Color3.fromRGB(255, 45, 85) or v5.Danger
-        targetLockCircle.Transparency = 0.9
-
-        local targetLockTag = state.DrawingElements.TargetLockTag
-
-        if not targetLockTag then
-          targetLockTag = Drawing.new("Text")
-          targetLockTag.Size = 12
-          targetLockTag.Center = true
-          targetLockTag.Outline = true
-
-          state.DrawingElements.TargetLockTag = targetLockTag
-        end
-
-        targetLockTag.Visible = true
-        targetLockTag.Position = Vector2.new(screenPoint7.X, screenPoint7.Y + 16)
-
-        local v41 = v40 and "[CUSTOM LOCKED: " or "[AUTO TARGET: "
-
-        targetLockTag.Text = v41 .. (v39 and v39.Name or "OPPONENT") .. "]"
-        targetLockTag.Color = v40 and Color3.fromRGB(255, 45, 85) or v5.Danger
-      else
-        if state.DrawingElements.TargetLockCircle then
-          state.DrawingElements.TargetLockCircle.Visible = false
-        end
-
-        if state.DrawingElements.TargetLockTag then
-          state.DrawingElements.TargetLockTag.Visible = false
-        end
-      end
-    else
-      if state.DrawingElements.TargetLockCircle then
-        state.DrawingElements.TargetLockCircle.Visible = false
-      end
-
-      if state.DrawingElements.TargetLockTag then
-        state.DrawingElements.TargetLockTag.Visible = false
-      end
-    end
-  else
-    if state.DrawingElements.TargetLockCircle then
-      state.DrawingElements.TargetLockCircle.Visible = false
-    end
-
-    if state.DrawingElements.TargetLockTag then
-      state.DrawingElements.TargetLockTag.Visible = false
-    end
-  end
-end
-
-local function f15(activeBall3, position8, position9, p6, p7)
-  if not v6.HeadingCheck then
-    return true
-  end
-
-  local target = activeBall3:GetAttribute("target") or activeBall3:GetAttribute("Target")
-
-  if target then
-    if target == localPlayer.Name or target == tostring(localPlayer.UserId) then
-      return true
-    end
-
-    return false
-  end
-
-  if p6.Magnitude > 5 then
-    local unit = (position8 - position9).Unit
-    local dot2 = p6.Unit:Dot(unit)
-
-    if dot2 > 0.6 then
-      return true
-    end
-  end
-
-  if v6.CurvePrediction and p7 <= 14 then
-    return true
-  end
-
-  return false
-end
-
-local function f16()
-  if not v6.AutoParry then
-    state.Stats.Status = "Disabled"
-    f13()
-    return
-  end
-
-  local humanoidRootPart7 = getHumanoidRootPart()
-
-  if not humanoidRootPart7 then
-    state.ActiveBall = nil
-    state.Stats.Status = "Searching Character..."
-
-    f13()
-    return
-  end
-
-  local inMatch = f4()
-  state.Stats.InMatch = inMatch
-
-  if not inMatch then
-    state.ActiveBall = nil
-    state.Stats.Status = "Lobby Mode (Dormant)"
-    state.Stats.BallName = "Lobby"
-
-    f13()
-    return
-  end
-
-  local activeBall4 = state.ActiveBall
-
-  if not activeBall4 or not activeBall4:IsDescendantOf(v1.Workspace) then
-    activeBall4 = f11()
-
-    state.ActiveBall = activeBall4
-    state.LastBallPos = nil
-    state.LastBallTime = 0
-    state.LastDistance = math.huge
-    state.WasMovingAway = false
-    state.SmoothedVelocity = Vector3.zero
-
-    table.clear(state.History)
-
-    if not activeBall4 then
-      state.Stats.BallName = "Awaiting Ball in workspace.Balls"
-      state.Stats.Distance = 0
-      state.Stats.Speed = 0
-      state.Stats.ETA = 0
-      state.Stats.TargetingYou = false
-      state.Stats.Status = "Waiting for Round"
-
-      f13()
-      return
-    end
-  end
-
-  state.Stats.BallName = activeBall4.Name .. " (" .. activeBall4.ClassName .. ")"
-  local now3 = os.clock()
-  local position10 = humanoidRootPart7.Position
-  local assemblyLinearVelocity2 = humanoidRootPart7.AssemblyLinearVelocity
-  local position11 = activeBall4.Position
-  local magnitude8 = (position11 - position10).Magnitude
-  local target2 = activeBall4:GetAttribute("target") or activeBall4:GetAttribute("Target")
-  local v42 = target2 == localPlayer.Name or target2 == tostring(localPlayer.UserId)
-
-  if target2 ~= state.LastTargetAttribute then
-    state.LastTargetAttribute = target2
-
-    if v42 then
-      state.HasParriedCurrentFlight = false
-      state.WasMovingAway = false
-
-      if v6.DirectionResetGuard then
-        state.LastParryTime = 0
-      end
-
-      if magnitude8 <= 9 then
-        f10(true)
-        return
-      end
-    else
-      state.HasParriedCurrentFlight = false
-    end
-  end
-
-  local smoothedVelocity, magnitude9, zero3 = getSmoothedVelocity(activeBall4, now3)
-
-  local v43, magnitude10, v44 = f12(
-    position10, position11, smoothedVelocity, zero3, assemblyLinearVelocity2
-  )
-
-  if magnitude9 < 4 then
-    state.Stats.Distance = math.floor(magnitude8)
-    state.Stats.Speed = math.floor(magnitude9)
-    state.Stats.ETA = 0
-    state.Stats.TargetingYou = false
-    state.Stats.Status = "Ball Static"
-
-    f14(v44, position10, 20, false, false, activeBall4)
-    return
-  end
-
-  local flag2 = false
-
-  if state.LastDistance < math.huge then
-    local v45 = magnitude8 - state.LastDistance
-
-    if v45 > 0.08 then
-      state.WasMovingAway = true
-      state.HasParriedCurrentFlight = false
-    elseif v45 < -0.04 then
-      flag2 = true
-
-      if state.WasMovingAway then
-        state.HasParriedCurrentFlight = false
-
-        if v6.DirectionResetGuard then
-          state.LastParryTime = 0
-        end
-
-        state.WasMovingAway = false
-      end
-    end
-  end
-
-  state.LastDistance = magnitude8
-  local unit2 = (position10 - position11).Unit
-  local dot3 = smoothedVelocity:Dot(unit2)
-  local dot4 = assemblyLinearVelocity2:Dot(unit2)
-  local highest2 = math.max(0.1, dot3 - dot4)
-  local highest3 = math.max(0, magnitude8 - v6.ParryHitboxRadius)
-  local v46 = highest3 / highest2
-  local v47 = f15(activeBall4, position10, position11, smoothedVelocity, magnitude10)
-  local v48 = f5()
-  local clamped2 = math.clamp(v48 * v6.PingMultiplier, 0.015, 0.12)
-  local lowest = 0
-
-  if highest2 > 60 then
-    lowest = math.min(0.09, (highest2 - 60) * v6.FastBallLeadFactor)
-  end
-
-  local highest4 = math.max(0.06, v6.BaseReactionWindow + v6.TimingOffset + clamped2 + lowest)
-
-  state.Stats.Distance = math.floor(magnitude8)
-  state.Stats.Speed = math.floor(magnitude9)
-  state.Stats.ETA = tonumber(string.format("%.3f", v46)) or 0
-  state.Stats.TriggerWindow = tonumber(string.format("%.3f", highest4)) or 0.14
-  state.Stats.TargetingYou = v47
-
-  if v6.AutoFaceBall and flag2 and v47 then
-    local vector = Vector3.new(position11.X, position10.Y, position11.Z)
-    humanoidRootPart7.CFrame = CFrame.lookAt(position10, vector)
-  end
-
-  local clamped3 = math.clamp(highest2 * highest4 + v6.ParryHitboxRadius, 8, 75)
-
-  local clashMode2 = v6.ClashMode
-    and (magnitude8 <= v6.ClashDistance or magnitude8 <= 32 and highest2 >= 35)
-
-  local v49 = not state.HasParriedCurrentFlight or now3 - state.LastDeflectionTick > 0.35
-
-  if not v47 or not flag2 and magnitude8 > 10 or not v49 then
-    state.Stats.Status = not v47 and "Ball Heading to Other Player"
-      or not v49 and "Shield Active (Awaiting Contact)" or "Ball Moving Away"
-
-    f14(v44, position10, clamped3, false, false, activeBall4)
-    return
-  end
-
-  local flag3 = false
-  local v50 = v46
-
-  if v6.CurvePrediction and v43 > 0 and magnitude10 <= v6.ParryHitboxRadius + 2.5 and v43 < v46 then
-    v50 = v43
-  end
-
-  if magnitude8 <= 9 and flag2 then
-    flag3 = true
-  elseif v50 <= highest4 then
-    flag3 = true
-  elseif magnitude8 <= v6.ParryHitboxRadius + 1.2 and flag2 then
-    flag3 = true
-  end
-
-  f14(v44, position10, clamped3, v47, flag3, activeBall4)
-
-  if flag3 then
-    f10(clashMode2)
-  else
-    state.Stats.Status = string.format(
-      "Approaching (Dist: %d, Spd: %d, ETA: %.2fs, Lead: %.3fs)", math.floor(magnitude8),
-      math.floor(magnitude9), v50, highest4
-    )
-  end
-end
-
-local function f17(name, tab, section, frame)
-  table.insert(state.SearchFeatures, {
-    name = name,
-    tab = tab,
-    section = section,
-    container = frame,
-  })
-end
-
-local function makeTextLabel(parent, text, p8)
-  local textSub = p8 or v5.TextSub
-
-  local frame2 = Instance.new("Frame")
-  frame2.Size = UDim2.new(1, 0, 0, 22)
-  frame2.BackgroundTransparency = 1
-  frame2.BorderSizePixel = 0
-  frame2.Parent = parent
-
-  local textLabel = Instance.new("TextLabel")
-  textLabel.Size = UDim2.new(1, -8, 1, 0)
-  textLabel.Position = UDim2.new(0, 4, 0, 0)
-  textLabel.BackgroundTransparency = 1
-  textLabel.Text = text:upper()
-  textLabel.TextColor3 = textSub
-  textLabel.Font = v5.Font
-  textLabel.TextSize = 10.5
-  textLabel.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel.Parent = frame2
-
-  return frame2
-end
-
-local function makeTextButton(parent2, text2, p9, p10, p11, p12)
-  local frame3 = Instance.new("Frame")
-  frame3.Size = UDim2.new(1, 0, 0, 32)
-  frame3.BackgroundColor3 = v5.Card
-  frame3.BackgroundTransparency = 0.5
-  frame3.BorderSizePixel = 0
-  frame3.Parent = parent2
-
-  Instance.new("UICorner", frame3).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance = Instance.new("UIStroke", frame3)
-  instance.Color = v5.StrokeDim
-  instance.Thickness = 0.9
-
-  local textButton = Instance.new("TextButton")
-  textButton.Size = UDim2.new(0, 16, 0, 16)
-  textButton.Position = UDim2.new(0, 10, 0.5, -8)
-  textButton.BackgroundColor3 = p9 and v5.Text or v5.Elevated
-  textButton.BackgroundTransparency = p9 and 0 or 0.6
-  textButton.Text = ""
-  textButton.AutoButtonColor = false
-  textButton.Parent = frame3
-
-  Instance.new("UICorner", textButton).CornerRadius = UDim.new(0, 4)
-
-  local instance2 = Instance.new("UIStroke", textButton)
-  instance2.Color = p9 and v5.Text or v5.Stroke
-  instance2.Thickness = 0.8
-
-  local imageLabel = Instance.new("ImageLabel")
-  imageLabel.Size = UDim2.new(0, 12, 0, 12)
-  imageLabel.Position = UDim2.new(0.5, -6, 0.5, -6)
-  imageLabel.BackgroundTransparency = 1
-  imageLabel.Image = "rbxassetid://7733715400"
-  imageLabel.ImageColor3 = Color3.fromRGB(15, 16, 21)
-  imageLabel.ScaleType = Enum.ScaleType.Fit
-  imageLabel.Visible = p9
-  imageLabel.Parent = textButton
-
-  local textLabel2 = Instance.new("TextLabel")
-  textLabel2.Size = UDim2.new(1, -50, 1, 0)
-  textLabel2.Position = UDim2.new(0, 34, 0, 0)
-  textLabel2.BackgroundTransparency = 1
-  textLabel2.Text = text2
-  textLabel2.TextColor3 = v5.Text
-  textLabel2.Font = v5.Font
-  textLabel2.TextSize = 12
-  textLabel2.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel2.Parent = frame3
-
-  local v51 = p9
-
-  local function f18()
-    v51 = not v51
-
-    v1.TweenService:Create(textButton, TweenInfo.new(0.15), {
-      BackgroundColor3 = v51 and v5.Text or v5.Elevated,
-      BackgroundTransparency = v51 and 0 or 0.6,
-    }):Play()
-
-    imageLabel.Visible = v51
-
-    v1.TweenService:Create(instance2, TweenInfo.new(0.15), {
-      Color = v51 and v5.Text or v5.Stroke,
-    }):Play()
-
-    pcall(p10, v51)
-  end
-
-  textButton.MouseButton1Click:Connect(f18)
-
-  local textButton2 = Instance.new("TextButton")
-  textButton2.Size = UDim2.new(1, 0, 1, 0)
-  textButton2.BackgroundTransparency = 1
-  textButton2.Text = ""
-  textButton2.Parent = frame3
-  textButton2.MouseButton1Click:Connect(f18)
-
-  frame3.MouseEnter:Connect(function()
-    v1.TweenService:Create(instance, TweenInfo.new(0.15), {
-      Color = v5.Stroke,
-      Thickness = 1,
-    }):Play()
-
-    v1.TweenService:Create(frame3, TweenInfo.new(0.15), { BackgroundTransparency = 0.3 }):Play()
-  end)
-
-  frame3.MouseLeave:Connect(function()
-    v1.TweenService:Create(instance, TweenInfo.new(0.15), {
-      Color = v5.StrokeDim,
-      Thickness = 0.9,
-    }):Play()
-
-    v1.TweenService:Create(frame3, TweenInfo.new(0.15), { BackgroundTransparency = 0.5 }):Play()
-  end)
-
-  if p11 and p12 then
-    f17(text2, p11, p12, frame3)
-  end
-
-  return frame3
-end
-
-local function makeTextButton2(parent3, text3, p13, p14, text4, p15, p16, p17, p18, p19)
-  local v52 = p16 or 1
-  local v53 = p17 or ""
-
-  local frame4 = Instance.new("Frame")
-  frame4.Size = UDim2.new(1, 0, 0, 38)
-  frame4.BackgroundColor3 = v5.Card
-  frame4.BackgroundTransparency = 0.5
-  frame4.BorderSizePixel = 0
-  frame4.Parent = parent3
-
-  Instance.new("UICorner", frame4).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance3 = Instance.new("UIStroke", frame4)
-  instance3.Color = v5.StrokeDim
-  instance3.Thickness = 0.9
-
-  local textLabel3 = Instance.new("TextLabel")
-  textLabel3.Size = UDim2.new(0.6, 0, 0, 18)
-  textLabel3.Position = UDim2.new(0, 10, 0, 4)
-  textLabel3.BackgroundTransparency = 1
-  textLabel3.Text = text3
-  textLabel3.TextColor3 = v5.Text
-  textLabel3.Font = v5.Font
-  textLabel3.TextSize = 12
-  textLabel3.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel3.Parent = frame4
-
-  local function f19(clamped4)
-    if v52 < 0.001 then
-      return string.format("%.4f%s", clamped4, v53)
-    elseif v52 < 0.01 then
-      return string.format("%.3f%s", clamped4, v53)
-    elseif v52 < 0.1 then
-      return string.format("%.2f%s", clamped4, v53)
-    end
-
-    return tostring(math.round(clamped4 * 100) / 100) .. v53
-  end
-
-  local textLabel4 = Instance.new("TextLabel")
-  textLabel4.Size = UDim2.new(0, 120, 0, 18)
-  textLabel4.Position = UDim2.new(1, -130, 0, 4)
-  textLabel4.BackgroundTransparency = 1
-  textLabel4.Text = f19(text4)
-  textLabel4.TextColor3 = v5.TextSub
-  textLabel4.Font = v5.Font
-  textLabel4.TextSize = 11
-  textLabel4.TextXAlignment = Enum.TextXAlignment.Right
-  textLabel4.Parent = frame4
-
-  local textButton3 = Instance.new("TextButton")
-  textButton3.Size = UDim2.new(1, -20, 0, 3)
-  textButton3.Position = UDim2.new(0, 10, 0, 26)
-  textButton3.BackgroundColor3 = Color3.fromRGB(32, 34, 43)
-  textButton3.BorderSizePixel = 0
-  textButton3.Text = ""
-  textButton3.AutoButtonColor = false
-  textButton3.Parent = frame4
-
-  Instance.new("UICorner", textButton3).CornerRadius = UDim.new(1, 0)
-  local frame5 = Instance.new("Frame")
-  local clamped5 = math.clamp((text4 - p13) / (p14 - p13), 0, 1)
-
-  frame5.Size = UDim2.new(clamped5, 0, 1, 0)
-  frame5.BackgroundColor3 = v5.Text
-  frame5.BorderSizePixel = 0
-  frame5.Parent = textButton3
-
-  Instance.new("UICorner", frame5).CornerRadius = UDim.new(1, 0)
-
-  local frame6 = Instance.new("Frame")
-  frame6.Size = UDim2.new(0, 9, 0, 9)
-  frame6.Position = UDim2.new(clamped5, -4, 0.5, -4)
-  frame6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-  frame6.BorderSizePixel = 0
-  frame6.Parent = textButton3
-
-  Instance.new("UICorner", frame6).CornerRadius = UDim.new(1, 0)
-  local flag4 = false
-
-  local function f20(position12)
-    local clamped6 = math.clamp((position12.X - textButton3.AbsolutePosition.X)
-      / textButton3.AbsoluteSize.X, 0, 1)
-
-    local v54 = p13 + (p14 - p13) * clamped6
-
-    local clamped7 = math.round(v54 / v52) * v52
-    clamped7 = math.clamp(clamped7, p13, p14)
-
-    local v55 = (clamped7 - p13) / (p14 - p13)
-    frame5.Size = UDim2.new(v55, 0, 1, 0)
-    frame6.Position = UDim2.new(v55, -4, 0.5, -4)
-    textLabel4.Text = f19(clamped7)
-    pcall(p15, clamped7)
-  end
-
-  textButton3.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-      or input.UserInputType == Enum.UserInputType.Touch then
-      flag4 = true
-      f20(input.Position)
-    end
-  end)
-
-  v1.UserInputService.InputChanged:Connect(function(input2)
-    if flag4
-      and (input2.UserInputType == Enum.UserInputType.MouseMovement
-        or input2.UserInputType == Enum.UserInputType.Touch) then
-      f20(input2.Position)
-    end
-  end)
-
-  v1.UserInputService.InputEnded:Connect(function(input3)
-    if input3.UserInputType == Enum.UserInputType.MouseButton1
-      or input3.UserInputType == Enum.UserInputType.Touch then
-      flag4 = false
-    end
-  end)
-
-  frame4.MouseEnter:Connect(function()
-    v1.TweenService:Create(instance3, TweenInfo.new(0.15), {
-      Color = v5.Stroke,
-      Thickness = 1,
-    }):Play()
-
-    v1.TweenService:Create(frame4, TweenInfo.new(0.15), { BackgroundTransparency = 0.3 }):Play()
-  end)
-
-  frame4.MouseLeave:Connect(function()
-    v1.TweenService:Create(instance3, TweenInfo.new(0.15), {
-      Color = v5.StrokeDim,
-      Thickness = 0.9,
-    }):Play()
-
-    v1.TweenService:Create(frame4, TweenInfo.new(0.15), { BackgroundTransparency = 0.5 }):Play()
-  end)
-
-  if p18 and p19 then
-    f17(text3, p18, p19, frame4)
-  end
-
-  return frame4
-end
-
-local function makeTextButton3(parent4, text5, text6, p20, p21, p22)
-  local frame7 = Instance.new("Frame")
-  frame7.Size = UDim2.new(1, 0, 0, 32)
-  frame7.BackgroundColor3 = v5.Card
-  frame7.BackgroundTransparency = 0.5
-  frame7.BorderSizePixel = 0
-  frame7.Parent = parent4
-
-  Instance.new("UICorner", frame7).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance4 = Instance.new("UIStroke", frame7)
-  instance4.Color = v5.StrokeDim
-  instance4.Thickness = 0.9
-
-  local textLabel5 = Instance.new("TextLabel")
-  textLabel5.Size = UDim2.new(1, -110, 1, 0)
-  textLabel5.Position = UDim2.new(0, 10, 0, 0)
-  textLabel5.BackgroundTransparency = 1
-  textLabel5.Text = text5
-  textLabel5.TextColor3 = v5.Text
-  textLabel5.Font = v5.Font
-  textLabel5.TextSize = 12
-  textLabel5.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel5.Parent = frame7
-
-  local frame8 = Instance.new("Frame")
-  frame8.Size = UDim2.new(0, 90, 0, 20)
-  frame8.Position = UDim2.new(1, -98, 0.5, -10)
-  frame8.BackgroundColor3 = v5.Elevated
-  frame8.BorderSizePixel = 0
-  frame8.Parent = frame7
-
-  Instance.new("UICorner", frame8).CornerRadius = UDim.new(0, 5)
-
-  local instance5 = Instance.new("UIStroke", frame8)
-  instance5.Color = v5.Stroke
-  instance5.Thickness = 0.8
-
-  local textButton4 = Instance.new("TextButton")
-  textButton4.Size = UDim2.new(1, 0, 1, 0)
-  textButton4.BackgroundTransparency = 1
-  textButton4.Text = (text6 or "TRIGGER"):upper()
-  textButton4.TextColor3 = v5.Text
-  textButton4.Font = v5.Font
-  textButton4.TextSize = 10.5
-  textButton4.AutoButtonColor = false
-  textButton4.Parent = frame8
-
-  textButton4.MouseEnter:Connect(function()
-    v1.TweenService:Create(frame8, TweenInfo.new(0.15), {
-      BackgroundColor3 = Color3.fromRGB(34, 36, 46),
-    }):Play()
-  end)
-
-  textButton4.MouseLeave:Connect(function()
-    v1.TweenService:Create(frame8, TweenInfo.new(0.15), {
-      BackgroundColor3 = v5.Elevated,
-    }):Play()
-  end)
-
-  textButton4.MouseButton1Click:Connect(p20)
-
-  frame7.MouseEnter:Connect(function()
-    v1.TweenService:Create(instance4, TweenInfo.new(0.15), {
-      Color = v5.Stroke,
-      Thickness = 1,
-    }):Play()
-
-    v1.TweenService:Create(frame7, TweenInfo.new(0.15), { BackgroundTransparency = 0.3 }):Play()
-  end)
-
-  frame7.MouseLeave:Connect(function()
-    v1.TweenService:Create(instance4, TweenInfo.new(0.15), {
-      Color = v5.StrokeDim,
-      Thickness = 0.9,
-    }):Play()
-
-    v1.TweenService:Create(frame7, TweenInfo.new(0.15), { BackgroundTransparency = 0.5 }):Play()
-  end)
-
-  if p21 and p22 then
-    f17(text5, p21, p22, frame7)
-  end
-
-  return frame7
-end
-
-local function makeTextButton4(parent5, text7, list3, p23, text8, p24, p25, p26)
-  local v56 = p23 or list3
-
-  local frame9 = Instance.new("Frame")
-  frame9.Size = UDim2.new(1, 0, 0, 0)
-  frame9.BackgroundTransparency = 1
-  frame9.AutomaticSize = Enum.AutomaticSize.Y
-  frame9.BorderSizePixel = 0
-  frame9.Parent = parent5
-
-  local uiListLayout = Instance.new("UIListLayout")
-  uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-  uiListLayout.Padding = UDim.new(0, 3)
-  uiListLayout.Parent = frame9
-
-  local textButton5 = Instance.new("TextButton")
-  textButton5.Size = UDim2.new(1, 0, 0, 32)
-  textButton5.BackgroundColor3 = v5.Card
-  textButton5.BackgroundTransparency = 0.5
-  textButton5.BorderSizePixel = 0
-  textButton5.Text = ""
-  textButton5.AutoButtonColor = false
-  textButton5.LayoutOrder = 1
-  textButton5.Parent = frame9
+-- Тһіѕ Filе Ԝaѕ Dеоbfusсаtеԁ By lua-x
+-- https://lua-x.online
+
+-- [ lua-x ] loader: this script fetches https://github.com/Footagesus/WindUI/releases/download/1.6.66/main.lua at run time
+task.spawn(function()
+	repeat
+		task.wait(0.2)
+	until game:IsLoaded()
+
+	local v1 = cloneref(game:GetService("Players"))
+	local v2 = cloneref(game:GetService("ReplicatedStorage"))
+	local v3 = cloneref(game:GetService("UserInputService"))
+	local v4 = cloneref(game:GetService("RunService"))
+	local v5 = cloneref(game:GetService("TweenService"))
+	local v6 = cloneref(game:GetService("Stats"))
+	local v7 = cloneref(game:GetService("Debris"))
+	local v8 = cloneref(game:GetService("CoreGui"))
+	local v9 = cloneref(game:GetService("HttpService"))
+	local v10 = cloneref(game:GetService("Workspace"))
+	local LocalPlayer = v1.LocalPlayer
+
+	if not LocalPlayer then
+		v1:GetPropertyChangedSignal("LocalPlayer"):Wait()
+		LocalPlayer = v1.LocalPlayer
+	end
+
+	local function func()
+		local ok, result = pcall(function()
+			return gethui()
+		end)
+		return ok and result or v8
+	end
+
+	local tbl = {}
+
+	local function func1(parent, arg2)
+		local uIStroke = Instance.new("UIStroke")
+		uIStroke.Thickness = arg2 or 2
+		uIStroke.Color = Color3.fromRGB(255, 255, 255)
+		uIStroke.Transparency = 0.1
+		uIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		uIStroke.Parent = parent
+		local uIGradient = Instance.new("UIGradient")
+
+		uIGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 60, 255)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 60, 255)),
+		})
+
+		uIGradient.Rotation = 0
+		uIGradient.Parent = uIStroke
+		local connection
+
+		connection = v4.RenderStepped:Connect(function(deltaTime)
+			if not uIStroke.Parent then
+				if connection then
+					connection:Disconnect()
+				end
+				return
+			end
+			uIGradient.Rotation = (uIGradient.Rotation + deltaTime * 95) % 360
+		end)
+
+		table.insert(tbl, connection)
+		return uIStroke, uIGradient
+	end
+
+	local function func2()
+		-- key system removido, siempre válido
+		return true
+	end
+
+	local function func3()
+		local str = tostring(LocalPlayer.UserId)
+		local tbl = {}
+
+		pcall(function()
+			if isfile and isfile("Aeris/key_session.json") then
+				local v1 = v9:JSONDecode(readfile("Aeris/key_session.json"))
+				if type(v1) == "table" then
+					tbl = v1
+				end
+			end
+		end)
+
+		local v1 = tbl
+		v1[str] = {key = "bLidikBol", timestamp = os.time()}
+
+		pcall(function()
+			if isfolder and makefolder and not isfolder("Aeris") then
+				makefolder("Aeris")
+			end
+			if writefile then
+				writefile("Aeris/key_session.json", v9:JSONEncode(v1 or {}))
+			end
+		end)
+	end
+
+	local function func4()
+		pcall(function()
+			local Aeris_SplashScreen = func():FindFirstChild("Aeris_SplashScreen")
+			if Aeris_SplashScreen then
+				Aeris_SplashScreen:Destroy()
+			end
+		end)
+
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "Aeris_SplashScreen"
+		screenGui.ResetOnSpawn = false
+		screenGui.IgnoreGuiInset = true
+		screenGui.DisplayOrder = 999999
+		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		screenGui.Parent = func()
+		local frame = Instance.new("Frame")
+		frame.Name = "WhiteOverlay"
+		frame.Size = UDim2.fromScale(1, 1)
+		frame.Position = UDim2.fromScale(0, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		frame.BackgroundTransparency = 1
+		frame.BorderSizePixel = 0
+		frame.ZIndex = 10
+		frame.Parent = screenGui
+		local frame1 = Instance.new("Frame")
+		frame1.Name = "TopShadow"
+		frame1.Size = UDim2.new(1, 0, 0, 120)
+		frame1.Position = UDim2.fromScale(0, 0)
+		frame1.BackgroundColor3 = Color3.fromRGB(165, 120, 230)
+		frame1.BackgroundTransparency = 1
+		frame1.BorderSizePixel = 0
+		frame1.ZIndex = 11
+		frame1.Parent = frame
+		local uIGradient = Instance.new("UIGradient")
+		uIGradient.Rotation = 90
+		uIGradient.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 1)})
+		uIGradient.Parent = frame1
+		local frame2 = Instance.new("Frame")
+		frame2.Size = UDim2.fromOffset(320, 280)
+		frame2.Position = UDim2.fromScale(0.5, 0.5)
+		frame2.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame2.BackgroundTransparency = 1
+		frame2.ZIndex = 12
+		frame2.Parent = frame
+		local imageLabel = Instance.new("ImageLabel")
+		imageLabel.Name = "AerisLogo"
+		imageLabel.Size = UDim2.fromOffset(150, 150)
+		imageLabel.Position = UDim2.new(0.5, 0, 0, 80)
+		imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		imageLabel.BackgroundTransparency = 1
+		imageLabel.Image = "rbxassetid://94398897297532"
+		imageLabel.ImageTransparency = 1
+		imageLabel.ScaleType = Enum.ScaleType.Fit
+		imageLabel.ZIndex = 13
+		imageLabel.Parent = frame2
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Name = "Title"
+		textLabel.Size = UDim2.new(1, 0, 0, 48)
+		textLabel.Position = UDim2.new(0.5, 0, 0, 195)
+		textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = "Aeris."
+		textLabel.Font = Enum.Font.GothamBlack
+		textLabel.TextSize = 42
+		textLabel.TextColor3 = Color3.fromRGB(120, 40, 210)
+		textLabel.TextTransparency = 1
+		textLabel.ZIndex = 13
+		textLabel.Parent = frame2
+		local textLabel1 = Instance.new("TextLabel")
+		textLabel1.Name = "Subtitle"
+		textLabel1.Size = UDim2.new(1, 0, 0, 30)
+		textLabel1.Position = UDim2.new(0.5, 0, 0, 235)
+		textLabel1.AnchorPoint = Vector2.new(0.5, 0.5)
+		textLabel1.BackgroundTransparency = 1
+		textLabel1.Text = "All for you"
+		textLabel1.Font = Enum.Font.GothamBold
+		textLabel1.TextSize = 22
+		textLabel1.TextColor3 = Color3.fromRGB(60, 20, 110)
+		textLabel1.TextTransparency = 1
+		textLabel1.ZIndex = 13
+		textLabel1.Parent = frame2
+		local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		v5:Create(frame, tweenInfo, {BackgroundTransparency = 0}):Play()
+		v5:Create(frame1, tweenInfo, {BackgroundTransparency = 0.15}):Play()
+		v5:Create(imageLabel, tweenInfo, {ImageTransparency = 0, Size = UDim2.fromOffset(175, 175)}):Play()
+		v5:Create(textLabel, tweenInfo, {TextTransparency = 0}):Play()
+		v5:Create(textLabel1, tweenInfo, {TextTransparency = 0}):Play()
+		task.wait(3.6)
+		local tweenInfo1 = TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+		local v1 = v5:Create(frame, tweenInfo1, {BackgroundTransparency = 1})
+		v5:Create(frame1, tweenInfo1, {BackgroundTransparency = 1}):Play()
+		v5:Create(imageLabel, tweenInfo1, {ImageTransparency = 1, Size = UDim2.fromOffset(145, 145)}):Play()
+		v5:Create(textLabel, tweenInfo1, {TextTransparency = 1}):Play()
+		v5:Create(textLabel1, tweenInfo1, {TextTransparency = 1}):Play()
+		v1:Play()
+		v1.Completed:Wait()
+		screenGui:Destroy()
+	end
+
+	local function func5()
+		local flag = false
+
+		pcall(function()
+			local Aeris_KeySystem = func():FindFirstChild("Aeris_KeySystem")
+			if Aeris_KeySystem then
+				Aeris_KeySystem:Destroy()
+			end
+		end)
+
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "Aeris_KeySystem"
+		screenGui.ResetOnSpawn = false
+		screenGui.IgnoreGuiInset = true
+		screenGui.DisplayOrder = 999998
+		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		screenGui.Parent = func()
+		local frame = Instance.new("Frame")
+		frame.Name = "MainFrame"
+		frame.Size = UDim2.fromOffset(0, 0)
+		frame.Position = UDim2.fromScale(0.5, 0.5)
+		frame.AnchorPoint = Vector2.new(0.5, 0.5)
+		frame.BackgroundColor3 = Color3.fromRGB(35, 18, 58)
+		frame.BackgroundTransparency = 1
+		frame.ClipsDescendants = true
+		frame.Active = true
+		frame.Draggable = true
+		frame.Parent = screenGui
+		Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+		local uIGradient = Instance.new("UIGradient")
+
+		uIGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(165, 110, 245)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(245, 235, 255)),
+		})
+
+		uIGradient.Rotation = 45
+		uIGradient.Parent = frame
+		func1(frame, 2.5)
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Size = UDim2.new(1, -30, 0, 36)
+		textLabel.Position = UDim2.fromOffset(15, 16)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = "AERIS | KEY VERIFICATION"
+		textLabel.Font = Enum.Font.GothamBlack
+		textLabel.TextSize = 20
+		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel.TextStrokeTransparency = 0.6
+		textLabel.TextStrokeColor3 = Color3.fromRGB(90, 30, 160)
+		textLabel.Parent = frame
+		local textLabel1 = Instance.new("TextLabel")
+		textLabel1.Size = UDim2.new(1, -40, 0, 38)
+		textLabel1.Position = UDim2.fromOffset(20, 52)
+		textLabel1.BackgroundTransparency = 1
+		textLabel1.Text = "Warning: Your key resets every 24 hours and must be entered on each account."
+		textLabel1.Font = Enum.Font.GothamMedium
+		textLabel1.TextSize = 13
+		textLabel1.TextWrapped = true
+		textLabel1.TextColor3 = Color3.fromRGB(245, 230, 255)
+		textLabel1.TextStrokeTransparency = 0.75
+		textLabel1.Parent = frame
+		local textBox = Instance.new("TextBox")
+		textBox.Size = UDim2.new(1, -50, 0, 44)
+		textBox.Position = UDim2.fromOffset(25, 102)
+		textBox.BackgroundColor3 = Color3.fromRGB(80, 40, 130)
+		textBox.BackgroundTransparency = 0.45
+		textBox.Text = ""
+		textBox.PlaceholderText = "Enter your key here (case & space sensitive)..."
+		textBox.PlaceholderColor3 = Color3.fromRGB(220, 200, 240)
+		textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textBox.Font = Enum.Font.GothamBold
+		textBox.TextSize = 14
+		textBox.ClearTextOnFocus = false
+		textBox.Parent = frame
+		Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 10)
+		func1(textBox, 1.6)
+		local textLabel2 = Instance.new("TextLabel")
+		textLabel2.Size = UDim2.new(1, -50, 0, 22)
+		textLabel2.Position = UDim2.fromOffset(25, 152)
+		textLabel2.BackgroundTransparency = 1
+		textLabel2.Text = ""
+		textLabel2.Font = Enum.Font.GothamBold
+		textLabel2.TextSize = 13
+		textLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel2.Parent = frame
+		local textButton = Instance.new("TextButton")
+		textButton.Name = "VerifyButton"
+		textButton.Size = UDim2.new(0.44, 0, 0, 44)
+		textButton.Position = UDim2.new(0.05, 0, 0, 182)
+		textButton.BackgroundColor3 = Color3.fromRGB(130, 60, 220)
+		textButton.BackgroundTransparency = 0.5
+		textButton.Text = "Verify"
+		textButton.Font = Enum.Font.GothamBold
+		textButton.TextSize = 15
+		textButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textButton.AutoButtonColor = true
+		textButton.Parent = frame
+		Instance.new("UICorner", textButton).CornerRadius = UDim.new(0, 10)
+		func1(textButton, 1.8)
+		local textButton1 = Instance.new("TextButton")
+		textButton1.Name = "GetKeyButton"
+		textButton1.Size = UDim2.new(0.44, 0, 0, 44)
+		textButton1.Position = UDim2.new(0.51, 0, 0, 182)
+		textButton1.BackgroundColor3 = Color3.fromRGB(130, 60, 220)
+		textButton1.BackgroundTransparency = 0.5
+		textButton1.Text = "Get Key"
+		textButton1.Font = Enum.Font.GothamBold
+		textButton1.TextSize = 15
+		textButton1.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textButton1.AutoButtonColor = true
+		textButton1.Parent = frame
+		Instance.new("UICorner", textButton1).CornerRadius = UDim.new(0, 10)
+		func1(textButton1, 1.8)
+
+		v5:Create(
+			frame,
+			TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{Size = UDim2.fromOffset(440, 248), BackgroundTransparency = 0.25}
+		):Play()
+
+		textButton1.MouseButton1Click:Connect(function()
+			pcall(function()
+				setclipboard("https://discord.gg/t6rhaAZvhG")
+			end)
+
+			textLabel2.TextColor3 = Color3.fromRGB(235, 210, 255)
+			textLabel2.Text = "Copied key link! (https://discord.gg/t6rhaAZvhG)"
+		end)
+
+		textButton.MouseButton1Click:Connect(function()
+			if textBox.Text == "bLidikBol" then
+				textLabel2.TextColor3 = Color3.fromRGB(180, 255, 200)
+				textLabel2.Text = "Key verified! Loading Aeris..."
+				func3()
+
+				local v1 = v5:Create(
+					frame,
+					TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+					{Size = UDim2.fromOffset(0, 0), BackgroundTransparency = 1}
+				)
+
+				v1:Play()
+				v1.Completed:Wait()
+				screenGui:Destroy()
+				flag = true
+			else
+				textLabel2.TextColor3 = Color3.fromRGB(255, 120, 140)
+				textLabel2.Text = "Invalid key! Check spaces and uppercase/lowercase letters."
+			end
+		end)
+
+		repeat
+			task.wait(0.1)
+		until flag
+	end
+
+	if not func2() then
+		func5()
+	end
+
+	func4()
+
+	task.spawn(function()
+		while task.wait(60) do
+			if not func2() then
+				pcall(function()
+					LocalPlayer:Kick("[Aeris] Your 24-hour key session has expired. Please re-inject and enter your key again.")
+				end)
+				break
+			end
+		end
+	end)
+
+	local module = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/1.6.66/main.lua"))()
+
+	pcall(function()
+		module:AddTheme({
+			Name = "Aeris Purple",
+			Accent = Color3.fromRGB(170, 85, 255),
+			Background = Color3.fromRGB(24, 14, 38),
+			Outline = Color3.fromRGB(235, 215, 255),
+			Text = Color3.fromRGB(255, 255, 255),
+			Button = Color3.fromRGB(52, 28, 82),
+			Icon = Color3.fromRGB(200, 140, 255),
+		})
+	end)
+
+	local tbl1 = {
+		Title = "AERIS HUB | AERIS",
+		Icon = "rbxassetid://94398897297532",
+		Author = "Aeris. All for you",
+		Folder = "AERIS_WINDUI",
+		Size = UDim2.fromOffset(600, 480),
+		Theme = "Aeris Purple",
+		Transparent = true,
+		HasOutline = true,
+	}
+
+	local Window = module:CreateWindow(tbl1)
+
+	pcall(function()
+		Window:EditOpenButton({Enabled = false})
+	end)
+
+	task.spawn(function()
+		task.wait(0.5)
+		pcall(function()
+			for _, child in pairs(func():GetChildren()) do
+				if child:IsA("ScreenGui") and child.Name ~= "Aeris_WindUI_Toggle" then
+					for _, descendant in pairs(child:GetDescendants()) do
+						if descendant:IsA("UIStroke") and descendant.Thickness >= 1 then
+							local v1 = descendant:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient", descendant)
+
+							v1.Color = ColorSequence.new({
+								ColorSequenceKeypoint.new(0, Color3.fromRGB(160, 60, 255)),
+								ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+								ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 60, 255)),
+							})
+
+							task.spawn(function()
+								while descendant.Parent do
+									v1.Rotation = (v1.Rotation + 2) % 360
+									task.wait(0.03)
+								end
+							end)
+						end
+					end
+				end
+			end
+		end)
+	end)
+
+	pcall(function()
+		local Aeris_WindUI_Toggle = func():FindFirstChild("Aeris_WindUI_Toggle")
+		if Aeris_WindUI_Toggle then
+			Aeris_WindUI_Toggle:Destroy()
+		end
+	end)
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "Aeris_WindUI_Toggle"
+	screenGui.ResetOnSpawn = false
+	screenGui.IgnoreGuiInset = true
+	screenGui.Parent = func()
+	local textButton = Instance.new("TextButton")
+	textButton.Name = "MenuToggle"
+	textButton.Size = UDim2.fromOffset(56, 56)
+	textButton.Position = UDim2.new(0, 15, 0.5, -28)
+	textButton.BackgroundColor3 = Color3.fromRGB(235, 220, 255)
+	textButton.BackgroundTransparency = 0.15
+	textButton.Text = ""
+	textButton.AutoButtonColor = true
+	textButton.ZIndex = 100
+	textButton.Parent = screenGui
+	Instance.new("UICorner", textButton).CornerRadius = UDim.new(0, 14)
+	func1(textButton, 2.2)
+	local imageLabel = Instance.new("ImageLabel")
+	imageLabel.Name = "LogoIcon"
+	imageLabel.Size = UDim2.fromScale(0.76, 0.76)
+	imageLabel.Position = UDim2.fromScale(0.5, 0.5)
+	imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	imageLabel.BackgroundTransparency = 1
+	imageLabel.Image = "rbxassetid://94398897297532"
+	imageLabel.ScaleType = Enum.ScaleType.Fit
+	imageLabel.ZIndex = 101
+	imageLabel.Parent = textButton
+	local flag = true
+	local flag1 = false
+	local v18
+	local Position
+	local Position1
+	local flag2 = false
+
+	textButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag2 = false
+			flag1, Position = true, input.Position
+			Position1 = textButton.Position
+		end
+	end)
+
+	textButton.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			v18 = input
+		end
+	end)
+
+	textButton.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag1 = false
+			if not flag2 then
+				flag = not flag
+				pcall(function()
+					if flag then
+						Window:Open()
+					else
+						Window:Close()
+					end
+				end)
+			end
+		end
+	end)
+
+	v3.InputChanged:Connect(function(input)
+		if input == v18 and flag1 then
+			local v1 = input.Position - Position
+
+			if math.abs(v1.X) > 4 or math.abs(v1.Y) > 4 then
+				flag2 = true
+			end
+
+			textButton.Position = UDim2.new(Position1.X.Scale, Position1.X.Offset + v1.X, Position1.Y.Scale, Position1.Y.Offset + v1.Y)
+		end
+	end)
+
+	getgenv().Aeris_WindUI_ToggleButton = textButton
+
+	function Window:AddTab(arg2)
+		local v1 = self:Tab({Title = arg2.Title, Icon = arg2.Icon})
+
+		function v1:AddSection(arg2, arg3)
+			pcall(function()
+				self:Section({Title = arg2, Icon = arg3})
+			end)
+			return {
+				AddToggle = function(arg1, _, arg3)
+					return arg1 and v1:Toggle({Title = arg3.Title, Desc = arg3.Description, Value = arg3.Default, Callback = arg3.Callback})
+				end,
+				AddDropdown = function(_, _, arg3)
+					return v1:Dropdown({
+						Title = arg3.Title,
+						Desc = arg3.Description,
+						Values = arg3.Values,
+						Value = arg3.Default,
+						Multi = arg3.Multi,
+						Callback = arg3.Callback,
+					})
+				end,
+				AddSlider = function(_, _, arg3)
+					return v1:Slider({
+						Title = arg3.Title,
+						Desc = arg3.Description,
+						Value = {Min = arg3.Min, Max = arg3.Max, Default = arg3.Default},
+						Rounding = arg3.Rounding,
+						Callback = arg3.Callback,
+					})
+				end,
+				AddInput = function(_, _, arg3)
+					return v1:Input({
+						Title = arg3.Title,
+						Desc = arg3.Description,
+						Placeholder = arg3.Placeholder,
+						Value = arg3.Default,
+						Callback = arg3.Callback,
+					})
+				end,
+				AddKeybind = function(_, _, arg3)
+					return v1:Keybind({
+						Title = arg3.Title,
+						Desc = arg3.Description,
+						Value = arg3.Default,
+						Callback = arg3.Callback,
+						ChangedCallback = arg3.ChangedCallback,
+					})
+				end,
+			}
+		end
+
+		return v1
+	end
+
+	local Tabs = {
+		Rage = Window:AddTab({Title = "Autoparry", Icon = "sword"}),
+		Spam = Window:AddTab({Title = "Spam", Icon = "skull"}),
+		Detection = Window:AddTab({Title = "Detection", Icon = "eye"}),
+		Visuals = Window:AddTab({Title = "Visuals", Icon = "monitor"}),
+		Misc = Window:AddTab({Title = "Misc", Icon = "settings"}),
+		Dash = Window:AddTab({Title = "Dash", Icon = "zap"}),
+		Discord = Window:AddTab({Title = "Discord", Icon = "message-circle"}),
+		Settings = Window:AddTab({Title = "Settings", Icon = "sliders"}),
+	}
+
+	getgenv().Aeris_DashEnabled = getgenv().Aeris_DashEnabled ~= false
+	getgenv().Aeris_DashPower = getgenv().Aeris_DashPower or 45
+	getgenv().Aeris_DashVertical = getgenv().Aeris_DashVertical or 0
+	getgenv().Aeris_DashKey = getgenv().Aeris_DashKey or Enum.KeyCode.Q
+	getgenv().Aeris_DashCooldown = getgenv().Aeris_DashCooldown or 0.25
+	getgenv().Aeris_dashLast = getgenv().Aeris_dashLast or 0
+
+	getgenv().Aeris_DoDash = function()
+		if tick() - getgenv().Aeris_dashLast < getgenv().Aeris_DashCooldown then
+			return
+		end
+
+		getgenv().Aeris_dashLast = tick()
+		local Character = LocalPlayer.Character
+		local v1 = Character and Character:FindFirstChild("HumanoidRootPart")
+		local CurrentCamera = v10.CurrentCamera
+
+		if not v1 or not CurrentCamera then
+			return
+		end
+
+		local vector3 = Vector3.new(CurrentCamera.CFrame.LookVector.X, 0, CurrentCamera.CFrame.LookVector.Z)
+
+		if vector3.Magnitude < 0.01 then
+			return
+		end
+
+		local bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.MaxForce = Vector3.new(1000000, 1000000, 1000000)
+		bodyVelocity.Velocity = vector3.Unit * getgenv().Aeris_DashPower + Vector3.new(0, getgenv().Aeris_DashVertical, 0)
+		bodyVelocity.P = 20000
+		bodyVelocity.Parent = v1
+		v7:AddItem(bodyVelocity, 0.15)
+	end
+
+	v3.InputBegan:Connect(function(input, gameProcessed)
+		if not gameProcessed and getgenv().Aeris_DashEnabled and input.KeyCode == getgenv().Aeris_DashKey then
+			getgenv().Aeris_DoDash()
+		end
+	end)
+
+	local dashSettingsSection = Tabs.Dash:AddSection("Dash Settings", "zap")
+
+	dashSettingsSection:AddToggle("AerisDashEnabled", {
+		Title = "Dash Enabled",
+		Description = "Enable dash hotkey",
+		Default = true,
+		Callback = function(value)
+			getgenv().Aeris_DashEnabled = value
+		end,
+	})
+
+	dashSettingsSection:AddSlider("AerisDashPower", {
+		Title = "Dash Power",
+		Description = "Movement strength",
+		Default = 45,
+		Min = 10,
+		Max = 200,
+		Rounding = 0,
+		Callback = function(value)
+			getgenv().Aeris_DashPower = value
+		end,
+	})
+
+	dashSettingsSection:AddSlider("AerisDashVertical", {
+		Title = "Dash Height",
+		Description = "Vertical force",
+		Default = 0,
+		Min = 0,
+		Max = 100,
+		Rounding = 0,
+		Callback = function(value)
+			getgenv().Aeris_DashVertical = value
+		end,
+	})
+
+	dashSettingsSection:AddSlider("AerisDashCooldown", {
+		Title = "Dash Cooldown",
+		Description = "Delay between dashes",
+		Default = 0.25,
+		Min = 0,
+		Max = 2,
+		Rounding = 2,
+		Callback = function(value)
+			getgenv().Aeris_DashCooldown = value
+		end,
+	})
+
+	dashSettingsSection:AddDropdown("AerisDashKey", {
+		Title = "Dash Key",
+		Values = {"Q", "E", "F", "LeftShift", "C", "V", "X"},
+		Default = "Q",
+		Multi = false,
+		Callback = function(value)
+			getgenv().Aeris_DashKey = Enum.KeyCode[value] or Enum.KeyCode.Q
+		end,
+	})
+
+	Tabs.Discord:AddSection("Aeris Community", "message-circle")
+	Tabs.Discord:Paragraph({Title = "Aeris.", Desc = "All for you — Unified WindUI Interface"})
+	Tabs.Discord:Paragraph({Title = "Discord Invite", Desc = "https://discord.gg/t6rhaAZvhG"})
+
+	Tabs.Discord:Button({
+		Title = "Copy Discord Invite",
+		Icon = "copy",
+		Callback = function()
+			pcall(function()
+				setclipboard("https://discord.gg/t6rhaAZvhG")
+			end)
+			module:Notify({Title = "Discord", Content = "Invite link copied to clipboard!", Duration = 3})
+		end,
+	})
+
+	if not LocalPlayer.Character then
+		LocalPlayer.CharacterAdded:Wait()
+	end
+
+	local v11 = v10:FindFirstChild("Alive") or v10:WaitForChild("Alive")
+	local Runtime = v10.Runtime
+
+	local function func6()
+		local TouchEnabled = v3.TouchEnabled
+		local MouseEnabled = v3.MouseEnabled
+		local KeyboardEnabled = v3.KeyboardEnabled
+
+		if TouchEnabled and not KeyboardEnabled then
+			return true
+		end
+
+		if TouchEnabled and not MouseEnabled then
+			return true
+		end
+
+		return false
+	end
+
+	local tbl2 = {
+		__autoparry_enabled = false,
+		__triggerbot_enabled = false,
+		__manual_spam_enabled = false,
+		__auto_spam_enabled = false,
+		__play_animation = false,
+		__accuracy = 50,
+		__divisor_multiplier = 1.1,
+		__parried = false,
+		__training_parried = false,
+		__spam_threshold = 1.5,
+		__parries = 0,
+	}
+
+	tbl2.__parry_key = nil
+	tbl2.__grab_animation = nil
+	tbl2.__tornado_time = tick()
+	tbl2.__first_parry_done = false
+	tbl2.__connections = {}
+	tbl2.__reverted_remotes = {}
+	tbl2.__spam_accumulator = 0
+	tbl2.__spam_rate = 340
+	tbl2.__infinity_active = false
+	tbl2.__deathslash_active = false
+	tbl2.__timehole_active = false
+	tbl2.__slashesoffury_active = false
+	tbl2.__slashesoffury_count = 0
+	tbl2.__is_mobile = func6()
+	tbl2.__mobile_guis = {}
+	tbl2.__randomized_accuracy_enabled = false
+	tbl2.__speed_display_enabled = false
+	tbl2.__auto_jump_enabled = false
+	tbl2.__ball_speed = 0
+	tbl2.__peak_ball_speed = 0
+	tbl2.__headless_enabled = false
+	tbl2.__korblox_enabled = false
+	tbl2.__thunder_dash_enabled = false
+	tbl2.__ball_velocity_gui = nil
+	tbl2.__ball_velocity_enabled = false
+	tbl2.__peak_velocity = 0
+	tbl2.__last_ball_id = nil
+	tbl2.__ping_label = nil
+
+	local tbl3 = {
+		__properties = tbl2,
+		__config = {
+			__curve_names = {"Camera", "Random", "Accelerated", "Backwards", "Slow", "High", "Normal", "Speed", "Down"},
+			__detections = {
+				__infinity = false,
+				__deathslash = false,
+				__timehole = false,
+				__slashesoffury = false,
+				__phantom = false,
+			},
+		},
+		__triggerbot = {
+			__enabled = false,
+			__is_parrying = false,
+			__parries = 0,
+			__max_parries = 10000,
+			__parry_delay = 0.05,
+		},
+	}
+
+	local tbl4 = {
+		"Camera",
+		"Random",
+		"Accelerated",
+		"Backwards",
+		"Slow",
+		"High",
+		"Normal",
+		"Speed",
+		"Down",
+		"Left",
+		"Right",
+	}
+
+	local str = "Camera"
+	local str1 = "Camera"
+
+	local function func7()
+		tbl3.__properties.__divisor_multiplier = 0.7 + (tbl3.__properties.__accuracy - 1) * 0.00909090909090909
+	end
+
+	local function func8()
+		if not tbl3.__properties.__randomized_accuracy_enabled then
+			return
+		end
+
+		local ValueString = v6.Network.ServerStatsItem["Data Ping"]:GetValueString()
+		local v1 = tonumber(ValueString:match("%d+")) or 0
+		local num
+
+		if v1 >= 90 then
+			num = 4
+		elseif v1 <= 50 then
+			num = math.random(70, 100)
+		else
+			num = tbl3.__properties.__accuracy
+		end
+
+		if num then
+			tbl3.__properties.__accuracy = num
+			func7()
+		end
+	end
+
+	task.spawn(function()
+		while task.wait(1) do
+			if tbl3.__properties.__randomized_accuracy_enabled then
+				func8()
+			end
+		end
+	end)
+
+	local v12 = cloneref(game:GetService("ReplicatedStorage"))
+	local v13 = cloneref(game:GetService("Workspace"))
+	local v16
+	local flag3 = false
+
+	for _, v14 in getgc(true) do
+		if type(v14) == "function" and debug.info(v14, "s"):find("PRY", 1, true) then
+			for _, v15 in debug.getupvalues(v14) do
+				if type(v15) == "function" then
+					v16 = v15
+					flag3 = true
+					break
+				end
+			end
+			if v16 then
+				break
+			end
+		end
+	end
+
+	if not flag3 then
+		module:Notify({Title = "Aeris Hub", Content = "Token not found! Re-inject and try again.", Duration = 5})
+		return
+	end
+
+	function _tokenize(arg1)
+		local str = tostring(math.floor(v13:GetServerTimeNow() * 100))
+		local v1 = v16(arg1, "TIME")
+		local v2 = #str
+		local v3 = table.create(v2)
+
+		for i = 1, #str do
+			local char = string.char
+			local bxor = bit32.bxor
+			local v4 = (string.byte(str, i) + i) % 256
+			local byte = string.byte
+			local v5 = #v1
+			v3[i] = char(bxor(v4, byte(v1, (i - 1) % v5 + 1)))
+		end
+
+		return table.concat(v3)
+	end
+
+	local tbl5 = {}
+	local tbl6 = {}
+	local v19
+	local v20
+	local func9
+
+	func9, _is_valid = function(arg1)
+		if not arg1 then
+			return
+		end
+
+		if tbl5[arg1] then
+			return
+		end
+
+		if tbl6[getrawmetatable(arg1)] then
+			return
+		end
+
+		tbl6[getrawmetatable(arg1)] = true
+		local v1 = getrawmetatable(arg1)
+		setreadonly(v1, false)
+		local __index = v1.__index
+
+		function v1.__index(arg1, arg2)
+			if arg2 == "FireServer" and arg1:IsA("RemoteEvent") or arg2 == "InvokeServer" and arg1:IsA("RemoteFunction") then
+				return function(arg3, ...)
+					local tbl = {...}
+
+					if _is_valid(tbl) then
+						if not tbl5[arg1] then
+							tbl5[arg1] = tbl
+							v19 = arg1
+							v20 = tbl
+						end
+					end
+
+					return __index(arg1, arg2)(arg3, unpack(tbl))
+				end
+			end
+			return __index(arg1, arg2)
+		end
+
+		setreadonly(v1, true)
+	end, function(arg1)
+		if not arg1 or #arg1 < 8 then
+			return false
+		end
+		return true
+	end
+
+	_hook = func9
+
+	for _, descendant in pairs(v12:GetDescendants()) do
+		if descendant:IsA("RemoteEvent") or descendant:IsA("RemoteFunction") then
+			_hook(descendant)
+		end
+	end
+
+	task.wait(5)
+
+	task.spawn(function()
+		local num = 0
+
+		while not v19 and num < 30 do
+			task.wait(1)
+			num = num + 1
+		end
+
+		if v19 then
+			module:Notify({Title = "Aeris Hub", Content = "Anti-cheat Bypassed ✓", Duration = 3})
+		else
+			module:Notify({Title = "Aeris Hub", Content = "Remote not found! Please parry once manually.", Duration = 5})
+		end
+	end)
+
+	local function func10(arg1)
+		if not v19 or not v20 then
+			return false
+		end
+
+		local CurrentCamera = v10.CurrentCamera
+		local tbl
+
+		if tbl3.__properties.__is_mobile then
+			local ViewportSize = CurrentCamera.ViewportSize
+			tbl = {math.floor(ViewportSize.X / 2), math.floor(ViewportSize.Y / 2)}
+		else
+			local ok, result = pcall(function()
+				return v3:GetMouseLocation()
+			end)
+			if ok and result then
+				tbl = {math.floor(result.X), math.floor(result.Y)}
+			else
+				local ViewportSize1 = CurrentCamera.ViewportSize
+				tbl = {math.floor(ViewportSize1.X / 2), math.floor(ViewportSize1.Y / 2)}
+			end
+		end
+
+		local tbl1 = {}
+
+		if v11 then
+			for _, child in pairs(v11:GetChildren()) do
+				if child.PrimaryPart then
+					local ok1, result1 = pcall(function()
+						return CurrentCamera:WorldToScreenPoint(child.PrimaryPart.Position)
+					end)
+					if ok1 then
+						tbl1[child.Name] = result1
+					end
+				end
+			end
+		end
+
+		local tbl2 = {}
+		tbl2[8], tbl2[6], tbl2[2], tbl2[7], tbl2[1], tbl2[3], tbl2[5], tbl2[4] = false, tbl1, v20[2], tbl, v20[1], _tokenize(v20[2]), arg1 or CurrentCamera.CFrame, 0.5
+
+		pcall(function()
+			if v19:IsA("RemoteEvent") then
+				v19:FireServer(unpack(tbl2))
+			elseif v19:IsA("RemoteFunction") then
+				v19:InvokeServer(unpack(tbl2))
+			end
+		end)
+
+		return true
+	end
+
+	tbl3.animation = {}
+	local SwordAPI = v2:WaitForChild("Shared"):WaitForChild("SwordAPI")
+	local num = 0
+	local flag4 = false
+	local v21
+	local tbl7 = {}
+
+	local function func11(arg1)
+		if not arg1 or arg1 == "" then
+			return SwordAPI.Collection.Default:FindFirstChild("GrabParry")
+		end
+
+		if tbl7[arg1] then
+			return tbl7[arg1]
+		end
+
+		local ok, result = pcall(function()
+			return v2.Shared.ReplicatedInstances.Swords.GetSword:Invoke(arg1)
+		end)
+
+		if not ok or not result or type(result) ~= "table" or not result.AnimationType then
+			tbl7[arg1] = SwordAPI.Collection.Default:FindFirstChild("GrabParry")
+			return tbl7[arg1]
+		end
+
+		for _, child in pairs(SwordAPI.Collection:GetChildren()) do
+			if child.Name == result.AnimationType then
+				local v1 = child:FindFirstChild("GrabParry") or child:FindFirstChild("Grab")
+				if v1 then
+					tbl7[arg1] = v1
+					return v1
+				end
+			end
+		end
+
+		tbl7[arg1] = SwordAPI.Collection.Default:FindFirstChild("GrabParry")
+		return tbl7[arg1]
+	end
+
+	function tbl3.animation.play_grab_parry()
+		if not tbl3.__properties.__play_animation then
+			return
+		end
+
+		if not (os.clock() - num >= 0.19999999999999996 or flag4) then
+			return
+		end
+
+		num = os.clock()
+		flag4 = false
+		local Character = LocalPlayer.Character
+
+		if not Character then
+			return
+		end
+
+		local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+		if not Humanoid then
+			return
+		end
+
+		local v1
+
+		if getgenv().skinChanger then
+			v1 = getgenv().swordAnimations ~= "" and getgenv().swordAnimations or getgenv().swordModel ~= "" and getgenv().swordModel or Character:GetAttribute("CurrentlyEquippedSword")
+		else
+			v1 = Character:GetAttribute("CurrentlyEquippedSword")
+		end
+
+		local v2 = func11(v1)
+
+		if not v2 then
+			return
+		end
+
+		for _, track in pairs(Humanoid.Animator:GetPlayingAnimationTracks()) do
+			if track.Name == "GrabParry" or track.Name == "Grab" then
+				track.TimePosition = 0
+				if track then
+					pcall(function()
+						track:Stop(track:GetAttribute("StopFadeTime") or 0.1)
+					end)
+				end
+			elseif track.Name == "SuccessParry" or track.Name == "Success" then
+				if track then
+					pcall(function()
+						track:Stop(track:GetAttribute("StopFadeTime") or 0.1)
+					end)
+				end
+			end
+		end
+
+		v21 = Humanoid.Animator:LoadAnimation(v2)
+		local v3 = v21
+
+		if v3 then
+			pcall(function()
+				v3:Play(
+					v3:GetAttribute("PlayFadeTime") or 0,
+					v3:GetAttribute("PlayWeight") or 1,
+					v3:GetAttribute("PlaySpeed") or 1
+				)
+			end)
+		end
+	end
+
+	pcall(function()
+		v2.Remotes.ParrySuccessAll.OnClientEvent:Connect(function()
+			flag4 = true
+			local Character = LocalPlayer.Character
+
+			if not Character then
+				return
+			end
+
+			local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+			if not Humanoid then
+				return
+			end
+
+			for _, track in pairs(Humanoid.Animator:GetPlayingAnimationTracks()) do
+				if track.Name == "GrabParry" or track.Name == "Grab" then
+					if track then
+						pcall(function()
+							track:Stop(track:GetAttribute("StopFadeTime") or 0.1)
+						end)
+					end
+				end
+			end
+		end)
+	end)
+
+	tbl3.ball = {}
+
+	function tbl3.ball.get()
+		local Balls = v10:FindFirstChild("Balls")
+
+		if not Balls then
+			return nil
+		end
+
+		for _, child in pairs(Balls:GetChildren()) do
+			if child:GetAttribute("realBall") then
+				child.CanCollide = false
+				return child
+			end
+		end
+
+		return nil
+	end
+
+	function tbl3.ball.get_all()
+		local tbl = {}
+		local Balls = v10:FindFirstChild("Balls")
+
+		if not Balls then
+			return tbl
+		end
+
+		for _, child in pairs(Balls:GetChildren()) do
+			if child:GetAttribute("realBall") then
+				child.CanCollide = false
+				table.insert(tbl, child)
+			end
+		end
+
+		return tbl
+	end
+
+	tbl3.player = {}
+	local v22
+	local num1 = 0
+
+	function tbl3.player.get_closest()
+		local v1 = tick()
+
+		if v1 - num1 < 0.1 then
+			return v22
+		end
+
+		num1 = v1
+		local huge = math.huge
+		local v3
+
+		if not v11 then
+			return nil
+		end
+
+		for _, child in pairs(v11:GetChildren()) do
+			if child ~= LocalPlayer.Character and child.PrimaryPart then
+				local v2 = LocalPlayer:DistanceFromCharacter(child.PrimaryPart.Position)
+				if v2 < huge then
+					v3 = child
+					huge = v2
+				end
+			end
+		end
+
+		v22 = v3
+		return v3
+	end
+
+	tbl3.curve = {}
+
+	function tbl3.curve.get_cframe()
+		local CurrentCamera = v10.CurrentCamera
+		local v1 = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		local v2 = v1 and v1.Position or CurrentCamera.CFrame.Position
+		local PrimaryPart
+		local huge = math.huge
+		local v4 = not tbl3.__properties.__is_mobile and v3:GetMouseLocation() or nil
+
+		if v11 then
+			for _, child in pairs(v11:GetChildren()) do
+				if child ~= LocalPlayer.Character and child.PrimaryPart then
+					local v5, v6 = CurrentCamera:WorldToScreenPoint(child.PrimaryPart.Position)
+					if v6 then
+						local Magnitude
+
+						if v4 then
+							Magnitude = (Vector2.new(v5.X, v5.Y) - v4).Magnitude
+						else
+							local new = Vector2.new
+							local X = CurrentCamera.ViewportSize.X
+							local ViewportSize = CurrentCamera.ViewportSize
+							local v7 = new(X / 2, ViewportSize.Y / 2)
+							Magnitude = (Vector2.new(v5.X, v5.Y) - v7).Magnitude
+						end
+
+						if Magnitude < huge then
+							PrimaryPart = child.PrimaryPart
+							huge = Magnitude
+						end
+					end
+				end
+			end
+		end
+
+		local v8 = PrimaryPart and PrimaryPart.Position or v2 + CurrentCamera.CFrame.LookVector * 100
+		local v9 = str
+		local CFrame1
+
+		if v9 == "Camera" then
+			CFrame1 = CurrentCamera.CFrame
+		elseif v9 == "Random" then
+			local num = 0
+			local Unit = (v8 - v2).Unit
+			local vector3
+
+			repeat
+				vector3 = Vector3.new(math.random(-4000, 4000), math.random(-4000, 4000), math.random(-4000, 4000))
+				local v12 = Unit:Dot((v8 + vector3 - v2).Unit)
+				num = num + 1
+			until v12 < 0.95 or num > 10
+
+			local v13 = v8 + vector3
+			CFrame1 = CFrame.new(v2, v13)
+		elseif v9 == "Accelerated" then
+			CFrame1 = CFrame.new(v2, v8 + Vector3.new(0, 5, 0))
+		elseif v9 == "Backwards" then
+			local v14 = v2 + (v2 - v8).Unit * 10000 + Vector3.new(0, 1000, 0)
+			CFrame1 = CFrame.new(CurrentCamera.CFrame.Position, v14)
+		elseif v9 == "Slow" then
+			CFrame1 = CFrame.new(v2, v8 + Vector3.new(0, -9000000000000000000, 0))
+		elseif v9 == "High" then
+			CFrame1 = CFrame.new(v2, v8 + Vector3.new(0, 9000000000000000000, 0))
+		elseif v9 == "Normal" then
+			CFrame1 = CFrame.new(v2, v2 + (v1 and v1.CFrame.LookVector or CurrentCamera.CFrame.LookVector))
+		elseif v9 == "Speed" then
+			CFrame1 = CFrame.new(CurrentCamera.CFrame.Position, CurrentCamera.CFrame.Position + CurrentCamera.CFrame.UpVector * 5)
+		elseif v9 == "Down" then
+			CFrame1 = CFrame.new(
+				CurrentCamera.CFrame.Position,
+				CurrentCamera.CFrame.Position + CurrentCamera.CFrame.UpVector * -9000000000
+			)
+		elseif v9 == "Left" then
+			CFrame1 = CFrame.new(
+				CurrentCamera.CFrame.Position,
+				CurrentCamera.CFrame.Position - CurrentCamera.CFrame.RightVector * 9000000000
+			)
+		elseif v9 == "Right" then
+			CFrame1 = CFrame.new(
+				CurrentCamera.CFrame.Position,
+				CurrentCamera.CFrame.Position + CurrentCamera.CFrame.RightVector * 9000000000
+			)
+		else
+			CFrame1 = CurrentCamera.CFrame
+		end
+
+		return CFrame1
+	end
+
+	tbl3.parry = {}
+
+	function tbl3.parry.execute()
+		if tbl3.__properties.__parries > 10000 or not LocalPlayer.Character then
+			return
+		end
+
+		func10(tbl3.curve.get_cframe())
+
+		if tbl3.__properties.__parries > 10000 then
+			return
+		end
+
+		tbl3.__properties.__parries = tbl3.__properties.__parries + 1
+
+		task.delay(0.5, function()
+			if tbl3.__properties.__parries > 0 then
+				tbl3.__properties.__parries = tbl3.__properties.__parries - 1
+			end
+		end)
+	end
+
+	function tbl3.parry.keypress()
+		if tbl3.__properties.__parries > 10000 or not LocalPlayer.Character then
+			return
+		end
+
+		func10(tbl3.curve.get_cframe())
+
+		if tbl3.__properties.__parries > 10000 then
+			return
+		end
+
+		tbl3.__properties.__parries = tbl3.__properties.__parries + 1
+
+		task.delay(0.5, function()
+			if tbl3.__properties.__parries > 0 then
+				tbl3.__properties.__parries = tbl3.__properties.__parries - 1
+			end
+		end)
+	end
+
+	function tbl3.parry.execute_action()
+		tbl3.animation.play_grab_parry()
+		tbl3.parry.execute()
+	end
+
+	local function func12()
+		tbl3.parry.keypress()
+		if getgenv().AutoSpamAnimationFix then
+			tbl3.animation.play_grab_parry()
+		end
+	end
+
+	tbl3.detection = {
+		__ball_properties = {__aerodynamic_time = tick(), __last_warping = tick(), __lerp_radians = 0, __curving = tick()},
+	}
+
+	function tbl3.detection.is_curved()
+		local __ball_properties = tbl3.detection.__ball_properties
+		local v1 = tbl3.ball.get()
+
+		if not v1 then
+			return false
+		end
+
+		local zoomies = v1:FindFirstChild("zoomies")
+
+		if not zoomies then
+			return false
+		end
+
+		local VectorVelocity = zoomies.VectorVelocity
+		local Magnitude = VectorVelocity.Magnitude
+
+		if Magnitude < 1 then
+			return false
+		end
+
+		local Unit = VectorVelocity.Unit
+		local Character = LocalPlayer.Character
+
+		if not Character or not Character.PrimaryPart then
+			return false
+		end
+
+		local Position = Character.PrimaryPart.Position
+		local v2 = (Position - v1.Position).Unit:Dot(Unit)
+		local Value = v6.Network.ServerStatsItem["Data Ping"]:GetValue()
+		local Position1 = v1.Position
+		local v3 = Value / 1000
+		local Magnitude1 = (Position - Position1).Magnitude
+		local v4 = Magnitude1 / Magnitude - v3
+		local v5 = math.clamp(0.55 - v3 * 0.75, -1, 0.45)
+		local v7 = math.min(Magnitude / 100, 45)
+		local v8 = 15 - math.min(Magnitude1 / 1000, 15) + v7
+		local v9 = math.clamp(v2, -1, 1)
+		local v10 = math.asin(v9)
+		local __lerp_radians = __ball_properties.__lerp_radians
+		__ball_properties.__lerp_radians = __lerp_radians + (v10 - __lerp_radians) * 0.85
+
+		if __ball_properties.__lerp_radians < 0.016 then
+			__ball_properties.__last_warping = tick()
+		end
+
+		if Magnitude1 < v8 * 0.85 then
+			return false
+		end
+
+		if tick() - __ball_properties.__last_warping < v4 / 1.4 then
+			return true
+		end
+
+		if tick() - __ball_properties.__curving < v4 / 1.1 then
+			return true
+		end
+
+		return v2 < v5
+	end
+
+	v2.Remotes.DeathBall.OnClientEvent:Connect(function(_, arg2)
+		tbl3.__properties.__deathslash_active = arg2 or false
+	end)
+
+	v2.Remotes.InfinityBall.OnClientEvent:Connect(function(_, arg2)
+		tbl3.__properties.__infinity_active = arg2 or false
+	end)
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/TimeHoleActivate"].OnClientEvent:Connect(function(...)
+		local v1 = ({...})[1]
+		if v1 == LocalPlayer or v1 == LocalPlayer.Name or v1 and v1.Name == LocalPlayer.Name then
+			tbl3.__properties.__timehole_active = true
+		end
+	end)
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/TimeHoleDeactivate"].OnClientEvent:Connect(function()
+		tbl3.__properties.__timehole_active = false
+	end)
+
+	local num2 = 36
+	local num3 = 0.05
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/SlashesOfFuryActivate"].OnClientEvent:Connect(function(...)
+		local v1 = ({...})[1]
+		if v1 == LocalPlayer or v1 == LocalPlayer.Name or v1 and v1.Name == LocalPlayer.Name then
+			tbl3.__properties.__slashesoffury_active = true
+			tbl3.__properties.__slashesoffury_count = 0
+		end
+	end)
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/SlashesOfFuryEnd"].OnClientEvent:Connect(function()
+		tbl3.__properties.__slashesoffury_active = false
+		tbl3.__properties.__slashesoffury_count = 0
+	end)
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/SlashesOfFuryParry"].OnClientEvent:Connect(function()
+		tbl3.__properties.__slashesoffury_count = tbl3.__properties.__slashesoffury_count + 1
+	end)
+
+	v2.Packages._Index["sleitnick_net@0.1.0"].net["RE/SlashesOfFuryCatch"].OnClientEvent:Connect(function()
+		task.spawn(function()
+			while tbl3.__properties.__slashesoffury_active and tbl3.__properties.__slashesoffury_count < num2 do
+				if tbl3.__config.__detections.__slashesoffury then
+					tbl3.parry.execute()
+					task.wait(num3)
+				else
+					break
+				end
+			end
+		end)
+	end)
+
+	Runtime.ChildAdded:Connect(function(child)
+		if tbl3.__config.__detections.__phantom then
+			if child.Name == "maxTransmission" or child.Name == "transmissionpart" then
+				local WeldConstraint = child:FindFirstChildWhichIsA("WeldConstraint")
+				if WeldConstraint then
+					local v1 = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+					if v1 and WeldConstraint.Part1 == v1.HumanoidRootPart then
+						local v3 = tbl3.ball.get()
+						WeldConstraint:Destroy()
+
+						if v3 then
+							local connection
+
+							connection = v4.RenderStepped:Connect(function()
+								local highlighted = v3:GetAttribute("highlighted")
+								if highlighted == true then
+									v2.Remotes.AbilityButtonPress:Fire()
+									tbl3.__properties.__parried = true
+
+									task.delay(1, function()
+										tbl3.__properties.__parried = false
+									end)
+								elseif highlighted == false then
+									connection:Disconnect()
+								end
+							end)
+
+							task.delay(3, function()
+								if connection and connection.Connected then
+									connection:Disconnect()
+								end
+							end)
+						end
+					end
+				end
+			end
+		end
+	end)
+
+	v2.Remotes.ParrySuccessAll.OnClientEvent:Connect(function(_, arg2)
+		if arg2.Parent and arg2.Parent ~= LocalPlayer.Character then
+			if not v11 or arg2.Parent.Parent ~= v11 then
+				return
+			end
+		end
+
+		local v1 = tbl3.player.get_closest()
+		local v2 = tbl3.ball.get()
+
+		if not v2 or not v1 then
+			return
+		end
+
+		local Magnitude = (LocalPlayer.Character.PrimaryPart.Position - v1.PrimaryPart.Position).Magnitude
+		local Magnitude1 = (LocalPlayer.Character.PrimaryPart.Position - v2.Position).Magnitude
+		local v3 = (LocalPlayer.Character.PrimaryPart.Position - v2.Position).Unit:Dot(v2.AssemblyLinearVelocity.Unit)
+		local v4 = tbl3.detection.is_curved()
+
+		if Magnitude < 15 and Magnitude1 < 15 and v3 > -0.25 then
+			if v4 then
+				tbl3.parry.execute_action()
+			end
+		end
+
+		if tbl3.__properties.__grab_animation then
+			tbl3.__properties.__grab_animation:Stop()
+		end
+	end)
+
+	v2.Remotes.ParrySuccess.OnClientEvent:Connect(function()
+		if not v11 or LocalPlayer.Character.Parent ~= v11 then
+			return
+		end
+		if tbl3.__properties.__grab_animation then
+			tbl3.__properties.__grab_animation:Stop()
+		end
+	end)
+
+	v2.Remotes.ParrySuccessAll.OnClientEvent:Connect(function(_, arg2)
+		local PrimaryPart = LocalPlayer.Character.PrimaryPart
+		local v1 = tbl3.ball.get()
+
+		if not v1 then
+			return
+		end
+
+		local zoomies = v1:FindFirstChild("zoomies")
+
+		if not zoomies then
+			return
+		end
+
+		local Magnitude = zoomies.VectorVelocity.Magnitude
+		local Magnitude1 = (LocalPlayer.Character.PrimaryPart.Position - v1.Position).Magnitude
+		local Value = v6.Network.ServerStatsItem["Data Ping"]:GetValue()
+		local v2 = math.min(Magnitude / 100, 40)
+		local v3 = Magnitude1 / Magnitude - Value / 1000
+		local v4 = Magnitude > 1
+		local v5 = 15 - math.min(Magnitude1 / 1000, 15) + v2
+
+		if v4 and v3 > Value / 10 then
+			v5 = math.max(v5 - 15, 15)
+		end
+
+		if arg2 ~= PrimaryPart and Magnitude1 > v5 then
+			tbl3.detection.__ball_properties.__curving = tick()
+		end
+	end)
+
+	local tbl8 = {}
+
+	function tbl8:Enable()
+		if tbl3.__properties.__thunder_dash_enabled then
+			return
+		end
+
+		tbl3.__properties.__thunder_dash_enabled = true
+		local Abilities = v2:WaitForChild("Shared"):WaitForChild("Abilities")
+
+		local function func(arg1)
+			local ok, result = pcall(require, arg1)
+			if ok and result then
+				if result.cooldown ~= nil then
+					result.cooldown = 0
+				end
+				if result.cooldownReductionPerUpgrade ~= nil then
+					result.cooldownReductionPerUpgrade = 0
+				end
+			end
+		end
+
+		for _, child in ipairs(Abilities:GetChildren()) do
+			func(child)
+		end
+
+		Abilities.ChildAdded:Connect(func)
+	end
+
+	function tbl8:Disable()
+		tbl3.__properties.__thunder_dash_enabled = false
+	end
+
+	tbl3.triggerbot = {}
+	local flag5 = false
+
+	function tbl3.triggerbot.trigger(_)
+		if flag5 then
+			return
+		end
+
+		if tbl3.__triggerbot.__is_parrying then
+			return
+		end
+
+		if tbl3.__triggerbot.__parries > tbl3.__triggerbot.__max_parries then
+			return
+		end
+
+		if
+			LocalPlayer.Character
+			and LocalPlayer.Character.PrimaryPart
+			and LocalPlayer.Character.PrimaryPart:FindFirstChild("SingularityCape")
+		then
+			return
+		end
+
+		flag5 = true
+		tbl3.__triggerbot.__is_parrying = true
+		tbl3.__triggerbot.__parries = tbl3.__triggerbot.__parries + 1
+		tbl3.parry.execute()
+
+		if tbl3.__properties.__play_animation then
+			tbl3.animation.play_grab_parry()
+		end
+
+		task.delay(0.2, function()
+			flag5 = false
+			if tbl3.__triggerbot.__parries > 0 then
+				tbl3.__triggerbot.__parries = tbl3.__triggerbot.__parries - 1
+			end
+		end)
+
+		task.spawn(function()
+			local v1 = tick()
+
+			repeat
+				v4.Heartbeat:Wait()
+			until tick() - v1 >= 0.15 or not tbl3.__triggerbot.__is_parrying
+
+			tbl3.__triggerbot.__is_parrying = false
+		end)
+	end
+
+	function tbl3.triggerbot.loop()
+		if not tbl3.__triggerbot.__enabled then
+			return
+		end
+
+		if
+			LocalPlayer.Character
+			and LocalPlayer.Character.PrimaryPart
+			and LocalPlayer.Character.PrimaryPart:FindFirstChild("SingularityCape")
+		then
+			return
+		end
+
+		local Balls = v10:FindFirstChild("Balls")
+
+		if not Balls then
+			return
+		end
+
+		for _, child in pairs(Balls:GetChildren()) do
+			if child:IsA("BasePart") and child:GetAttribute("target") == LocalPlayer.Name then
+				tbl3.triggerbot.trigger(child)
+				break
+			end
+		end
+	end
+
+	function tbl3.triggerbot.enable(__enabled)
+		tbl3.__triggerbot.__enabled = __enabled
+		if __enabled then
+			if not tbl3.__properties.__connections.__triggerbot then
+				tbl3.__properties.__connections.__triggerbot = v4.Heartbeat:Connect(tbl3.triggerbot.loop)
+			end
+		else
+			if tbl3.__properties.__connections.__triggerbot then
+				tbl3.__properties.__connections.__triggerbot:Disconnect()
+				tbl3.__properties.__connections.__triggerbot = nil
+			end
+
+			tbl3.__triggerbot.__is_parrying = false
+			tbl3.__triggerbot.__parries = 0
+			flag5 = false
+		end
+	end
+
+	tbl3.manual_spam = {}
+	local v23
+	local flag6 = false
+	local num4 = 0
+	local num5 = 0
+	local flag7 = true
+
+	function tbl3.manual_spam.start()
+		tbl3.manual_spam.stop()
+		tbl3.__properties.__manual_spam_enabled = true
+		local parry = tbl3.parry
+		flag6 = true
+		local keypress = parry.keypress
+		local execute = tbl3.parry.execute
+		local play_grab_parry = tbl3.animation.play_grab_parry
+
+		v23 = coroutine.create(function()
+			local num = 0
+			while tbl3.__properties.__manual_spam_enabled do
+				local v1 = os.clock()
+
+				if v1 - num >= 0.015 then
+					num = v1
+					if getgenv().ManualSpamMode == "Keypress" then
+						keypress()
+					else
+						execute()
+						if getgenv().ManualSpamAnimationFix then
+							play_grab_parry()
+						end
+					end
+				end
+
+				coroutine.yield()
+			end
+		end)
+
+		task.spawn(function()
+			while tbl3.__properties.__manual_spam_enabled and v23 and coroutine.status(v23) ~= "dead" do
+				coroutine.resume(v23)
+				task.wait()
+			end
+		end)
+	end
+
+	function tbl3.manual_spam.stop()
+		tbl3.__properties.__manual_spam_enabled = false
+		flag6 = false
+		v23 = nil
+	end
+
+	v4.Heartbeat:Connect(function(deltaTime)
+		num5 = num5 + deltaTime
+
+		if num5 >= 0.1 then
+			num4 = 0
+			num5 = 0
+		end
+
+		if flag6 and v19 then
+			pcall(function()
+				func10(tbl3.curve.get_cframe())
+				num4 = num4 + 1
+			end)
+			if flag7 then
+				tbl3.animation.play_grab_parry()
+			end
+		end
+	end)
+
+	tbl3.auto_spam = {}
+
+	function tbl3.auto_spam:get_entity_properties()
+		tbl3.player.get_closest()
+
+		if not v22 or not LocalPlayer.Character or not LocalPlayer.Character.PrimaryPart or not v22.PrimaryPart then
+			return false
+		end
+
+		return {
+			Velocity = v22.PrimaryPart.AssemblyLinearVelocity,
+			Direction = (LocalPlayer.Character.PrimaryPart.Position - v22.PrimaryPart.Position).Unit,
+			Distance = (LocalPlayer.Character.PrimaryPart.Position - v22.PrimaryPart.Position).Magnitude,
+		}
+	end
+
+	function tbl3.auto_spam:get_ball_properties()
+		local v1 = tbl3.ball.get()
+
+		if not v1 or not LocalPlayer.Character or not LocalPlayer.Character.PrimaryPart then
+			return false
+		end
+
+		local AssemblyLinearVelocity = v1.AssemblyLinearVelocity
+		local Unit = (LocalPlayer.Character.PrimaryPart.Position - v1.Position).Unit
+
+		return {
+			Velocity = AssemblyLinearVelocity,
+			Direction = Unit,
+			Distance = (LocalPlayer.Character.PrimaryPart.Position - v1.Position).Magnitude,
+			Dot = AssemblyLinearVelocity.Magnitude > 0 and Unit:Dot(AssemblyLinearVelocity.Unit) or 0,
+		}
+	end
+
+	function tbl3.auto_spam.spam_service(arg1)
+		local v1 = tbl3.ball.get()
+		local v2 = tbl3.player.get_closest()
+
+		if
+			not v1
+			or not v2
+			or not v2.PrimaryPart
+			or not LocalPlayer.Character
+			or not LocalPlayer.Character.PrimaryPart
+		then
+			return 0
+		end
 
 -- https://lua-x.online
-  Instance.new("UICorner", textButton5).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance6 = Instance.new("UIStroke", textButton5)
-  instance6.Color = v5.StrokeDim
-  instance6.Thickness = 0.9
-
-  local textLabel6 = Instance.new("TextLabel")
-  textLabel6.Size = UDim2.new(1, -155, 1, 0)
-  textLabel6.Position = UDim2.new(0, 10, 0, 0)
-  textLabel6.BackgroundTransparency = 1
-  textLabel6.Text = text7
-  textLabel6.TextColor3 = v5.Text
-  textLabel6.Font = v5.Font
-  textLabel6.TextSize = 12
-  textLabel6.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel6.Parent = textButton5
-
-  local frame10 = Instance.new("Frame")
-  frame10.Size = UDim2.new(0, 130, 0, 22)
-  frame10.Position = UDim2.new(1, -138, 0.5, -11)
-  frame10.BackgroundColor3 = v5.Elevated
-  frame10.BorderSizePixel = 0
-  frame10.Parent = textButton5
-
-  Instance.new("UICorner", frame10).CornerRadius = UDim.new(0, 5)
-
-  local instance7 = Instance.new("UIStroke", frame10)
-  instance7.Color = v5.Stroke
-  instance7.Thickness = 0.8
-
-  local textLabel7 = Instance.new("TextLabel")
-  textLabel7.Size = UDim2.new(1, -22, 1, 0)
-  textLabel7.Position = UDim2.new(0, 8, 0, 0)
-  textLabel7.BackgroundTransparency = 1
-  textLabel7.Text = tostring(text8)
-  textLabel7.TextColor3 = Color3.fromRGB(240, 242, 250)
-  textLabel7.Font = v5.Font
-  textLabel7.TextSize = 11
-  textLabel7.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel7.TextTruncate = Enum.TextTruncate.AtEnd
-  textLabel7.Parent = frame10
-
-  local imageLabel2 = Instance.new("ImageLabel")
-  imageLabel2.Size = UDim2.new(0, 14, 0, 14)
-  imageLabel2.Position = UDim2.new(1, -18, 0.5, -7)
-  imageLabel2.BackgroundTransparency = 1
-  imageLabel2.Image = "rbxassetid://7733717447"
-  imageLabel2.ImageColor3 = v5.TextSub
-  imageLabel2.ScaleType = Enum.ScaleType.Fit
-  imageLabel2.Parent = frame10
-
-  local dropdownMenu = Instance.new("Frame")
-  dropdownMenu.Name = "DropdownMenu"
-  dropdownMenu.Size = UDim2.new(1, 0, 0, 0)
-  dropdownMenu.BackgroundColor3 = Color3.fromRGB(15, 16, 21)
-  dropdownMenu.BackgroundTransparency = 0.15
-  dropdownMenu.BorderSizePixel = 0
-  dropdownMenu.ClipsDescendants = true
-  dropdownMenu.Visible = false
-  dropdownMenu.AutomaticSize = Enum.AutomaticSize.Y
-  dropdownMenu.LayoutOrder = 2
-  dropdownMenu.Parent = frame9
-
-  Instance.new("UICorner", dropdownMenu).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance8 = Instance.new("UIStroke", dropdownMenu)
-  instance8.Color = v5.Stroke
-  instance8.Thickness = 0.9
-
-  local uiListLayout2 = Instance.new("UIListLayout")
-  uiListLayout2.SortOrder = Enum.SortOrder.LayoutOrder
-  uiListLayout2.Padding = UDim.new(0, 2)
-  uiListLayout2.Parent = dropdownMenu
-
-  local instance9 = Instance.new("UIPadding", dropdownMenu)
-  instance9.PaddingTop = UDim.new(0, 4)
-  instance9.PaddingBottom = UDim.new(0, 4)
-  instance9.PaddingLeft = UDim.new(0, 4)
-  instance9.PaddingRight = UDim.new(0, 4)
-
-  local v57 = false
-  local v58 = text8
-
-  local function f21(p27)
-    v57 = p27 ~= nil and p27 or not v57
-    dropdownMenu.Visible = v57
-
-    v1.TweenService:Create(imageLabel2, TweenInfo.new(0.15), {
-      Rotation = v57 and 180 or 0,
-    }):Play()
-
-    v1.TweenService:Create(instance7, TweenInfo.new(0.15), {
-      Color = v57 and v5.Accent or v5.Stroke,
-    }):Play()
-  end
-
-  local function makeTextButton5()
-    for _, value13 in ipairs(dropdownMenu:GetChildren()) do
-      if value13:IsA("TextButton") then
-        value13:Destroy()
-      end
-    end
-
-    for index, value14 in ipairs(list3) do
-      local v59 = v56[index]
-      local v60 = v59 == v58
-
-      local textButton6 = Instance.new("TextButton")
-      textButton6.Size = UDim2.new(1, 0, 0, 26)
-
-      textButton6.BackgroundColor3 = v60 and Color3.fromRGB(28, 30, 40)
-        or Color3.fromRGB(15, 16, 21)
-
-      textButton6.BackgroundTransparency = v60 and 0 or 1
-      textButton6.BorderSizePixel = 0
-      textButton6.Text = ""
-      textButton6.AutoButtonColor = false
-      textButton6.Parent = dropdownMenu
-
-      Instance.new("UICorner", textButton6).CornerRadius = UDim.new(0, 5)
-
-      local textLabel8 = Instance.new("TextLabel")
-      textLabel8.Size = UDim2.new(1, -26, 1, 0)
-      textLabel8.Position = UDim2.new(0, 8, 0, 0)
-      textLabel8.BackgroundTransparency = 1
-      textLabel8.Text = tostring(value14)
-
-      textLabel8.TextColor3 = v60 and Color3.fromRGB(255, 255, 255)
-        or Color3.fromRGB(160, 165, 180)
-
-      textLabel8.Font = v5.Font
-      textLabel8.TextSize = 11.5
-      textLabel8.TextXAlignment = Enum.TextXAlignment.Left
-      textLabel8.Parent = textButton6
-
-      local imageLabel3 = Instance.new("ImageLabel")
-      imageLabel3.Size = UDim2.new(0, 14, 0, 14)
-      imageLabel3.Position = UDim2.new(1, -20, 0.5, -7)
-      imageLabel3.BackgroundTransparency = 1
-      imageLabel3.Image = "rbxassetid://7733715400"
-      imageLabel3.ImageColor3 = Color3.fromRGB(255, 255, 255)
-      imageLabel3.ScaleType = Enum.ScaleType.Fit
-      imageLabel3.Visible = v60
-      imageLabel3.Parent = textButton6
-
-      textButton6.MouseButton1Click:Connect(function()
-        v58 = v59
-        textLabel7.Text = tostring(value14)
-        f21(false)
-        makeTextButton5()
-        pcall(p24, v59)
-      end)
-
-      if v60 then
-        textLabel7.Text = tostring(value14)
-      end
-    end
-  end
-
-  textButton5.MouseButton1Click:Connect(function() f21() end)
-  makeTextButton5()
-
-  if p25 and p26 then
-    f17(text7, p25, p26, frame9)
-  end
-
-  return frame9
-end
-
-local function makeTextLabel2(
-  parent6, text9, customTargetPlayer, placeholderText, p28, p29, p30
-)
-  local frame11 = Instance.new("Frame")
-  frame11.Size = UDim2.new(1, 0, 0, 32)
-  frame11.BackgroundColor3 = v5.Card
-  frame11.BackgroundTransparency = 0.5
-  frame11.BorderSizePixel = 0
-  frame11.Parent = parent6
-
-  Instance.new("UICorner", frame11).CornerRadius = UDim.new(0, v5.CardRadius)
-
-  local instance10 = Instance.new("UIStroke", frame11)
-  instance10.Color = v5.StrokeDim
-  instance10.Thickness = 0.9
-
-  local textLabel9 = Instance.new("TextLabel")
-  textLabel9.Size = UDim2.new(0.48, -10, 1, 0)
-  textLabel9.Position = UDim2.new(0, 10, 0, 0)
-  textLabel9.BackgroundTransparency = 1
-  textLabel9.Text = text9
-  textLabel9.TextColor3 = v5.Text
-  textLabel9.Font = v5.Font
-  textLabel9.TextSize = 12
-  textLabel9.TextXAlignment = Enum.TextXAlignment.Left
-  textLabel9.Parent = frame11
-
-  local frame12 = Instance.new("Frame")
-  frame12.Size = UDim2.new(0.5, 0, 0, 22)
-  frame12.Position = UDim2.new(1, -8, 0.5, 0)
-  frame12.AnchorPoint = Vector2.new(1, 0.5)
-  frame12.BackgroundColor3 = v5.Elevated
-  frame12.BorderSizePixel = 0
-  frame12.Parent = frame11
-
-  Instance.new("UICorner", frame12).CornerRadius = UDim.new(0, 5)
-
-  local instance11 = Instance.new("UIStroke", frame12)
-  instance11.Color = v5.Stroke
-  instance11.Thickness = 0.8
-
-  local textBox = Instance.new("TextBox")
-  textBox.Size = UDim2.new(1, -12, 1, 0)
-  textBox.Position = UDim2.new(0, 6, 0, 0)
-  textBox.BackgroundTransparency = 1
-  textBox.Text = customTargetPlayer or ""
-  textBox.PlaceholderText = placeholderText or "Player name..."
-  textBox.PlaceholderColor3 = v5.Muted
-  textBox.TextColor3 = v5.Text
-  textBox.Font = v5.Font
-  textBox.TextSize = 11.5
-  textBox.TextXAlignment = Enum.TextXAlignment.Left
-  textBox.ClearTextOnFocus = false
-  textBox.Parent = frame12
-  textBox.FocusLost:Connect(function(p31) pcall(p28, textBox.Text) end)
-
-  frame11.MouseEnter:Connect(function()
-    v1.TweenService:Create(instance10, TweenInfo.new(0.15), {
-      Color = v5.Stroke,
-      Thickness = 1,
-    }):Play()
-
-    v1.TweenService:Create(frame11, TweenInfo.new(0.15), { BackgroundTransparency = 0.3 }):Play()
-  end)
-
-  frame11.MouseLeave:Connect(function()
-    v1.TweenService:Create(instance10, TweenInfo.new(0.15), {
-      Color = v5.StrokeDim,
-      Thickness = 0.9,
-    }):Play()
-
-    v1.TweenService:Create(frame11, TweenInfo.new(0.15), { BackgroundTransparency = 0.5 }):Play()
-  end)
-
-  if p29 and p30 then
-    f17(text9, p29, p30, frame11)
-  end
-
-  return frame11, textBox
-end
-
-local function f22(tab2)
-  state.ActiveTab = tab2
-
-  if state.SearchContainer then
-    state.SearchContainer.Visible = false
-  end
-
-  for key, value15 in pairs(state.TabContainers) do
-    value15.Visible = key == tab2
-  end
-
-  for key2, value16 in pairs(state.TabButtons) do
-    local activeIndicator = value16:FindFirstChild("ActiveIndicator")
-    local icon = value16:FindFirstChild("Icon")
-
-    if key2 == tab2 then
-      v1.TweenService:Create(value16, TweenInfo.new(0.18), {
-        BackgroundTransparency = 0.1,
-        BackgroundColor3 = Color3.fromRGB(18, 20, 26),
-      }):Play()
-
-      if activeIndicator then
-        activeIndicator.BackgroundTransparency = 0
-
-        v1.TweenService:Create(activeIndicator, TweenInfo.new(0.18), {
-          Size = UDim2.new(0, 3, 0.7, 0),
-        }):Play()
-      end
-
-      if icon then
-        icon.ImageTransparency = 0
-      end
-    else
-      v1.TweenService:Create(value16, TweenInfo.new(0.18), {
-        BackgroundTransparency = 1,
-        BackgroundColor3 = Color3.fromRGB(15, 16, 21),
-      }):Play()
-
-      if activeIndicator then
-        activeIndicator.BackgroundTransparency = 1
-
-        v1.TweenService:Create(activeIndicator, TweenInfo.new(0.18), {
-          Size = UDim2.new(0, 0, 0.7, 0),
-        }):Play()
-      end
-
-      if icon then
-        icon.ImageTransparency = 0.35
-      end
-    end
-  end
-end
-
-local function f23(p32)
-  if not state.MainFrame then
-    return
-  end
-
-  local isMenuOpen = p32 ~= nil and p32 or not state.MainFrame.Visible
-  state.IsMenuOpen = isMenuOpen
-
-  if isMenuOpen then
-    state.MainFrame.Visible = true
-
-    v1.TweenService:Create(state.MainFrame, TweenInfo.new(
-      0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out
-    ), {
-      Size = UDim2.new(0, v5.MainW, 0, v5.MainH),
-      Position = UDim2.new(0.5, -v5.MainW / 2, 0.5, -v5.MainH / 2),
-      BackgroundTransparency = 0.02,
-    }):Play()
-  else
-    local create = v1.TweenService:Create(state.MainFrame, TweenInfo.new(
-      0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In
-    ), {
-      Size = UDim2.new(0, v5.MainW * 0.85, 0, v5.MainH * 0.85),
-      Position = UDim2.new(0.5, -(v5.MainW * 0.85) / 2, 0.5, -(v5.MainH * 0.85) / 2),
-      BackgroundTransparency = 1,
-    })
-
-    create:Play()
-
-    create.Completed:Connect(function()
-      if not state.IsMenuOpen then
-        state.MainFrame.Visible = false
-      end
-    end)
-  end
-end
-
-local function f24(key3)
-  local v61 = v3[key3]
-
-  if not v61 then
-    return
-  end
-
-  v4 = key3
-
-  v5.Bg = v61.Bg
-  v5.Sidebar = v61.Sidebar
-  v5.Card = v61.Card
-  v5.CardHover = v61.CardHover
-  v5.Elevated = v61.Elevated
-  v5.Stroke = v61.Stroke
-  v5.StrokeDim = v61.StrokeDim
-  v5.Accent = v61.Accent
-  v5.AccentCyan = v61.AccentCyan
-
-  if state.MainFrame then
-    state.MainFrame.BackgroundColor3 = v5.Bg
-    local uiStroke = state.MainFrame:FindFirstChildOfClass("UIStroke")
-
-    if uiStroke then
-      uiStroke.Color = v5.Stroke
-    end
-  end
-end
-
-local function f25(p33)
-  v6.ActivePreset = p33
-
-  if p33 == "Legit" then
-    v6.AutoParry = true
-    v6.ClashMode = true
-    v6.AutoTarget = true
-    v6.AutoTargetMode = "Cursor"
-    v6.AutoTargetSilent = true
-    v6.UseCooldown = false
-    v6.FrameDebounce = 0.014
-    v6.ClashDebounce = 0.008
-    v6.ClashDistance = 24
-    v6.BaseReactionWindow = 0.12
-    v6.ParryHitboxRadius = 4
-    v6.FastBallLeadFactor = 0.0005
-    v6.HeadingCheck = true
-    v6.CurvePrediction = true
-    v6.AutoFaceBall = false
-  elseif p33 == "Competitive" then
-    v6.AutoParry = true
-    v6.ClashMode = true
-    v6.AutoTarget = true
-    v6.AutoTargetMode = "Closest"
-    v6.AutoTargetSilent = true
-    v6.UseCooldown = false
-    v6.FrameDebounce = 0.01
-    v6.ClashDebounce = 0.003
-    v6.ClashDistance = 28
-    v6.BaseReactionWindow = 0.14
-    v6.ParryHitboxRadius = 4.5
-    v6.FastBallLeadFactor = 0.0006
-    v6.HeadingCheck = true
-    v6.CurvePrediction = true
-    v6.AutoFaceBall = false
-  elseif p33 == "Clasher" or p33 == "Blatant" then
-    v6.AutoParry = true
-    v6.ClashMode = true
-    v6.AutoTarget = true
-    v6.AutoTargetMode = "Closest"
-    v6.AutoTargetSilent = true
-    v6.UseCooldown = false
-    v6.FrameDebounce = 0.004
-    v6.ClashDebounce = 0.001
-    v6.ClashDistance = 32
-    v6.BaseReactionWindow = 0.17
-    v6.ParryHitboxRadius = 5.5
-    v6.FastBallLeadFactor = 0.0009
-    v6.HeadingCheck = true
-    v6.CurvePrediction = true
-    v6.AutoFaceBall = true
-  end
-end
-
-local function makeTextButton6()
-  local instance12 = f3()
-
-  if not instance12 then
-    return nil
-  end
-
-  local findFirstChild2 = instance12:FindFirstChild(v7)
-
-  if findFirstChild2 then
-    findFirstChild2:Destroy()
-  end
-
-  local screenGui2 = Instance.new("ScreenGui")
-  screenGui2.Name = v7
-  screenGui2.ResetOnSpawn = false
-  screenGui2.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-  screenGui2.DisplayOrder = 99999
-
-  local mainFrame = Instance.new("Frame")
-  mainFrame.Name = "MainFrame"
-  mainFrame.Size = UDim2.new(0, v5.MainW, 0, v5.MainH)
-  mainFrame.Position = UDim2.new(0.5, -v5.MainW / 2, 0.5, -v5.MainH / 2)
-  mainFrame.BackgroundColor3 = v5.Bg
-  mainFrame.BackgroundTransparency = 0.02
-  mainFrame.BorderSizePixel = 0
-  mainFrame.ClipsDescendants = true
-  mainFrame.Active = true
-  mainFrame.Visible = true
-  mainFrame.Parent = screenGui2
-
-  state.MainFrame = mainFrame
-  Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, v5.Radius)
-
-  local instance13 = Instance.new("UIStroke", mainFrame)
-  instance13.Thickness = 1
-  instance13.Color = v5.Stroke
-
-  local frame13 = Instance.new("Frame")
-  frame13.Size = UDim2.new(1, 0, 0, v5.TitleH)
-  frame13.BackgroundColor3 = v5.Sidebar
-  frame13.BackgroundTransparency = 0.05
-  frame13.BorderSizePixel = 0
-  frame13.Parent = mainFrame
-
-  local frame14 = Instance.new("Frame")
-  frame14.Size = UDim2.new(1, 0, 0, 1)
-  frame14.Position = UDim2.new(0, 0, 1, -1)
-  frame14.BackgroundColor3 = v5.StrokeDim
-  frame14.BorderSizePixel = 0
-  frame14.Parent = frame13
-
-  local titleLogo = Instance.new("TextLabel")
-  titleLogo.Name = "TitleLogo"
-  titleLogo.Size = UDim2.new(0, 180, 1, 0)
-  titleLogo.Position = UDim2.new(0, 16, 0, 0)
-  titleLogo.BackgroundTransparency = 1
-  titleLogo.RichText = true
-  titleLogo.Text = "<b>HYPNOSIS</b>  <font color='#7b7e8c'><font size='10'>BETA</font></font>"
-  titleLogo.TextColor3 = v5.Text
-  titleLogo.Font = v5.Font
-  titleLogo.TextSize = 13.5
-  titleLogo.TextXAlignment = Enum.TextXAlignment.Left
-  titleLogo.Parent = frame13
-
-  local textButton7 = Instance.new("TextButton")
-  textButton7.Size = UDim2.new(0, 24, 0, 24)
-  textButton7.Position = UDim2.new(1, -54, 0.5, -12)
-  textButton7.BackgroundTransparency = 1
-  textButton7.Text = "—"
-  textButton7.TextColor3 = v5.TextSub
-  textButton7.Font = v5.Font
-  textButton7.TextSize = 14
-  textButton7.AutoButtonColor = false
-  textButton7.Parent = frame13
-  textButton7.MouseButton1Click:Connect(function() f23(false) end)
-
-  local imageButton = Instance.new("ImageButton")
-  imageButton.Size = UDim2.new(0, 20, 0, 20)
-  imageButton.Position = UDim2.new(1, -24, 0.5, -10)
-  imageButton.BackgroundTransparency = 1
-  imageButton.Image = "rbxassetid://7743878857"
-  imageButton.ImageColor3 = v5.TextSub
-  imageButton.ScaleType = Enum.ScaleType.Fit
-  imageButton.AutoButtonColor = false
-  imageButton.Parent = frame13
-  imageButton.MouseButton1Click:Connect(function() f23(false) end)
-
-  local titleSearchBar = Instance.new("Frame")
-  titleSearchBar.Name = "TitleSearchBar"
-  titleSearchBar.Size = UDim2.new(0, 210, 0, 24)
-  titleSearchBar.Position = UDim2.new(1, -66, 0.5, 0)
-  titleSearchBar.AnchorPoint = Vector2.new(1, 0.5)
-  titleSearchBar.BackgroundColor3 = v5.Card
-  titleSearchBar.BackgroundTransparency = 0.45
-  titleSearchBar.BorderSizePixel = 0
-  titleSearchBar.Active = true
-  titleSearchBar.Parent = frame13
-
-  Instance.new("UICorner", titleSearchBar).CornerRadius = UDim.new(0, 6)
-
-  local instance14 = Instance.new("UIStroke", titleSearchBar)
-  instance14.Color = v5.StrokeDim
-  instance14.Thickness = 0.85
-
-  local searchIcon = Instance.new("ImageLabel")
-  searchIcon.Name = "SearchIcon"
-  searchIcon.Size = UDim2.new(0, 13, 0, 13)
-  searchIcon.Position = UDim2.new(0, 7, 0.5, -6.5)
-  searchIcon.BackgroundTransparency = 1
-  searchIcon.Image = "rbxassetid://7733954760"
-  searchIcon.ImageColor3 = v5.TextSub
-  searchIcon.ImageTransparency = 0.3
-  searchIcon.ScaleType = Enum.ScaleType.Fit
-  searchIcon.Parent = titleSearchBar
-
-  local searchBox = Instance.new("TextBox")
-  searchBox.Name = "SearchBox"
-  searchBox.Size = UDim2.new(1, -44, 1, 0)
-  searchBox.Position = UDim2.new(0, 24, 0, 0)
-  searchBox.BackgroundTransparency = 1
-  searchBox.Text = ""
-  searchBox.PlaceholderText = "Search... (Ctrl+F)"
-  searchBox.PlaceholderColor3 = v5.Muted
-  searchBox.TextColor3 = v5.Text
-  searchBox.Font = v5.Font
-  searchBox.TextSize = 11
-  searchBox.TextXAlignment = Enum.TextXAlignment.Left
-  searchBox.ClearTextOnFocus = false
-  searchBox.Active = true
-  searchBox.Parent = titleSearchBar
-
-  state.SearchBox = searchBox
-
-  local clearSearchBtn = Instance.new("TextButton")
-  clearSearchBtn.Name = "ClearSearchBtn"
-  clearSearchBtn.Size = UDim2.new(0, 16, 0, 16)
-  clearSearchBtn.Position = UDim2.new(1, -19, 0.5, -8)
-  clearSearchBtn.BackgroundTransparency = 1
-  clearSearchBtn.Text = "×"
-  clearSearchBtn.TextColor3 = v5.TextSub
-  clearSearchBtn.Font = v5.Font
-  clearSearchBtn.TextSize = 14
-  clearSearchBtn.AutoButtonColor = false
-  clearSearchBtn.Visible = false
-  clearSearchBtn.Parent = titleSearchBar
-
-  state.ClearSearchBtn = clearSearchBtn
-
-  clearSearchBtn.MouseButton1Click:Connect(function()
-    searchBox.Text = ""
-    searchBox:ReleaseFocus()
-
-    clearSearchBtn.Visible = false
-
-    if state.SearchContainer then
-      state.SearchContainer.Visible = false
-    end
-
-    if state.TabContainers[state.ActiveTab] then
-      state.TabContainers[state.ActiveTab].Visible = true
-    end
-  end)
-
-  local flag5, position13, position14 = false, nil, nil
-
-  frame13.InputBegan:Connect(function(input4)
-    if input4.UserInputType == Enum.UserInputType.MouseButton1
-      or input4.UserInputType == Enum.UserInputType.Touch then
-      flag5 = true
-      position13 = input4.Position
-      position14 = mainFrame.Position
-    end
-  end)
-
-  v1.UserInputService.InputChanged:Connect(function(input5)
-    if flag5
-      and (input5.UserInputType == Enum.UserInputType.MouseMovement
-        or input5.UserInputType == Enum.UserInputType.Touch) then
-      local v62 = input5.Position - position13
-
-      mainFrame.Position = UDim2.new(
-        position14.X.Scale, position14.X.Offset + v62.X, position14.Y.Scale,
-        position14.Y.Offset + v62.Y
-      )
-    end
-  end)
-
-  v1.UserInputService.InputEnded:Connect(function(input6)
-    if input6.UserInputType == Enum.UserInputType.MouseButton1
-      or input6.UserInputType == Enum.UserInputType.Touch then
-      flag5 = false
-    end
-  end)
-
-  local v63 = 50
-
-  local sidebar = Instance.new("Frame")
-  sidebar.Name = "Sidebar"
-  sidebar.Size = UDim2.new(0, 50, 1, -v5.TitleH)
-  sidebar.Position = UDim2.new(0, 0, 0, v5.TitleH)
-  sidebar.BackgroundColor3 = v5.Sidebar
-  sidebar.BackgroundTransparency = 0.05
-  sidebar.BorderSizePixel = 0
-  sidebar.ClipsDescendants = true
-  sidebar.Parent = mainFrame
-
-  local frame15 = Instance.new("Frame")
-  frame15.Size = UDim2.new(0, 1, 1, 0)
-  frame15.Position = UDim2.new(1, -1, 0, 0)
-  frame15.BackgroundColor3 = v5.StrokeDim
-  frame15.BorderSizePixel = 0
-  frame15.Parent = sidebar
-
-  local sidebarContainer = Instance.new("ScrollingFrame")
-  sidebarContainer.Name = "SidebarContainer"
-  sidebarContainer.Size = UDim2.new(1, 0, 1, -8)
-  sidebarContainer.Position = UDim2.new(0, 0, 0, 4)
-  sidebarContainer.BackgroundTransparency = 1
-  sidebarContainer.BorderSizePixel = 0
-  sidebarContainer.ScrollBarThickness = 0
-  sidebarContainer.ScrollingDirection = Enum.ScrollingDirection.Y
-  sidebarContainer.ElasticBehavior = Enum.ElasticBehavior.Always
-  sidebarContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-  sidebarContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
-  sidebarContainer.Parent = sidebar
-
-  local uiPadding = Instance.new("UIPadding")
-  uiPadding.PaddingTop = UDim.new(0, 4)
-  uiPadding.PaddingBottom = UDim.new(0, 14)
-  uiPadding.Parent = sidebarContainer
-
-  local uiListLayout3 = Instance.new("UIListLayout")
-  uiListLayout3.Padding = UDim.new(0, 4)
-  uiListLayout3.HorizontalAlignment = Enum.HorizontalAlignment.Center
-  uiListLayout3.SortOrder = Enum.SortOrder.LayoutOrder
-  uiListLayout3.Parent = sidebarContainer
-
-  local frame16 = Instance.new("Frame")
-  frame16.Size = UDim2.new(1, -v63 - 16, 1, -v5.TitleH - 12)
-  frame16.Position = UDim2.new(0, v63 + 8, 0, v5.TitleH + 6)
-  frame16.BackgroundTransparency = 1
-  frame16.Parent = mainFrame
-
-  local tabs = Instance.new("Folder")
-  tabs.Name = "Tabs"
-  tabs.Parent = frame16
-
-  local searchTabContainer = Instance.new("CanvasGroup")
-  searchTabContainer.Name = "SearchTabContainer"
-  searchTabContainer.Size = UDim2.new(1, 0, 1, 0)
-  searchTabContainer.BackgroundTransparency = 1
-  searchTabContainer.BorderSizePixel = 0
-  searchTabContainer.Visible = false
-  searchTabContainer.Parent = frame16
-
-  state.SearchContainer = searchTabContainer
-
-  local searchScroll = Instance.new("ScrollingFrame")
-  searchScroll.Name = "SearchScroll"
-  searchScroll.Size = UDim2.new(1, 0, 1, 0)
-  searchScroll.BackgroundTransparency = 1
-  searchScroll.BorderSizePixel = 0
-  searchScroll.ScrollBarThickness = 2
-  searchScroll.ScrollBarImageColor3 = v5.Accent
-  searchScroll.ScrollBarImageTransparency = 0.4
-  searchScroll.Parent = searchTabContainer
-
-  state.SearchScroll = searchScroll
-
-  local uiPadding2 = Instance.new("UIPadding")
-  uiPadding2.PaddingTop = UDim.new(0, 4)
-  uiPadding2.PaddingBottom = UDim.new(0, 24)
-  uiPadding2.PaddingRight = UDim.new(0, 6)
-  uiPadding2.Parent = searchScroll
-
-  local uiListLayout4 = Instance.new("UIListLayout")
-  uiListLayout4.Padding = UDim.new(0, 6)
-  uiListLayout4.SortOrder = Enum.SortOrder.LayoutOrder
-  uiListLayout4.Parent = searchScroll
-
-  uiListLayout4:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    searchScroll.CanvasSize = UDim2.new(0, 0, 0, uiListLayout4.AbsoluteContentSize.Y + 30)
-  end)
-
-  searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    local lower6 = searchBox.Text:gsub("^%s*(.-)%s*$", "%1"):lower()
-
-    if #lower6 == 0 then
-      clearSearchBtn.Visible = false
-      searchTabContainer.Visible = false
-
-      if state.TabContainers[state.ActiveTab] then
-        state.TabContainers[state.ActiveTab].Visible = true
-      end
-    else
-      clearSearchBtn.Visible = true
-
-      for _, value17 in pairs(state.TabContainers) do
-        value17.Visible = false
-      end
-
-      searchTabContainer.Visible = true
-
-      for _, value18 in ipairs(searchScroll:GetChildren()) do
-        if value18:IsA("Frame") then
-          value18:Destroy()
-        end
-      end
-
-      for _, value19 in ipairs(state.SearchFeatures) do
-        if value19.name:lower():find(lower6) or value19.section:lower():find(lower6)
-          or value19.tab:lower():find(lower6) then
-          local frame17 = Instance.new("Frame")
-          frame17.Size = UDim2.new(1, 0, 0, 32)
-          frame17.BackgroundColor3 = v5.Card
-          frame17.BackgroundTransparency = 0.5
-          frame17.BorderSizePixel = 0
-          frame17.Parent = searchScroll
-
-          Instance.new("UICorner", frame17).CornerRadius = UDim.new(0, v5.CardRadius)
-
-          local instance15 = Instance.new("UIStroke", frame17)
-          instance15.Color = v5.StrokeDim
-          instance15.Thickness = 0.85
-
-          local textLabel10 = Instance.new("TextLabel")
-          textLabel10.Size = UDim2.new(0.65, 0, 1, 0)
-          textLabel10.Position = UDim2.new(0, 10, 0, 0)
-          textLabel10.BackgroundTransparency = 1
-
-          textLabel10.Text = value19.name .. "  <font color='#7b7e8c'>(" .. value19.tab .. " > "
-            .. value19.section .. ")</font>"
-
-          textLabel10.RichText = true
-          textLabel10.TextColor3 = v5.Text
-          textLabel10.Font = v5.Font
-          textLabel10.TextSize = 11.5
-          textLabel10.TextXAlignment = Enum.TextXAlignment.Left
-          textLabel10.Parent = frame17
-
-          local textButton8 = Instance.new("TextButton")
-          textButton8.Size = UDim2.new(0, 70, 0, 20)
-          textButton8.Position = UDim2.new(1, -78, 0.5, -10)
-          textButton8.BackgroundColor3 = v5.Elevated
-          textButton8.Text = "OPEN TAB"
-          textButton8.TextColor3 = v5.TextSub
-          textButton8.Font = v5.Font
-          textButton8.TextSize = 10
-          textButton8.AutoButtonColor = false
-          textButton8.Parent = frame17
-
-          Instance.new("UICorner", textButton8).CornerRadius = UDim.new(0, 4)
-
-          textButton8.MouseButton1Click:Connect(function()
-            searchBox.Text = ""
-            searchBox:ReleaseFocus()
-            f22(value19.tab)
-          end)
-        end
-      end
-    end
-  end)
-
-  local function makeTextButton7(key4, image, text10)
-    local textButton9 = Instance.new("TextButton")
-    textButton9.Name = key4 .. "TabBtn"
-    textButton9.Size = UDim2.new(0, 34, 0, 34)
-    textButton9.BackgroundColor3 = Color3.fromRGB(18, 20, 26)
-    textButton9.BackgroundTransparency = 1
-    textButton9.Text = ""
-    textButton9.AutoButtonColor = false
-    textButton9.Parent = sidebarContainer
-
-    Instance.new("UICorner", textButton9).CornerRadius = UDim.new(0, 7)
-
-    local activeIndicator2 = Instance.new("Frame")
-    activeIndicator2.Name = "ActiveIndicator"
-    activeIndicator2.Size = UDim2.new(0, 0, 0.7, 0)
-    activeIndicator2.Position = UDim2.new(0, -6, 0.15, 0)
-    activeIndicator2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    activeIndicator2.BorderSizePixel = 0
-    activeIndicator2.BackgroundTransparency = 1
-    activeIndicator2.Parent = textButton9
-
-    Instance.new("UICorner", activeIndicator2).CornerRadius = UDim.new(1, 0)
-
-    local icon2 = Instance.new("ImageLabel")
-    icon2.Name = "Icon"
-    icon2.Size = UDim2.new(0, 20, 0, 20)
-    icon2.Position = UDim2.new(0.5, -10, 0.5, -10)
-    icon2.BackgroundTransparency = 1
-    icon2.Image = image
-    icon2.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    icon2.ImageTransparency = 0.35
-    icon2.ScaleType = Enum.ScaleType.Fit
-    icon2.Parent = textButton9
-
-    textButton9.MouseEnter:Connect(function()
-      if state.ActiveTab ~= key4 then
-        v1.TweenService:Create(textButton9, TweenInfo.new(0.15), {
-          BackgroundTransparency = 0.5,
-          BackgroundColor3 = Color3.fromRGB(20, 21, 28),
-        }):Play()
-
-        v1.TweenService:Create(icon2, TweenInfo.new(0.15), { ImageTransparency = 0 }):Play()
-      end
-    end)
-
-    textButton9.MouseLeave:Connect(function()
-      if state.ActiveTab ~= key4 then
-        v1.TweenService:Create(textButton9, TweenInfo.new(0.15), {
-          BackgroundTransparency = 1,
-          BackgroundColor3 = Color3.fromRGB(15, 16, 21),
-        }):Play()
-
-        v1.TweenService:Create(icon2, TweenInfo.new(0.15), { ImageTransparency = 0.35 }):Play()
-      end
-    end)
-
-    textButton9.MouseButton1Click:Connect(function() f22(key4) end)
-
-    state.TabButtons[key4] = textButton9
-
-    local canvasGroup = Instance.new("CanvasGroup")
-    canvasGroup.Name = key4 .. "TabContainer"
-    canvasGroup.Size = UDim2.new(1, 0, 1, 0)
-    canvasGroup.BackgroundTransparency = 1
-    canvasGroup.BorderSizePixel = 0
-    canvasGroup.Visible = false
-    canvasGroup.Parent = tabs
-
-    local scrollingFrame = Instance.new("ScrollingFrame")
-    scrollingFrame.Name = key4 .. "Scroll"
-    scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-    scrollingFrame.BackgroundTransparency = 1
-    scrollingFrame.BorderSizePixel = 0
-    scrollingFrame.ScrollBarThickness = 2
-    scrollingFrame.ScrollBarImageColor3 = v5.Accent
-    scrollingFrame.ScrollBarImageTransparency = 0.5
-    scrollingFrame.Parent = canvasGroup
-
-    local uiPadding3 = Instance.new("UIPadding")
-    uiPadding3.PaddingTop = UDim.new(0, 4)
-    uiPadding3.PaddingBottom = UDim.new(0, 24)
-    uiPadding3.PaddingRight = UDim.new(0, 6)
-    uiPadding3.Parent = scrollingFrame
-
-    local uiListLayout5 = Instance.new("UIListLayout")
-    uiListLayout5.Padding = UDim.new(0, 8)
-    uiListLayout5.SortOrder = Enum.SortOrder.LayoutOrder
-    uiListLayout5.Parent = scrollingFrame
-
-    uiListLayout5:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-      scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, uiListLayout5.AbsoluteContentSize.Y + 30)
-    end)
-
-    local headerBanner = Instance.new("Frame")
-    headerBanner.Name = "HeaderBanner"
-    headerBanner.Size = UDim2.new(1, 0, 0, 32)
-    headerBanner.BackgroundTransparency = 1
-    headerBanner.LayoutOrder = -100
-    headerBanner.Parent = scrollingFrame
-
-    local imageLabel4 = Instance.new("ImageLabel")
-    imageLabel4.Size = UDim2.new(0, 18, 0, 18)
-    imageLabel4.Position = UDim2.new(0, 4, 0.5, -9)
-    imageLabel4.BackgroundTransparency = 1
-    imageLabel4.Image = image
-    imageLabel4.ImageColor3 = v5.Text
-    imageLabel4.ScaleType = Enum.ScaleType.Fit
-    imageLabel4.Parent = headerBanner
-
-    local textLabel11 = Instance.new("TextLabel")
-    textLabel11.Size = UDim2.new(1, -30, 1, 0)
-    textLabel11.Position = UDim2.new(0, 28, 0, 0)
-    textLabel11.BackgroundTransparency = 1
-    textLabel11.Text = text10
-    textLabel11.TextColor3 = v5.Text
-    textLabel11.Font = v5.Font
-    textLabel11.TextSize = 14
-    textLabel11.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel11.Parent = headerBanner
-
-    state.TabContainers[key4] = canvasGroup
-    state.TabScrolls[key4] = scrollingFrame
-
-    return scrollingFrame
-  end
-
-  local textButton10 = makeTextButton7("Home", "rbxassetid://7733960981", "Dashboard")
-
-  do
-    local frame18 = Instance.new("Frame")
-    frame18.Size = UDim2.new(1, 0, 0, 64)
-    frame18.BackgroundColor3 = v5.Card
-    frame18.BackgroundTransparency = 0.4
-    frame18.Parent = textButton10
-
-    Instance.new("UICorner", frame18).CornerRadius = UDim.new(0, v5.CardRadius)
-
-    local instance16 = Instance.new("UIStroke", frame18)
-    instance16.Color = v5.Stroke
-    instance16.Thickness = 0.9
-
-    local textLabel12 = Instance.new("TextLabel")
-    textLabel12.Size = UDim2.new(1, -74, 0, 20)
-    textLabel12.Position = UDim2.new(0, 12, 0, 12)
-    textLabel12.BackgroundTransparency = 1
-    textLabel12.Text = "Welcome back, " .. localPlayer.DisplayName .. "!"
-    textLabel12.TextColor3 = v5.Text
-    textLabel12.Font = v5.Font
-    textLabel12.TextSize = 15
-    textLabel12.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel12.Parent = frame18
-
-    local textLabel13 = Instance.new("TextLabel")
-    textLabel13.Size = UDim2.new(1, -74, 0, 16)
-    textLabel13.Position = UDim2.new(0, 12, 0, 34)
-    textLabel13.BackgroundTransparency = 1
-
-    textLabel13.Text = "Hypnosis BETA Blade Ball Edition — Executor: " .. f1()
-      .. " | Status: Active"
-
-    textLabel13.TextColor3 = v5.TextSub
-    textLabel13.Font = v5.Font
-    textLabel13.TextSize = 12
-    textLabel13.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel13.Parent = frame18
-
-    local imageLabel5 = Instance.new("ImageLabel")
-    imageLabel5.Size = UDim2.new(0, 44, 0, 44)
-    imageLabel5.Position = UDim2.new(1, -54, 0.5, -22)
-    imageLabel5.BackgroundTransparency = 1
-    imageLabel5.Parent = frame18
-
-    Instance.new("UICorner", imageLabel5).CornerRadius = UDim.new(0.5, 0)
-
-    local instance17 = Instance.new("UIStroke", imageLabel5)
-    instance17.Color = v5.Accent
-    instance17.Thickness = 1.2
-
-    task.spawn(function()
-      local ok5, image2 = pcall(function()
-        return v1.Players:GetUserThumbnailAsync(
-          localPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100
-        )
-      end)
-
-      if ok5 and image2 then
-        imageLabel5.Image = image2
-      end
-    end)
-
-    makeTextLabel(textButton10, "SYSTEM DASHBOARD & TELEMETRY", v5.Accent)
-
-    local frame19 = Instance.new("Frame")
-    frame19.Size = UDim2.new(1, 0, 0, 100)
-    frame19.BackgroundColor3 = v5.Card
-    frame19.BackgroundTransparency = 0.5
-    frame19.Parent = textButton10
-
-    Instance.new("UICorner", frame19).CornerRadius = UDim.new(0, v5.CardRadius)
-
-    local instance18 = Instance.new("UIStroke", frame19)
-    instance18.Color = v5.StrokeDim
-    instance18.Thickness = 0.9
-
-    local function makeTextLabel3(p34, text11)
-      local textLabel14 = Instance.new("TextLabel")
-      textLabel14.Size = UDim2.new(1, -20, 0, 18)
-      textLabel14.Position = UDim2.new(0, 10, 0, p34)
-      textLabel14.BackgroundTransparency = 1
-      textLabel14.Text = text11
-      textLabel14.TextColor3 = v5.TextSub
-      textLabel14.Font = v5.Font
-      textLabel14.TextSize = 11.5
-      textLabel14.TextXAlignment = Enum.TextXAlignment.Left
-      textLabel14.Parent = frame19
-
-      return textLabel14
-    end
-
-    local textLabel15 = makeTextLabel3(8, "Engine State: Ready (Awaiting round...)")
-    local textLabel16 = makeTextLabel3(28, "Active Ball: None")
-
-    local textLabel17 = makeTextLabel3(
-      48, "Distance: 0 studs | Speed: 0 studs/s | True ETA: 0.000s"
-    )
-
-    local textLabel18 = makeTextLabel3(68, "Controller Pipeline: Stealth UI & Hardware Key | Ping: "
-      .. tostring(state.Stats.PingMs) .. "ms")
-
-    v1.RunService.RenderStepped:Connect(function()
-      if state.MainFrame and state.MainFrame.Visible and state.ActiveTab == "Home" then
-        textLabel15.Text = "Engine State: " .. state.Stats.Status .. " ("
-          .. (state.Stats.InMatch and "Armed" or "Lobby") .. ")"
-
-        textLabel16.Text = "Active Ball: " .. state.Stats.BallName .. " | Target: "
-          .. (state.Stats.TargetingYou and "YOU" or "Opponent")
-
-        textLabel17.Text = "Dist: " .. tostring(state.Stats.Distance) .. " studs | Speed: "
-          .. tostring(state.Stats.Speed) .. " studs/s | Lead: "
-          .. tostring(state.Stats.TriggerWindow) .. "s"
-
-        textLabel18.Text = "Deflections: " .. tostring(state.Stats.ParryCount)
-          .. " | Integrity: Clean | Ping: " .. tostring(state.Stats.PingMs) .. "ms"
-      end
-    end)
-
-    makeTextLabel(textButton10, "EASY COMBAT MODIFIER", v5.Accent)
-
-    makeTextButton4(
-      textButton10, "Active Combat Profile",
-      { "Competitive (Default)", "Legit (Humanized)", "Clasher (Instant Spam)" },
-      { "Competitive", "Legit", "Clasher" }, v6.ActivePreset, function(p35) f25(p35) end,
-      "Home", "Quick Profile"
-    )
-
-    makeTextButton2(
-      textButton10, "Reaction Timing Offset", -60, 60, math.floor(v6.TimingOffset * 1000),
-      function(p36) v6.TimingOffset = p36 / 1000 end, 5, " ms", "Home", "Quick Profile"
-    )
-
-    makeTextButton(
-      textButton10, "Auto Parry Deflection", v6.AutoParry,
-      function(autoParry) v6.AutoParry = autoParry end, "Home", "Quick Profile"
-    )
-
-    makeTextButton(
-      textButton10, "Auto Target Redirection", v6.AutoTarget,
-      function(autoTarget) v6.AutoTarget = autoTarget end, "Home", "Quick Profile"
-    )
-
-    makeTextLabel2(textButton10, "Custom Target Player", v6.CustomTargetPlayer, "Username / DisplayName...", function(p37)
-      v6.CustomTargetPlayer = p37
-
-      if p37 and p37 ~= "" and p37 ~= "None" then
-        v6.AutoTargetMode = "Specific"
-      end
-    end, "Home", "Quick Profile")
-
-    makeTextButton(
-      textButton10, "Clash Fast Spam Mode", v6.ClashMode,
-      function(clashMode3) v6.ClashMode = clashMode3 end, "Home", "Quick Profile"
-    )
-
-    makeTextLabel(textButton10, "QUICK ACTIONS", v5.Accent)
-
-    makeTextButton3(
-      textButton10, "Trigger Test Deflection", "TRIGGER", function() f10(false) end, "Home",
-      "Quick Actions"
-    )
-  end
-
-  local textButton11 = makeTextButton7(
-    "Combat", "rbxassetid://10734975692", "Combat Deflection"
-  )
-
-  makeTextLabel(textButton11, "EASY PLAYSTYLE MODIFIER (1-CLICK PROFILES)", v5.Accent)
-
-  makeTextButton4(textButton11, "Combat Preset Profile", {
-    "Competitive (Ranked / Default)", "Legit (Humanized)", "Clasher (Instant Spam)",
-  }, { "Competitive", "Legit", "Clasher" }, v6.ActivePreset, function(p38) f25(p38) end, "Combat", "Quick Profile")
-
-  makeTextButton2(
-    textButton11, "Reaction Timing Offset", -60, 60, math.floor(v6.TimingOffset * 1000),
-    function(p39) v6.TimingOffset = p39 / 1000 end, 5, " ms", "Combat", "Quick Profile"
-  )
-
-  makeTextButton(
-    textButton11, "Auto Parry Deflection", v6.AutoParry,
-    function(autoParry2) v6.AutoParry = autoParry2 end, "Combat", "Autoparry Engine"
-  )
-
-  makeTextButton(
-    textButton11, "Clash Fast Spam Mode", v6.ClashMode,
-    function(clashMode4) v6.ClashMode = clashMode4 end, "Combat", "Autoparry Engine"
-  )
-
-  makeTextLabel(
-    textButton11, "AUTO TARGET & BALL REDIRECTION (CUSTOMIZABLE CURVE AIM)", v5.Accent
-  )
-
-  makeTextButton(
-    textButton11, "Enable Auto Target Redirection", v6.AutoTarget,
-    function(autoTarget2) v6.AutoTarget = autoTarget2 end, "Combat", "Auto Target"
-  )
-
-  makeTextButton4(
-    textButton11, "Target Priority Mode",
-    { "Closest Opponent", "Specific Player", "Cursor Aim", "Random Opponent" },
-    { "Closest", "Specific", "Cursor", "Random" }, v6.AutoTargetMode,
-    function(autoTargetMode) v6.AutoTargetMode = autoTargetMode end, "Combat", "Auto Target"
-  )
-
-  makeTextLabel2(textButton11, "Custom Target Name", v6.CustomTargetPlayer, "Username or DisplayName...", function(p40)
-    v6.CustomTargetPlayer = p40
-
-    if p40 and p40 ~= "" and p40 ~= "None" then
-      v6.AutoTargetMode = "Specific"
-    end
-  end, "Combat", "Auto Target")
-
-  makeTextButton3(textButton11, "Lock Nearest Player as Custom Target", "LOCK NEAREST", function()
-    local _, v64 = f8()
-
-    if v64 then
-      v6.CustomTargetPlayer = v64.Name
-      v6.AutoTargetMode = "Specific"
-    end
-  end, "Combat", "Auto Target")
-
-  makeTextButton3(textButton11, "Clear Custom Target (Reset to Closest)", "RESET TARGET", function()
-    v6.CustomTargetPlayer = ""
-    v6.AutoTargetMode = "Closest"
-  end, "Combat", "Auto Target")
-
-  makeTextButton(
-    textButton11, "Silent Redirection (Restore View)", v6.AutoTargetSilent,
-    function(autoTargetSilent) v6.AutoTargetSilent = autoTargetSilent end, "Combat",
-    "Auto Target"
-  )
-
-  makeTextButton(
-    textButton11, "Show Target Lock Indicator", v6.AutoTargetVisual,
-    function(autoTargetVisual) v6.AutoTargetVisual = autoTargetVisual end, "Combat",
-    "Auto Target"
-  )
-
-  makeTextLabel(textButton11, "ADVANCED HITBOX & KINEMATICS (OPTIONAL TUNING)", v5.TextSub)
-
-  makeTextButton2(
-    textButton11, "Base Reaction Window", 0.08, 0.28, v6.BaseReactionWindow,
-    function(baseReactionWindow) v6.BaseReactionWindow = baseReactionWindow end, 0.005, "s",
-    "Combat", "Timing Calibration"
-  )
-
-  makeTextButton2(
-    textButton11, "Clash Trigger Proximity", 15, 45, v6.ClashDistance,
-    function(clashDistance) v6.ClashDistance = clashDistance end, 1, " studs", "Combat",
-    "Debounce Calibration"
-  )
-
-  makeTextButton2(
-    textButton11, "Parry Hitbox Reach (Sword)", 2, 7.5, v6.ParryHitboxRadius,
-    function(parryHitboxRadius) v6.ParryHitboxRadius = parryHitboxRadius end, 0.5, " studs",
-    "Combat", "Timing Calibration"
-  )
-
-  makeTextButton2(
-    textButton11, "Fast Ball Lead Factor", 0.0002, 0.002, v6.FastBallLeadFactor,
-    function(fastBallLeadFactor) v6.FastBallLeadFactor = fastBallLeadFactor end, 0.0001, "",
-    "Combat", "Timing Calibration"
-  )
-
-  makeTextButton2(
-    textButton11, "Ping Compensation Multiplier", 0.2, 1, v6.PingMultiplier,
-    function(pingMultiplier) v6.PingMultiplier = pingMultiplier end, 0.05, "x", "Combat",
-    "Timing Calibration"
-  )
-
-  makeTextLabel(textButton11, "ENGINE GUARDS & VERIFICATION", v5.TextSub)
-
-  makeTextButton(
-    textButton11, "Direction Reset Guard (Zero Lockout)", v6.DirectionResetGuard,
-    function(directionResetGuard) v6.DirectionResetGuard = directionResetGuard end, "Combat",
-    "Autoparry Engine"
-  )
-
-  makeTextButton(
-    textButton11, "Heading & Velocity Verification", v6.HeadingCheck,
-    function(headingCheck) v6.HeadingCheck = headingCheck end, "Combat", "Autoparry Engine"
-  )
-
-  makeTextButton(
-    textButton11, "Curve Trajectory Math (Arc Predictor)", v6.CurvePrediction,
-    function(curvePrediction) v6.CurvePrediction = curvePrediction end, "Combat",
-    "Autoparry Engine"
-  )
-
-  makeTextLabel(textButton11, "TESTING & DEFLECTION ACTIONS", v5.Accent)
-
-  makeTextButton3(
-    textButton11, "Manual Precision Deflection", "TRIGGER", function() f10(false) end, "Combat",
-    "Testing"
-  )
-
-  makeTextButton3(
-    textButton11, "Manual Clash Spam Pulse", "PULSE", function() f10(true) end, "Combat",
-    "Testing"
-  )
-
-  local textButton12 = makeTextButton7("Visuals", "rbxassetid://7743868936", "Visuals & HUD")
-
-  do
-    makeTextLabel(textButton12, "TRAJECTORY VISUALIZER (DRAWING API)", v5.Accent)
-
-    makeTextButton(textButton12, "Enable 3D Trajectory Curve Arc", v6.VisualsEnabled, function(visualsEnabled)
-      v6.VisualsEnabled = visualsEnabled
-
-      if not visualsEnabled then
-        f13()
-      end
-    end, "Visuals", "Trajectory")
-
-    makeTextButton(textButton12, "Show 3D Parry Range Ring", v6.VisualRangeRing, function(visualRangeRing)
-      v6.VisualRangeRing = visualRangeRing
-
-      if not visualRangeRing and state.DrawingElements.RangeRing then
-        state.DrawingElements.RangeRing.Visible = false
-      end
-    end, "Visuals", "Trajectory")
-
-    makeTextButton2(
-      textButton12, "Visual Line Thickness", 1, 5, v6.VisualThickness,
-      function(visualThickness) v6.VisualThickness = visualThickness end, 1, "px", "Visuals",
-      "Trajectory"
-    )
-
-    makeTextLabel(textButton12, "LIVE HUD TELEMETRY", v5.Accent)
-
-    local frame20 = Instance.new("Frame")
-    frame20.Size = UDim2.new(1, 0, 0, 95)
-    frame20.BackgroundColor3 = v5.Card
-    frame20.BackgroundTransparency = 0.5
-    frame20.Parent = textButton12
-
-    Instance.new("UICorner", frame20).CornerRadius = UDim.new(0, v5.CardRadius)
-
-    local instance19 = Instance.new("UIStroke", frame20)
-    instance19.Color = v5.StrokeDim
-    instance19.Thickness = 0.9
-
-    local function makeTextLabel4(p41, text12)
-      local textLabel19 = Instance.new("TextLabel")
-      textLabel19.Size = UDim2.new(1, -20, 0, 18)
-      textLabel19.Position = UDim2.new(0, 10, 0, p41)
-      textLabel19.BackgroundTransparency = 1
-      textLabel19.Text = text12
-      textLabel19.TextColor3 = v5.TextSub
-      textLabel19.Font = v5.Font
-      textLabel19.TextSize = 11.5
-      textLabel19.TextXAlignment = Enum.TextXAlignment.Left
-      textLabel19.Parent = frame20
-
-      return textLabel19
-    end
-
-    local textLabel20 = makeTextLabel4(8, "Status: Ready")
-    local textLabel21 = makeTextLabel4(28, "Active Ball: Searching...")
-    local textLabel22 = makeTextLabel4(48, "Distance: -- | Speed: --")
-    local textLabel23 = makeTextLabel4(68, "True ETA: -- | Lead Window: --")
-
-    v1.RunService.RenderStepped:Connect(function()
-      if state.MainFrame and state.MainFrame.Visible and state.ActiveTab == "Visuals" then
-        textLabel20.Text = "Status: " .. state.Stats.Status
-        textLabel21.Text = "Active Ball: " .. state.Stats.BallName
-
-        textLabel22.Text = "Dist: " .. tostring(state.Stats.Distance) .. " studs | Speed: "
-          .. tostring(state.Stats.Speed) .. " studs/s"
-
-        textLabel23.Text = "True ETA: " .. tostring(state.Stats.ETA) .. "s | Lead Window: "
-          .. tostring(state.Stats.TriggerWindow) .. "s"
-      end
-    end)
-  end
-
-  local textButton13 = makeTextButton7("ESP", "rbxassetid://7733774602", "ESP Modules")
-  makeTextLabel(textButton13, "BALL VISUAL MODULES (DRAWING API OVERLAY)", v5.Accent)
-
-  makeTextButton(
-    textButton13, "Ball Target Circle Marker", v6.BallHighlight,
-    function(ballHighlight) v6.BallHighlight = ballHighlight end, "ESP", "Ball Visuals"
-  )
-
-  makeTextButton(
-    textButton13, "Ball Tracer Line", v6.BallTracers,
-    function(ballTracers) v6.BallTracers = ballTracers end, "ESP", "Ball Visuals"
-  )
-
-  makeTextButton(
-    textButton13, "Ball Distance & Speed Tag", v6.BallDistanceTag,
-    function(ballDistanceTag) v6.BallDistanceTag = ballDistanceTag end, "ESP", "Ball Visuals"
-  )
-
-  local textButton14 = makeTextButton7("Farm", "rbxassetid://7734091286", "Auto Farm")
-  makeTextLabel(textButton14, "COMBAT AUTOMATION", v5.Accent)
-
-  makeTextButton(
-    textButton14, "Auto Face Ball Direction", v6.AutoFaceBall,
-    function(autoFaceBall) v6.AutoFaceBall = autoFaceBall end, "Farm", "Combat Automation"
-  )
-
-  makeTextButton(
-    textButton14, "Auto Jump on Successful Deflection", v6.AutoJumpOnParry,
-    function(autoJumpOnParry) v6.AutoJumpOnParry = autoJumpOnParry end, "Farm",
-    "Combat Automation"
-  )
-
-  makeTextLabel(textButton14, "AFK & IDLE DEFENSE", v5.Accent)
-
-  makeTextButton(
-    textButton14, "Anti-AFK Protection (Passive Hardware Keepalive)", v6.AntiAFK,
-    function(antiAFK) v6.AntiAFK = antiAFK end, "Farm", "AFK Defense"
-  )
-
-  local textButton15 = makeTextButton7("Self", "rbxassetid://7733655755", "Modifiers")
-
-  do
-    makeTextLabel(textButton15, "MOBILITY MODIFIERS", v5.Accent)
-
-    makeTextButton(textButton15, "Enable Custom WalkSpeed", v6.CustomSpeed, function(customSpeed)
-      v6.CustomSpeed = customSpeed
-      local humanoid6 = getHumanoid()
-
-      if humanoid6 then
-        humanoid6.WalkSpeed = customSpeed and v6.WalkSpeedValue or 16
-      end
-    end, "Self", "Mobility")
-
-    makeTextButton2(textButton15, "WalkSpeed Value", 16, 120, v6.WalkSpeedValue, function(p42)
-      v6.WalkSpeedValue = p42
-
-      if v6.CustomSpeed then
-        local humanoid7 = getHumanoid()
-
-        if humanoid7 then
-          humanoid7.WalkSpeed = p42
-        end
-      end
-    end, 1, " studs/s", "Self", "Mobility")
-
-    makeTextButton(textButton15, "Enable Custom JumpPower", v6.CustomJump, function(customJump)
-      v6.CustomJump = customJump
-      local humanoid8 = getHumanoid()
-
-      if humanoid8 then
-        humanoid8.JumpPower = customJump and v6.JumpPowerValue or 50
-      end
-    end, "Self", "Mobility")
-
-    makeTextButton2(textButton15, "JumpPower Value", 50, 180, v6.JumpPowerValue, function(p43)
-      v6.JumpPowerValue = p43
-
-      if v6.CustomJump then
-        local humanoid9 = getHumanoid()
-
-        if humanoid9 then
-          humanoid9.JumpPower = p43
-        end
-      end
-    end, 1, "", "Self", "Mobility")
-
-    local connect = nil
-
-    makeTextButton(textButton15, "Infinite Jump in Mid-Air", v6.InfiniteJump, function(infiniteJump)
-      v6.InfiniteJump = infiniteJump
-
-      if connect then
-        connect:Disconnect()
-        connect = nil
-        state.Connections.InfiniteJump = nil
-      end
-
-      if infiniteJump then
-        connect = v1.UserInputService.JumpRequest:Connect(function()
-          if v6.InfiniteJump then
-            local humanoid10 = getHumanoid()
-
-            if humanoid10 then
-              humanoid10:ChangeState(Enum.HumanoidStateType.Jumping)
-            end
-          end
-        end)
-
-        state.Connections.InfiniteJump = connect
-      end
-    end, "Self", "Mobility")
-
-    makeTextLabel(textButton15, "ENVIRONMENT & CAMERA", v5.Accent)
-
-    makeTextButton(textButton15, "Enable Custom Field of View", v6.CustomFOV, function(customFOV)
-      v6.CustomFOV = customFOV
-
-      if not customFOV and currentCamera then
-        currentCamera.FieldOfView = 70
-      end
-    end, "Self", "Camera")
-
-    makeTextButton2(textButton15, "Field of View (FOV)", 70, 120, v6.FOVValue, function(p44)
-      v6.FOVValue = p44
-
-      if v6.CustomFOV and currentCamera then
-        currentCamera.FieldOfView = p44
-      end
-    end, 1, " deg", "Self", "Camera")
-  end
-
-  local textButton16 = makeTextButton7("Teleport", "rbxassetid://7733992789", "Teleports")
-  makeTextLabel(textButton16, "ARENA TELEPORTS", v5.Accent)
-
-  makeTextButton3(textButton16, "Teleport to Arena Center", "TELEPORT", function()
-    local humanoidRootPart8 = getHumanoidRootPart()
-
-    if humanoidRootPart8 then
-      humanoidRootPart8.CFrame = CFrame.new(0, 22, 0)
-    end
-  end, "Teleport", "Arena")
-
-  makeTextButton3(textButton16, "Teleport to Sky Safezone", "TELEPORT", function()
-    local humanoidRootPart9 = getHumanoidRootPart()
-
-    if humanoidRootPart9 then
-      humanoidRootPart9.CFrame = humanoidRootPart9.CFrame + Vector3.new(0, 140, 0)
-    end
-  end, "Teleport", "Arena")
-
-  makeTextButton3(textButton16, "Emergency Dodge Away from Ball", "DODGE", function()
-    local humanoidRootPart10 = getHumanoidRootPart()
-
-    if humanoidRootPart10 and currentCamera then
-      humanoidRootPart10.CFrame = humanoidRootPart10.CFrame
-        + currentCamera.CFrame.RightVector * 35
-    end
-  end, "Teleport", "Arena")
-
-  makeTextLabel(textButton16, "OPPONENT TELEPORTS", v5.Accent)
-
-  makeTextButton3(textButton16, "Teleport Behind Nearest Opponent", "TELEPORT", function()
-    local humanoidRootPart11 = getHumanoidRootPart()
-
-    if not humanoidRootPart11 then
-      return
-    end
-
-    local huge4 = math.huge
-    local v65 = nil
-
-    for _, value20 in ipairs(v1.Players:GetPlayers()) do
-      if value20 ~= localPlayer and value20.Character
-        and value20.Character:FindFirstChild("HumanoidRootPart") then
-        local humanoidRootPart12 = value20.Character:FindFirstChild("HumanoidRootPart")
-        local magnitude11 = (humanoidRootPart12.Position - humanoidRootPart11.Position).Magnitude
-
-        if magnitude11 < huge4 then
-          huge4 = magnitude11
-          v65 = value20
-        end
-      end
-    end
-
-    if v65 and v65.Character and v65.Character:FindFirstChild("HumanoidRootPart") then
-      local humanoidRootPart13 = v65.Character:FindFirstChild("HumanoidRootPart")
-      humanoidRootPart11.CFrame = humanoidRootPart13.CFrame * CFrame.new(0, 0, 4)
-    end
-  end, "Teleport", "Opponents")
-
-  local textButton17 = makeTextButton7("Config", "rbxassetid://7734058803", "Configs")
-  makeTextLabel(textButton17, "ENGINE DEFENSE & INTEGRITY", v5.Accent)
-
-  makeTextButton(
-    textButton17, "Active Match Guard (Lobby Dormancy)", v6.ActiveMatchGuard,
-    function(activeMatchGuard) v6.ActiveMatchGuard = activeMatchGuard end, "Config", "Integrity"
-  )
-
-  makeTextButton(
-    textButton17, "Streamer Mode (Mask Identity)", v6.StreamerMode,
-    function(streamerMode) v6.StreamerMode = streamerMode end, "Config", "Integrity"
-  )
-
-  makeTextLabel(textButton17, "THEME CUSTOMIZATION", v5.Accent)
-
-  makeTextButton4(
-    textButton17, "Active UI Theme", { "Default", "Neverlose", "Cyberpunk", "Vampire", "Old" },
-    nil, v4, function(p45) f24(p45) end, "Config", "Themes"
-  )
-
-  makeTextLabel(textButton17, "HOTKEYS & INTERFACE", v5.Accent)
-
-  makeTextButton4(textButton17, "Menu Keybind", { "RightShift", "Insert", "RightControl", "F4", "P" }, {
-    Enum.KeyCode.RightShift, Enum.KeyCode.Insert, Enum.KeyCode.RightControl, Enum.KeyCode.F4,
-    Enum.KeyCode.P,
-  }, v6.MenuKeybind, function(menuKeybind) v6.MenuKeybind = menuKeybind end, "Config", "Hotkeys")
-
-  makeTextButton3(
-    textButton17, "Toggle UI Menu Visibility", "TOGGLE", function() f23() end, "Config",
-    "Hotkeys"
-  )
-
-  makeTextLabel(textButton17, "MAINTENANCE & ENGINE RESTART", v5.Danger)
-
-  makeTextButton3(textButton17, "Restart Hypnosis Engine", "RESTART", function()
-    local v66 = typeof(getgenv) == "function" and getgenv() or nil
-
-    if v66 and v66._HYP_BB_R and type(v66._HYP_BB_R.Restart) == "function" then
-      v66._HYP_BB_R.Restart()
-    end
-  end, "Config", "Maintenance")
-
-  makeTextButton3(textButton17, "Unload Hypnosis Engine Completely", "UNLOAD", function()
-    local v67 = typeof(getgenv) == "function" and getgenv() or nil
-
-    if v67 and v67._HYP_BB_R and type(v67._HYP_BB_R.Destroy) == "function" then
-      v67._HYP_BB_R.Destroy()
-    end
-  end, "Config", "Maintenance")
-
-  local textButton18 = makeTextButton7("Community", "rbxassetid://7733746980", "Config Hub")
-
-  do
-    makeTextLabel(textButton18, "BLADE BALL PLAYSTYLE PRESETS", v5.Accent)
-
-    makeTextButton3(
-      textButton18, "Load Competitive Preset (Optimal Default)", "LOAD",
-      function() f25("Competitive") end, "Community", "Presets"
-    )
-
-    makeTextButton3(
-      textButton18, "Load Legit Preset (Tight Window, Humanized)", "LOAD",
-      function() f25("Legit") end, "Community", "Presets"
-    )
-
-    makeTextButton3(
-      textButton18, "Load Blatant / Clasher Preset (Zero Debounce, Max Window)", "LOAD",
-      function() f25("Clasher") end, "Community", "Presets"
-    )
-
-    makeTextButton3(textButton18, "Load Safe AFK Preset (Auto Face, Anti-AFK)", "LOAD", function()
-      v6.AutoParry = true
-      v6.UseCooldown = false
-      v6.AutoFaceBall = true
-      v6.AntiAFK = true
-      v6.ActiveMatchGuard = true
-    end, "Community", "Presets")
-
-    makeTextLabel(textButton18, "ABOUT HYPNOSIS BLADE BALL", v5.Accent)
-
-    local frame21 = Instance.new("Frame")
-    frame21.Size = UDim2.new(1, 0, 0, 80)
-    frame21.BackgroundColor3 = v5.Card
-    frame21.BackgroundTransparency = 0.5
-    frame21.Parent = textButton18
-
-    Instance.new("UICorner", frame21).CornerRadius = UDim.new(0, v5.CardRadius)
-
-    local instance20 = Instance.new("UIStroke", frame21)
-    instance20.Color = v5.StrokeDim
-    instance20.Thickness = 0.9
-
-    local textLabel24 = Instance.new("TextLabel")
-    textLabel24.Size = UDim2.new(1, -20, 1, -16)
-    textLabel24.Position = UDim2.new(0, 10, 0, 8)
-    textLabel24.BackgroundTransparency = 1
-
-    textLabel24.Text = [[
-Hypnosis BETA Blade Ball Edition
-Authentic dark-theme UI with 9 synchronized tabs, real-time search engine, zero-cooldown clash spam deflection engine, and Drawing API curve arc visualizer (zero DataModel footprint).]]
-
-    textLabel24.TextColor3 = v5.TextSub
-    textLabel24.Font = v5.Font
-    textLabel24.TextSize = 11.5
-    textLabel24.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel24.TextYAlignment = Enum.TextYAlignment.Top
-    textLabel24.Parent = frame21
-  end
-
-  local connect2 = v1.UserInputService.InputBegan:Connect(function(input7, p46)
-    if p46 then
-      return
-    end
-
-    if input7.KeyCode == v6.MenuKeybind then
-      f23()
-    end
-  end)
-
-  state.Connections.ToggleHotkey = connect2
-  f2(screenGui2)
-  screenGui2.Parent = instance12
-  f22("Home")
-  return screenGui2
-end
-
-local function f26()
-  for _, value21 in pairs(state.Connections) do
-    pcall(function() value21:Disconnect() end)
-  end
-
-  table.clear(state.Connections)
-  f13()
-
-  if state.ScreenGui then
-    pcall(function() state.ScreenGui:Destroy() end)
-    state.ScreenGui = nil
-  end
-
-  local instance21 = f3()
-
-  if instance21 then
-    local findFirstChild3 = instance21:FindFirstChild(v7)
-
-    if findFirstChild3 then
-      pcall(function() findFirstChild3:Destroy() end)
-    end
-  end
-end
-
-local function f27()
-  f26()
-
-  state.Connections.Heartbeat = v1.RunService.Heartbeat:Connect(f16)
-  state.ScreenGui = makeTextButton6()
-
-  task.spawn(function()
-    while state.ScreenGui do
-      task.wait(240)
-
-      if v6.AntiAFK and not state.Stats.InMatch then
-        pcall(function()
-          local v68 = getgenv and getgenv().keypress or keypress
-          local v69 = getgenv and getgenv().keyrelease or keyrelease
-
-          if type(v68) == "function" and type(v69) == "function" then
-            v68(32)
-            task.wait(0.05)
-            v69(32)
-          end
-        end)
-      end
-    end
-  end)
-end
-
-f27()
-
-local hypBBR = {
-  Settings = v6,
-  State = state,
-  Trigger = function() f10(false) end,
-  ToggleUI = f23,
-  Destroy = f26,
-  Restart = f27,
-}
-
-if typeof(getgenv) == "function" then
-  local genv2 = getgenv()
-
-  if genv2 then
-    genv2._HYP_BB_R = hypBBR
-  end
-end
-
-return hypBBR
+		local AssemblyLinearVelocity = v1.AssemblyLinearVelocity
+		local Magnitude = AssemblyLinearVelocity.Magnitude
+		local Unit = (LocalPlayer.Character.PrimaryPart.Position - v1.Position).Unit
+		local v3 = Magnitude > 0 and Unit:Dot(AssemblyLinearVelocity.Unit) or 0
+		local v4 = LocalPlayer:DistanceFromCharacter(v2.PrimaryPart.Position)
+		local Ping = arg1.Ping
+		local v5 = math.min(Magnitude / 6, 255)
+		local Entity_Properties = arg1.Entity_Properties
+		local v6 = Ping + v5
+
+		if Entity_Properties.Distance > v6 or arg1.Ball_Properties.Distance > v6 or v4 > v6 then
+			return 0
+		end
+
+		local v7 = 5 - math.min(Magnitude / 5, 5)
+		return v6 - math.clamp(v3, -1, 0) * v7
+	end
+
+	function tbl3.auto_spam.start()
+		if tbl3.__properties.__connections.__auto_spam then
+			tbl3.__properties.__connections.__auto_spam:Disconnect()
+		end
+
+		tbl3.__properties.__auto_spam_enabled = true
+
+		tbl3.__properties.__connections.__auto_spam = v4.PreSimulation:Connect(function()
+			if not tbl3.__properties.__auto_spam_enabled then
+				return
+			end
+
+			local v1 = tbl3.ball.get()
+
+			if not v1 or tbl3.__properties.__slashesoffury_active then
+				return
+			end
+
+			local zoomies = v1:FindFirstChild("zoomies")
+
+			if not zoomies then
+				return
+			end
+
+			tbl3.player.get_closest()
+			local v2 = tbl3.auto_spam:get_ball_properties()
+			local v3 = tbl3.auto_spam:get_entity_properties()
+
+			if not v2 or not v3 or not v22 or not v22.PrimaryPart then
+				return
+			end
+
+			local Value = v6.Network.ServerStatsItem["Data Ping"]:GetValue()
+			local v4 = math.clamp(Value / 10, 1, 16)
+			local v5 = tbl3.auto_spam.spam_service({Ball_Properties = v2, Entity_Properties = v3, Ping = v4})
+			local v7 = LocalPlayer:DistanceFromCharacter(v22.PrimaryPart.Position)
+			local Unit = (LocalPlayer.Character.PrimaryPart.Position - v1.Position).Unit
+			local v8 = zoomies.VectorVelocity.Magnitude > 0 and zoomies.VectorVelocity.Unit or Vector3.zero
+
+			if v8.Magnitude > 0 then
+				Unit:Dot(v8)
+			end
+
+			local v9 = LocalPlayer:DistanceFromCharacter(v1.Position)
+			local target = v1:GetAttribute("target")
+
+			if not target or v7 > v5 or v9 > v5 then
+				return
+			end
+
+			if LocalPlayer.Character:GetAttribute("Pulsed") then
+				return
+			end
+
+			if target == LocalPlayer.Name and v7 > 30 and v9 > 30 then
+				return
+			end
+
+			if v9 <= v5 and tbl3.__properties.__parries > tbl3.__properties.__spam_threshold then
+				if getgenv().AutoSpamMode == "Keypress" then
+					if func12 then
+						func12()
+					end
+				else
+					tbl3.parry.execute()
+					if getgenv().AutoSpamAnimationFix and func12 then
+						func12()
+					end
+				end
+			end
+		end)
+	end
+
+	function tbl3.auto_spam.stop()
+		tbl3.__properties.__auto_spam_enabled = false
+		if tbl3.__properties.__connections.__auto_spam then
+			tbl3.__properties.__connections.__auto_spam:Disconnect()
+			tbl3.__properties.__connections.__auto_spam = nil
+		end
+	end
+
+	tbl3.autoparry = {}
+
+	function tbl3.autoparry.start()
+		if tbl3.__properties.__connections.__autoparry then
+			tbl3.__properties.__connections.__autoparry:Disconnect()
+		end
+		tbl3.__properties.__connections.__autoparry = v4.PreSimulation:Connect(function()
+			if
+				not tbl3.__properties.__autoparry_enabled
+				or not LocalPlayer.Character
+				or not LocalPlayer.Character.PrimaryPart
+			then
+				return
+			end
+
+			local v1 = tbl3.ball.get_all()
+			local v3 = tbl3.ball.get()
+			local v5
+
+			if v10:FindFirstChild("TrainingBalls") then
+				for _, child in pairs(v10.TrainingBalls:GetChildren()) do
+					if child:GetAttribute("realBall") then
+						v5 = child
+						break
+					end
+				end
+			end
+
+			for _, v7 in pairs(v1) do
+				if tbl3.__triggerbot.__enabled then
+					return
+				end
+
+				if getgenv().BallVelocityAbove800 then
+					return
+				end
+
+				if v7 then
+					local zoomies = v7:FindFirstChild("zoomies")
+					if zoomies then
+						v7:GetAttributeChangedSignal("target"):Once(function()
+							tbl3.__properties.__parried = false
+						end)
+						if not tbl3.__properties.__parried then
+							local target = v7:GetAttribute("target")
+							local VectorVelocity = zoomies.VectorVelocity
+							local Magnitude = (LocalPlayer.Character.PrimaryPart.Position - v7.Position).Magnitude
+							local v8 = v6.Network.ServerStatsItem["Data Ping"]:GetValue() / 10
+							local v9 = math.clamp(v8 / 10, 5, 17)
+							local Magnitude1 = VectorVelocity.Magnitude
+							local v11 = (2.4 + math.min(math.max(Magnitude1 - 9.5, 0), 650) * 0.002) * tbl3.__properties.__divisor_multiplier
+							local v12 = v9 + math.max(Magnitude1 / v11, 9.5)
+							local v13 = tbl3.detection.is_curved()
+
+							if v7:FindFirstChild("AeroDynamicSlashVFX") then
+								v7.AeroDynamicSlashVFX:Destroy()
+								tbl3.__properties.__tornado_time = tick()
+							end
+
+							if Runtime:FindFirstChild("Tornado") then
+								if tick() - tbl3.__properties.__tornado_time < (Runtime.Tornado:GetAttribute("TornadoTime") or 1) + 0.314159 then
+									continue
+								end
+							end
+
+							if not (v3 and v3:GetAttribute("target") == LocalPlayer.Name and v13) then
+								if not v7:FindFirstChild("ComboCounter") then
+									if not LocalPlayer.Character.PrimaryPart:FindFirstChild("SingularityCape") then
+										if not (tbl3.__config.__detections.__infinity and tbl3.__properties.__infinity_active) then
+											if not (tbl3.__config.__detections.__deathslash and tbl3.__properties.__deathslash_active) then
+												if not (tbl3.__config.__detections.__timehole and tbl3.__properties.__timehole_active) then
+													if not (tbl3.__config.__detections.__slashesoffury and tbl3.__properties.__slashesoffury_active) then
+														if target == LocalPlayer.Name and Magnitude <= v12 then
+															if getgenv().AutoAbility then
+																local UIGradient = LocalPlayer.PlayerGui.Hotbar.Ability.UIGradient
+																if UIGradient and UIGradient.Offset.Y == 0.5 then
+																	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Abilities") then
+																		local Abilities = LocalPlayer.Character.Abilities
+																		if
+																			Abilities:FindFirstChild("Raging Deflection") and Abilities["Raging Deflection"].Enabled
+																			or Abilities:FindFirstChild("Rapture") and Abilities.Rapture.Enabled
+																			or Abilities:FindFirstChild("Calming Deflection") and Abilities["Calming Deflection"].Enabled
+																			or Abilities:FindFirstChild("Aerodynamic Slash") and Abilities["Aerodynamic Slash"].Enabled
+																			or Abilities:FindFirstChild("Fracture") and Abilities.Fracture.Enabled
+																			or Abilities:FindFirstChild("Death Slash") and Abilities["Death Slash"].Enabled
+																		then
+																			tbl3.__properties.__parried = true
+																			v2.Remotes.AbilityButtonPress:Fire()
+																			task.wait(2.432)
+																			v2:WaitForChild("Remotes"):WaitForChild("DeathSlashShootActivation"):FireServer(true)
+																			continue
+																		end
+																	end
+																end
+															end
+														end
+
+														if target == LocalPlayer.Name and Magnitude <= v12 then
+															if getgenv().AutoParryMode == "Keypress" then
+																tbl3.parry.keypress()
+															else
+																tbl3.parry.execute_action()
+															end
+															tbl3.__properties.__parried = true
+														end
+
+														local v14 = tick()
+
+														repeat
+															v4.Stepped:Wait()
+														until tick() - v14 >= 1 or not tbl3.__properties.__parried
+
+														tbl3.__properties.__parried = false
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+
+			if v5 then
+				local zoomies1 = v5:FindFirstChild("zoomies")
+				if zoomies1 then
+					v5:GetAttributeChangedSignal("target"):Once(function()
+						tbl3.__properties.__training_parried = false
+					end)
+					if not tbl3.__properties.__training_parried then
+						local target1 = v5:GetAttribute("target")
+						local VectorVelocity1 = zoomies1.VectorVelocity
+						local v15 = LocalPlayer:DistanceFromCharacter(v5.Position)
+						local Magnitude2 = VectorVelocity1.Magnitude
+						local v16 = v6.Network.ServerStatsItem["Data Ping"]:GetValue() / 10
+						local v17 = math.clamp(v16 / 10, 5, 17)
+						local v18 = Magnitude2 / ((2.4 + math.min(math.max(Magnitude2 - 9.5, 0), 650) * 0.002) * tbl3.__properties.__divisor_multiplier)
+						local v19 = v17 + math.max(v18, 9.5)
+
+						if target1 == LocalPlayer.Name and v15 <= v19 then
+							if getgenv().AutoParryMode == "Keypress" then
+								tbl3.parry.keypress()
+							else
+								tbl3.parry.execute_action()
+							end
+
+							tbl3.__properties.__training_parried = true
+							local v20 = tick()
+
+							repeat
+								v4.Stepped:Wait()
+							until tick() - v20 >= 1 or not tbl3.__properties.__training_parried
+
+							tbl3.__properties.__training_parried = false
+						end
+					end
+				end
+			end
+		end)
+	end
+
+	function tbl3.autoparry.stop()
+		if tbl3.__properties.__connections.__autoparry then
+			tbl3.__properties.__connections.__autoparry:Disconnect()
+			tbl3.__properties.__connections.__autoparry = nil
+		end
+	end
+
+	getgenv().AutoParryMode = getgenv().AutoParryMode or "Remote"
+	getgenv().ManualSpamMode = getgenv().ManualSpamMode or "Remote"
+	getgenv().AutoSpamMode = getgenv().AutoSpamMode or "Remote"
+	getgenv().AutoSpamAnimationFix = getgenv().AutoSpamAnimationFix ~= false
+	getgenv().AutoSpamNotify = getgenv().AutoSpamNotify or false
+	getgenv().ManualSpamAnimationFix = true
+	local tbl9 = {}
+	flag7 = true
+
+	function tbl9.Korblox(arg1)
+		if not arg1 then
+			return
+		end
+
+		local RightLeg = arg1:FindFirstChild("Right Leg")
+
+		if not RightLeg then
+			return
+		end
+
+		if not RightLeg:FindFirstChild("KorbloxMesh") then
+			for _, v1 in RightLeg:GetChildren() do
+				if v1:IsA("SpecialMesh") then
+					v1:Destroy()
+				end
+			end
+
+			local specialMesh = Instance.new("SpecialMesh")
+			specialMesh.Name = "KorbloxMesh"
+			specialMesh.MeshId = "rbxassetid://902942096"
+			specialMesh.TextureId = "rbxassetid://902843398"
+			specialMesh.Offset = Vector3.new(0, 0.7, 0)
+			specialMesh.Parent = RightLeg
+		end
+	end
+
+	function tbl9.Restore_Leg(arg1)
+		if not arg1 then
+			return
+		end
+
+		local RightLeg = arg1:FindFirstChild("Right Leg")
+
+		if not RightLeg then
+			return
+		end
+
+		for _, v1 in RightLeg:GetChildren() do
+			if v1:IsA("SpecialMesh") then
+				v1:Destroy()
+			end
+		end
+	end
+
+	function tbl9.Headless(character)
+		if not character then
+			return
+		end
+
+		local Head = character:FindFirstChild("Head")
+
+		if not Head then
+			return
+		end
+
+		Head.Transparency = 1
+
+		for _, v1 in Head:GetChildren() do
+			if v1:IsA("Decal") or v1.Name == "face" then
+				v1.Transparency = 1
+			elseif v1:IsA("SpecialMesh") or v1:IsA("DataModelMesh") then
+				if not v1:GetAttribute("OriginalScale") then
+					v1:SetAttribute("OriginalScale", v1.Scale)
+					v1.Scale = Vector3.new(0, 0, 0)
+				end
+			end
+		end
+	end
+
+	function tbl9.Restore_Head(character)
+		if not character then
+			return
+		end
+
+		local Head = character:FindFirstChild("Head")
+
+		if not Head then
+			return
+		end
+
+		Head.Transparency = 0
+
+		for _, v1 in Head:GetChildren() do
+			if v1:IsA("Decal") or v1.Name == "face" then
+				v1.Transparency = 0
+			elseif v1:IsA("SpecialMesh") or v1:IsA("DataModelMesh") then
+				local originalScale = v1:GetAttribute("OriginalScale")
+				if originalScale then
+					v1.Scale = originalScale
+					v1:SetAttribute("OriginalScale", nil)
+				end
+			end
+		end
+	end
+
+	LocalPlayer.CharacterAdded:Connect(function(character)
+		task.wait(0.5)
+
+		if tbl3.__properties.__headless_enabled then
+			tbl9.Headless(character)
+		end
+
+		if tbl3.__properties.__korblox_enabled then
+			tbl9.Korblox(character)
+		end
+	end)
+
+	local tbl12
+
+	local function func13()
+		if tbl12 then
+			tbl12.gui:Destroy()
+		end
+
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "AerisMobileUIButton"
+		screenGui.ResetOnSpawn = false
+		screenGui.IgnoreGuiInset = true
+		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		screenGui.DisplayOrder = 9999
+		local textButton = Instance.new("TextButton")
+		textButton.Size = UDim2.new(0, 55, 0, 55)
+		textButton.Position = UDim2.new(0.95, -27, 0.05, 0)
+		textButton.BackgroundColor3 = Color3.fromRGB(45, 20, 75)
+		textButton.BackgroundTransparency = 0.3
+		textButton.AnchorPoint = Vector2.new(0.5, 0.5)
+		textButton.Draggable = true
+		textButton.AutoButtonColor = true
+		textButton.ZIndex = 10000
+		Instance.new("UICorner", textButton).CornerRadius = UDim.new(1, 0)
+		func1(textButton, 2)
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Size = UDim2.new(1, 0, 1, 0)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = "UI"
+		textLabel.Font = Enum.Font.GothamBold
+		textLabel.TextSize = 24
+		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel.ZIndex = 10001
+		textLabel.Parent = textButton
+
+		textButton.MouseButton1Click:Connect(function()
+			Window:Minimize(not Window.Minimized)
+		end)
+
+		textButton.Parent = screenGui
+		screenGui.Parent = v8
+		tbl12 = {gui = screenGui, button = textButton}
+		return tbl12
+	end
+
+	local function func14(text, arg2)
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "Aeris_" .. text .. "_Mobile"
+		screenGui.ResetOnSpawn = false
+		screenGui.IgnoreGuiInset = true
+		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		local textButton = Instance.new("TextButton")
+		textButton.Size = UDim2.new(0, 140, 0, 50)
+		textButton.Position = UDim2.new(0.5, -70, arg2, 0)
+		textButton.BackgroundTransparency = 1
+		textButton.AnchorPoint = Vector2.new(0.5, 0)
+		textButton.Draggable = true
+		textButton.AutoButtonColor = false
+		textButton.ZIndex = 2
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(1, 0, 1, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(45, 22, 75)
+		frame.BackgroundTransparency = 0.25
+		frame.Parent = textButton
+		Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+		func1(frame, 1.5)
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Size = UDim2.new(1, 0, 1, 0)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = text
+		textLabel.Font = Enum.Font.GothamBold
+		textLabel.TextSize = 16
+		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel.ZIndex = 3
+		textLabel.Parent = textButton
+		textButton.Parent = screenGui
+		screenGui.Parent = v8
+		return {gui = screenGui, button = textButton, text = textLabel, bg = frame}
+	end
+
+	local function func15()
+		local tbl = {}
+
+		pcall(function()
+			if isfile and isfile("Aeris/auto_config.json") then
+				local v1 = v9:JSONDecode(readfile("Aeris/auto_config.json"))
+				if type(v1) == "table" then
+					tbl = v1
+				end
+			end
+		end)
+
+		local v1 = tbl["Skin.LastEquippedSword"]
+		return type(v1) == "string" and v1 or ""
+	end
+
+	getgenv().saveLastEquippedSword = function(arg1)
+		if type(arg1) ~= "string" or arg1 == "" then
+			return
+		end
+
+		local tbl = {}
+
+		pcall(function()
+			if isfile and isfile("Aeris/auto_config.json") then
+				local v1 = v9:JSONDecode(readfile("Aeris/auto_config.json"))
+				if type(v1) == "table" then
+					tbl = v1
+				end
+			end
+		end)
+
+		local v1 = tbl
+		v1["Skin.LastEquippedSword"] = arg1
+
+		pcall(function()
+			if isfolder and makefolder and not isfolder("Aeris") then
+				makefolder("Aeris")
+			end
+			if writefile then
+				writefile("Aeris/auto_config.json", v9:JSONEncode(v1 or {}))
+			end
+		end)
+	end
+
+	local v17 = func15()
+	getgenv().skinChanger = getgenv().skinChanger or v17 ~= ""
+	getgenv().swordModel = type(getgenv().swordModel) == "string" and getgenv().swordModel ~= "" and getgenv().swordModel or v17
+	getgenv().swordAnimations = type(getgenv().swordAnimations) == "string" and getgenv().swordAnimations ~= "" and getgenv().swordAnimations or v17
+	getgenv().swordFX = type(getgenv().swordFX) == "string" and getgenv().swordFX ~= "" and getgenv().swordFX or v17
+
+	task.spawn(function()
+		local ReplicatedStorage = game:GetService("ReplicatedStorage")
+		local Swords = ReplicatedStorage:WaitForChild("Shared", 9000000000):WaitForChild("ReplicatedInstances", 9000000000):WaitForChild("Swords", 9000000000)
+		local module = require(Swords)
+		local v1
+
+		task.spawn(function()
+			while task.wait(0.25) and not v1 do
+				local ok, result = pcall(getconnections, ReplicatedStorage.Remotes.FireSwordInfo.OnClientEvent)
+				if ok and result then
+					for _, v2 in ipairs(result) do
+						if v2.Function and islclosure and islclosure(v2.Function) then
+							local ok1, result1 = pcall(getupvalues, v2.Function)
+							if ok1 and #result1 == 1 and type(result1[1]) == "table" then
+								v1 = result1[1]
+								break
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		local function func(arg1)
+			local ok, result = pcall(function()
+				return module:GetSword(arg1)
+			end)
+			return ok and result and result.SlashName or "SlashEffect"
+		end
+
+		local function func1()
+			local v1 = getgenv().swordFX ~= "" and getgenv().swordFX or getgenv().swordModel
+			if v1 ~= "" then
+				getgenv().slashName = func(v1)
+			else
+				getgenv().slashName = "SlashEffect"
+			end
+		end
+
+		func1()
+
+		local function func2()
+			if not getgenv().skinChanger or not LocalPlayer.Character then
+				return
+			end
+
+			pcall(function()
+				local v1 = rawget(module, "EquipSwordTo")
+				if type(v1) == "function" then
+					local v2 = getupvalues(v1)
+					local num = 1
+					local v3 = #v2
+
+					if v3 == v3 then
+						if not (1 > v3) then
+							while true do
+								if type(v2[num]) == "boolean" then
+									setupvalue(v1, num, false)
+								else
+									num = num + 1
+									if not (num > v3) then
+										continue
+									end
+								end
+								break
+							end
+						end
+					end
+				end
+			end)
+
+			pcall(function()
+				module:EquipSwordTo(LocalPlayer.Character, getgenv().swordModel)
+			end)
+
+			task.spawn(function()
+				local num = 0
+
+				while not v1 and num < 20 do
+					task.wait(0.5)
+					num = num + 1
+				end
+
+				if not v1 then
+					return
+				end
+
+				pcall(function()
+					if v1.SetSword then
+						v1:SetSword(getgenv().swordAnimations ~= "" and getgenv().swordAnimations or getgenv().swordModel)
+					end
+				end)
+
+				pcall(function()
+					local v2 = getgenv().swordFX ~= "" and getgenv().swordFX or getgenv().swordModel
+
+					if ReplicatedStorage.Remotes:FindFirstChild("FireSwordInfo") then
+						ReplicatedStorage.Remotes.FireSwordInfo:FireServer(v2)
+					end
+
+					if v1.currentSword ~= nil then
+						pcall(function()
+							v1.currentSword = v2
+						end)
+					end
+
+					if v1.SwordFX ~= nil then
+						pcall(function()
+							v1.SwordFX = v2
+						end)
+					end
+				end)
+			end)
+		end
+
+		local tbl = {}
+
+		task.spawn(function()
+			local tbl1 = {"ParrySuccessAll", "ParryAttempt", "ParrySuccess", "PlaySound", "PlayVisuals"}
+			while task.wait(1) do
+				for _, v1 in ipairs(tbl1) do
+					local v2 = ReplicatedStorage.Remotes:FindFirstChild(v1)
+					if v2 and v2:IsA("RemoteEvent") then
+						local ok, result = pcall(getconnections, v2.OnClientEvent)
+						if ok and type(result) == "table" then
+							for _, v3 in ipairs(result) do
+								local Function = v3.Function
+								if Function and not tbl[Function] then
+									tbl[Function] = true
+									v3:Disable()
+
+									local function func(...)
+										local tbl = {...}
+										local flag = false
+
+										for _, v1 in ipairs(tbl) do
+											if tostring(v1) == LocalPlayer.Name or typeof(v1) == "Instance" and (v1 == LocalPlayer.Character or v1 == LocalPlayer) then
+												flag = true
+												break
+											end
+										end
+
+										if flag and getgenv().skinChanger then
+											local v2 = getgenv().swordFX ~= "" and getgenv().swordFX or getgenv().swordModel
+											func1()
+											local flag1 = false
+											local flag2 = false
+
+											for i, v3 in ipairs(tbl) do
+												if type(v3) == "string" then
+													if
+														v2 ~= ""
+														and not flag2
+														and (v3:match("Slash") or v3 == "Default" or v3:match("Effect"))
+													then
+														tbl[i] = getgenv().slashName
+														flag2 = true
+													elseif v2 ~= "" and not flag1 then
+														local flag3 = false
+
+														pcall(function()
+															if ReplicatedStorage.Shared.ReplicatedInstances.Swords:FindFirstChild(v3) then
+																flag3 = true
+															end
+														end)
+
+														local v4 = flag3
+
+														if not v4 then
+															local currentlyEquippedSword = LocalPlayer:GetAttribute("CurrentlyEquippedSword")
+															v4 = v3 == currentlyEquippedSword
+														end
+
+														if v4 then
+															tbl[i] = v2
+															flag1 = true
+														end
+													end
+												end
+											end
+
+											if v2 ~= "" and not flag2 and type(tbl[1]) == "string" then
+												tbl[1] = getgenv().slashName
+											end
+
+											if v2 ~= "" and not flag1 and type(tbl[3]) == "string" then
+												tbl[3] = v2
+											end
+										end
+
+										if setthreadidentity then
+											pcall(setthreadidentity, 2)
+										end
+
+										pcall(Function, unpack(tbl))
+									end
+
+									tbl[func] = true
+									v2.OnClientEvent:Connect(func)
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		getgenv().updateSword = function()
+			func1()
+
+			if getgenv().skinChanger and getgenv().swordModel ~= "" and getgenv().saveLastEquippedSword then
+				getgenv().saveLastEquippedSword(getgenv().swordModel)
+			end
+
+			func2()
+		end
+
+		task.spawn(function()
+			while task.wait(1) do
+				if getgenv().skinChanger and getgenv().swordModel ~= "" then
+					local Character = LocalPlayer.Character
+					if Character then
+						if LocalPlayer:GetAttribute("CurrentlyEquippedSword") ~= getgenv().swordModel then
+							func2()
+						end
+
+						if not Character:FindFirstChild(getgenv().swordModel) then
+							func2()
+						end
+
+						for _, child in pairs(Character:GetChildren()) do
+							if child:IsA("Model") and child.Name ~= getgenv().swordModel then
+								child:Destroy()
+							end
+							task.wait()
+						end
+					end
+				end
+			end
+		end)
+
+		LocalPlayer.CharacterAdded:Connect(function()
+			if getgenv().skinChanger then
+				getgenv().skinChanger = false
+
+				if getgenv().setSkinChangerToggleUI then
+					getgenv().setSkinChangerToggleUI(false)
+				end
+
+				task.wait(2)
+				getgenv().skinChanger = true
+
+				if getgenv().setSkinChangerToggleUI then
+					getgenv().setSkinChangerToggleUI(true)
+				end
+
+				task.wait(0.5)
+
+				pcall(function()
+					getgenv().updateSword()
+				end)
+			end
+		end)
+	end)
+
+	getgenv().skinChanger = false
+	getgenv().skinChangerEnabled = false
+	getgenv().swordModel = ""
+	getgenv().swordAnimations = ""
+	getgenv().swordFX = ""
+	getgenv().slashName = "SlashEffect"
+
+	local tbl10 = {
+		autoParryKeyCode = Enum.KeyCode.LeftShift,
+		autoSpamKeyCode = Enum.KeyCode.V,
+		manualSpamKeyCode = Enum.KeyCode.E,
+		trigKeyCode = Enum.KeyCode.R,
+		autoJumpKeyCode = Enum.KeyCode.J,
+	}
+
+	local autoParrySection = Tabs.Rage:AddSection("Auto Parry", "shield")
+
+	autoParrySection:AddToggle("AerisAutoParryToggle", {
+		Title = "Auto Parry",
+		Description = "Automatically parries incoming balls",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__autoparry_enabled = value
+			tbl3.__properties.__play_animation = value
+
+			if value then
+				tbl3.autoparry.start()
+			else
+				tbl3.autoparry.stop()
+			end
+
+			if getgenv().AutoParryNotify then
+				module:Notify({Title = "Auto Parry", Content = value and "ON" or "OFF", Duration = 2})
+			end
+		end,
+	})
+
+	autoParrySection:AddDropdown("AerisParryMode", {
+		Title = "Parry Mode",
+		Values = {"Remote", "Keypress"},
+		Default = "Remote",
+		Multi = false,
+		Callback = function(value)
+			getgenv().AutoParryMode = value
+		end,
+	})
+
+	autoParrySection:AddDropdown("AerisModeCurve", {
+		Title = "Curve Mode",
+		Values = tbl4,
+		Default = "Camera",
+		Multi = false,
+		Callback = function(value)
+			str = value
+			str1 = value
+		end,
+	})
+
+	autoParrySection:AddToggle("AerisRandomCurveMode", {
+		Title = "Random Curve",
+		Default = false,
+		Callback = function(value)
+			if value then
+				if not tbl3.__properties.__connections.__random_curve then
+					tbl3.__properties.__connections.__random_curve = v4.PreSimulation:Connect(function()
+						str = tbl4[math.random(1, #tbl4)]
+					end)
+				end
+			else
+				if tbl3.__properties.__connections.__random_curve then
+					tbl3.__properties.__connections.__random_curve:Disconnect()
+					tbl3.__properties.__connections.__random_curve = nil
+				end
+				str = str1
+			end
+		end,
+	})
+
+	autoParrySection:AddSlider("AerisParryAccuracy", {
+		Title = "Accuracy",
+		Default = 50,
+		Min = 1,
+		Max = 100,
+		Rounding = 1,
+		Callback = function(value)
+			tbl3.__properties.__accuracy = value
+			func7()
+		end,
+	})
+
+	autoParrySection:AddToggle("AerisRandomizeAccuracy", {
+		Title = "Randomize Accuracy",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__randomized_accuracy_enabled = value
+			if value then
+				func8()
+			end
+		end,
+	})
+
+	autoParrySection:AddToggle("AerisCooldownProtection", {
+		Title = "Cooldown Protection",
+		Default = false,
+		Callback = function(value)
+			getgenv().CooldownProtection = value
+		end,
+	})
+
+	autoParrySection:AddToggle("AerisAutoAbility", {
+		Title = "Auto Ability",
+		Default = false,
+		Callback = function(value)
+			getgenv().AutoAbility = value
+		end,
+	})
+
+	autoParrySection:AddToggle("AerisAutoParryNotify", {
+		Title = "Notify",
+		Default = false,
+		Callback = function(value)
+			getgenv().AutoParryNotify = value
+		end,
+	})
+
+	local autoCurveHotkeySection = Tabs.Rage:AddSection("AutoCurve Hotkey", "keyboard")
+
+	autoCurveHotkeySection:AddToggle("AerisAutoCurveHotkey", {
+		Title = "AutoCurve Hotkey",
+		Default = false,
+		Callback = function(value)
+			getgenv().AutoCurveHotkeyEnabled = value
+		end,
+	})
+
+	autoCurveHotkeySection:AddToggle("AerisAutoCurveHotkeyNotify", {
+		Title = "Notify",
+		Default = false,
+		Callback = function(value)
+			getgenv().AutoCurveHotkeyNotify = value
+		end,
+	})
+
+	local triggerbotSection = Tabs.Rage:AddSection("Triggerbot", "target")
+
+	triggerbotSection:AddToggle("AerisTriggerbotToggle", {
+		Title = "Triggerbot",
+		Description = "Parries instantly when targeted",
+		Default = false,
+		Callback = function(value)
+			if tbl3.__properties.__is_mobile then
+				if value then
+					if not tbl3.__properties.__mobile_guis.triggerbot then
+						local v1 = func14("Trigger", 0.65)
+						tbl3.__properties.__mobile_guis.triggerbot = v1
+						local num = 0
+						local flag = false
+
+						v1.button.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch then
+								num = tick()
+								flag = false
+							end
+						end)
+
+						v1.button.InputChanged:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch and tick() - num > 0.1 then
+								flag = true
+							end
+						end)
+
+						v1.button.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch and not flag then
+								tbl3.__properties.__triggerbot_enabled = not tbl3.__properties.__triggerbot_enabled
+								tbl3.triggerbot.enable(tbl3.__properties.__triggerbot_enabled)
+								v1.text.Text = tbl3.__properties.__triggerbot_enabled and "ON" or "Trigger"
+								v1.text.TextColor3 = tbl3.__properties.__triggerbot_enabled and Color3.fromRGB(200, 130, 255) or Color3.fromRGB(255, 255, 255)
+
+								if getgenv().TriggerbotNotify then
+									module:Notify({
+										Title = "Triggerbot",
+										Content = tbl3.__properties.__triggerbot_enabled and "ON" or "OFF",
+										Duration = 2,
+									})
+								end
+							end
+						end)
+					end
+				else
+					tbl3.__properties.__triggerbot_enabled = false
+					tbl3.triggerbot.enable(false)
+					local triggerbot = tbl3.__properties.__mobile_guis.triggerbot
+
+					if triggerbot and triggerbot.gui then
+						triggerbot.gui:Destroy()
+					end
+
+					tbl3.__properties.__mobile_guis.triggerbot = nil
+				end
+			else
+				tbl3.__properties.__triggerbot_enabled = value
+				tbl3.triggerbot.enable(value)
+
+				if getgenv().TriggerbotNotify then
+					module:Notify({Title = "Triggerbot", Content = value and "ON" or "OFF", Duration = 2})
+				end
+			end
+		end,
+	})
+
+	triggerbotSection:AddToggle("AerisTriggerbotNotify", {
+		Title = "Notify",
+		Description = "Show notifications for Triggerbot",
+		Default = false,
+		Callback = function(value)
+			getgenv().TriggerbotNotify = value
+		end,
+	})
+
+	local autoSpamSection = Tabs.Spam:AddSection("Auto Spam", "zap")
+
+	autoSpamSection:AddToggle("AerisAutoSpamToggle", {
+		Title = "Auto Spam",
+		Description = "Automatically spams parries in close range",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__auto_spam_enabled = value
+
+			if value then
+				tbl3.auto_spam.start()
+			else
+				tbl3.auto_spam.stop()
+			end
+
+			if getgenv().AutoSpamNotify then
+				module:Notify({Title = "Auto Spam", Content = value and "ON" or "OFF", Duration = 2})
+			end
+		end,
+	})
+
+	autoSpamSection:AddDropdown("AerisAutoSpamMode", {
+		Title = "Spam Mode",
+		Values = {"Remote", "Keypress"},
+		Default = "Remote",
+		Multi = false,
+		Callback = function(value)
+			getgenv().AutoSpamMode = value
+		end,
+	})
+
+	autoSpamSection:AddToggle("AerisAutoSpamAnimationFix", {
+		Title = "Animation Fix",
+		Default = true,
+		Callback = function(value)
+			getgenv().AutoSpamAnimationFix = value
+		end,
+	})
+
+	autoSpamSection:AddToggle("AerisAutoSpamNotify", {
+		Title = "Notify",
+		Default = false,
+		Callback = function(value)
+			getgenv().AutoSpamNotify = value
+		end,
+	})
+
+	autoSpamSection:AddSlider("AerisAutoSpamRate", {
+		Title = "Spam Rate",
+		Default = 240,
+		Min = 60,
+		Max = 5000,
+		Rounding = 0,
+		Callback = function(value)
+			tbl3.__properties.__spam_rate = value
+		end,
+	})
+
+	local manualSpamSection = Tabs.Spam:AddSection("Manual Spam", "skull")
+
+	manualSpamSection:AddToggle("AerisManualSpamToggle", {
+		Title = "Manual Spam",
+		Description = "High-frequency parry spam",
+		Default = false,
+		Callback = function(value)
+			if tbl3.__properties.__is_mobile then
+				if value then
+					if not tbl3.__properties.__mobile_guis.manual_spam then
+						local v1 = func14("Spam", 0.8)
+						tbl3.__properties.__mobile_guis.manual_spam = v1
+						local num = 0
+						local flag = false
+
+						v1.button.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch then
+								num = tick()
+								flag = false
+							end
+						end)
+
+						v1.button.InputChanged:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch and tick() - num > 0.1 then
+								flag = true
+							end
+						end)
+
+						v1.button.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.Touch and not flag then
+								tbl3.__properties.__manual_spam_enabled = not tbl3.__properties.__manual_spam_enabled
+
+								if tbl3.__properties.__manual_spam_enabled then
+									tbl3.manual_spam.start()
+									v1.text.Text = "ON"
+									v1.text.TextColor3 = Color3.fromRGB(200, 130, 255)
+								else
+									tbl3.manual_spam.stop()
+									v1.text.Text = "Spam"
+									v1.text.TextColor3 = Color3.fromRGB(255, 255, 255)
+								end
+
+								if getgenv().ManualSpamNotify then
+									module:Notify({
+										Title = "Manual Spam",
+										Content = tbl3.__properties.__manual_spam_enabled and "ON" or "OFF",
+										Duration = 2,
+									})
+								end
+							end
+						end)
+					end
+				else
+					tbl3.__properties.__manual_spam_enabled = false
+					tbl3.manual_spam.stop()
+					local manual_spam = tbl3.__properties.__mobile_guis.manual_spam
+
+					if manual_spam and manual_spam.gui then
+						manual_spam.gui:Destroy()
+					end
+
+					tbl3.__properties.__mobile_guis.manual_spam = nil
+				end
+			else
+				tbl3.__properties.__manual_spam_enabled = value
+				flag6 = value
+
+				if value then
+					tbl3.manual_spam.start()
+				else
+					tbl3.manual_spam.stop()
+				end
+
+				if getgenv().ManualSpamNotify then
+					module:Notify({Title = "Manual Spam", Content = value and "ON" or "OFF", Duration = 2})
+				end
+			end
+		end,
+	})
+
+	manualSpamSection:AddToggle("AerisManualSpamNotify", {
+		Title = "Notify",
+		Description = "Show notifications for manual spam",
+		Default = false,
+		Callback = function(value)
+			getgenv().ManualSpamNotify = value
+		end,
+	})
+
+	manualSpamSection:AddDropdown("AerisManualSpamMode", {
+		Title = "Mode",
+		Description = "Select spam method",
+		Values = {"Remote", "Keypress"},
+		Default = "Remote",
+		Multi = false,
+		Callback = function(value)
+			getgenv().ManualSpamMode = value
+		end,
+	})
+
+	manualSpamSection:AddToggle("AerisManualSpamAnimationFix", {
+		Title = "Animation Fix",
+		Description = "Fix animation during spam",
+		Default = true,
+		Callback = function(value)
+			getgenv().ManualSpamAnimationFix = value
+			flag7 = value
+		end,
+	})
+
+	local infinityDetectionSection = Tabs.Detection:AddSection("Infinity Detection", "infinity")
+
+	infinityDetectionSection:AddToggle("AerisInfinityDetection", {
+		Title = "Infinity Detection",
+		Default = false,
+		Callback = function(value)
+			tbl3.__config.__detections.__infinity = value
+		end,
+	})
+
+	infinityDetectionSection:AddToggle("AerisInfinityNotify", {
+		Title = "Notify",
+		Default = false,
+		Callback = function(value)
+			getgenv().InfinityNotify = value
+		end,
+	})
+
+	Tabs.Detection:AddSection("Death Slash Detection", "skull"):AddToggle("AerisDeathSlashDetection", {
+		Title = "Death Slash Detection",
+		Default = false,
+		Callback = function(value)
+			tbl3.__config.__detections.__deathslash = value
+		end,
+	})
+
+	Tabs.Detection:AddSection("Time Hole Detection", "clock"):AddToggle("AerisTimeHoleDetection", {
+		Title = "Time Hole Detection",
+		Default = false,
+		Callback = function(value)
+			tbl3.__config.__detections.__timehole = value
+		end,
+	})
+
+	local slashesOfFuryDetectionSection = Tabs.Detection:AddSection("Slashes Of Fury Detection", "swords")
+
+	slashesOfFuryDetectionSection:AddToggle("AerisSlashesOfFuryDetection", {
+		Title = "Slashes Of Fury Detection",
+		Default = false,
+		Callback = function(value)
+			tbl3.__config.__detections.__slashesoffury = value
+		end,
+	})
+
+	slashesOfFuryDetectionSection:AddSlider("AerisParryDelay", {
+		Title = "Parry Delay",
+		Default = 0.05,
+		Min = 0.05,
+		Max = 0.25,
+		Rounding = 2,
+		Callback = function(value)
+			num3 = value
+		end,
+	})
+
+	slashesOfFuryDetectionSection:AddSlider("AerisMaxParryCount", {
+		Title = "Max Parry Count",
+		Default = 35,
+		Min = 1,
+		Max = 35,
+		Rounding = 0,
+		Callback = function(value)
+			num2 = value
+		end,
+	})
+
+	Tabs.Detection:AddSection("Anti-Phantom", "ghost"):AddToggle("AerisAntiPhantom", {
+		Title = "Anti-Phantom",
+		Default = false,
+		Callback = function(value)
+			tbl3.__config.__detections.__phantom = value
+		end,
+	})
+
+	local ballStatsSection = Tabs.Visuals:AddSection("Ball Stats", "gauge")
+
+	function tbl3.create_ball_velocity_gui()
+		if tbl3.__properties.__ball_velocity_gui then
+			tbl3.__properties.__ball_velocity_gui.gui:Destroy()
+		end
+
+		local screenGui = Instance.new("ScreenGui")
+		screenGui.Name = "AerisBallVelocityGUI"
+		screenGui.ResetOnSpawn = false
+		screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		screenGui.DisplayOrder = 999
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 220, 0, 80)
+		frame.Position = UDim2.new(0, 10, 0.82, 0)
+		frame.BackgroundColor3 = Color3.fromRGB(40, 20, 68)
+		frame.BackgroundTransparency = 0.35
+		frame.BorderSizePixel = 0
+		frame.Active = true
+		frame.Selectable = true
+		frame.Draggable = true
+		Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+		func1(frame, 2)
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Size = UDim2.new(1, 0, 0, 20)
+		textLabel.Position = UDim2.new(0, 0, 0, 5)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = "Aeris | Ball Status"
+		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel.Font = Enum.Font.GothamBold
+		textLabel.TextSize = 14
+		textLabel.Parent = frame
+		local textLabel1 = Instance.new("TextLabel")
+		textLabel1.Size = UDim2.new(1, -10, 0, 25)
+		textLabel1.Position = UDim2.new(0, 5, 0, 25)
+		textLabel1.BackgroundTransparency = 1
+		textLabel1.Text = "Current: 0"
+		textLabel1.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel1.Font = Enum.Font.GothamBold
+		textLabel1.TextSize = 16
+		textLabel1.TextXAlignment = Enum.TextXAlignment.Left
+		textLabel1.Parent = frame
+		local textLabel2 = Instance.new("TextLabel")
+		textLabel2.Size = UDim2.new(1, -10, 0, 25)
+		textLabel2.Position = UDim2.new(0, 5, 0, 50)
+		textLabel2.BackgroundTransparency = 1
+		textLabel2.Text = "Peak: 0"
+		textLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
+		textLabel2.Font = Enum.Font.GothamBold
+		textLabel2.TextSize = 16
+		textLabel2.TextXAlignment = Enum.TextXAlignment.Left
+		textLabel2.Parent = frame
+		frame.Parent = screenGui
+		screenGui.Parent = v8
+		tbl3.__properties.__ball_velocity_gui = {gui = screenGui, frame = frame, currentSpeedLabel = textLabel1, peakSpeedLabel = textLabel2}
+	end
+
+	function tbl3.update_ball_velocity()
+		if not tbl3.__properties.__ball_velocity_enabled or not tbl3.__properties.__ball_velocity_gui then
+			return
+		end
+
+		local v1 = tbl3.ball.get()
+
+		if not v1 then
+			tbl3.__properties.__ball_velocity_gui.currentSpeedLabel.Text = "Current: 0"
+			return
+		end
+
+		local FullName = v1:GetFullName()
+
+		if FullName ~= tbl3.__properties.__last_ball_id then
+			tbl3.__properties.__peak_velocity = 0
+			tbl3.__properties.__last_ball_id = FullName
+		end
+
+		local zoomies = v1:FindFirstChild("zoomies")
+
+		if not zoomies then
+			tbl3.__properties.__ball_velocity_gui.currentSpeedLabel.Text = "Current: 0"
+			return
+		end
+
+		local Magnitude = zoomies.VectorVelocity.Magnitude
+
+		if Magnitude > tbl3.__properties.__peak_velocity then
+			tbl3.__properties.__peak_velocity = Magnitude
+		end
+
+		local v2 = Color3.fromRGB(210, 160, 255)
+
+		if Magnitude > 2000 then
+			v2 = Color3.fromRGB(255, 80, 120)
+		elseif Magnitude > 1500 then
+			v2 = Color3.fromRGB(255, 165, 0)
+		end
+
+		local v3 = Color3.fromRGB(210, 160, 255)
+
+		if tbl3.__properties.__peak_velocity > 2000 then
+			v3 = Color3.fromRGB(255, 80, 120)
+		elseif tbl3.__properties.__peak_velocity > 1500 then
+			v3 = Color3.fromRGB(255, 165, 0)
+		end
+
+		tbl3.__properties.__ball_velocity_gui.currentSpeedLabel.RichText = true
+
+		tbl3.__properties.__ball_velocity_gui.currentSpeedLabel.Text = string.format(
+			"Current: <font color='#%02x%02x%02x'>%.1f</font>",
+			math.floor(v2.R * 255),
+			math.floor(v2.G * 255),
+			math.floor(v2.B * 255),
+			Magnitude
+		)
+
+		tbl3.__properties.__ball_velocity_gui.peakSpeedLabel.RichText = true
+
+		tbl3.__properties.__ball_velocity_gui.peakSpeedLabel.Text = string.format(
+			"Peak: <font color='#%02x%02x%02x'>%.1f</font>",
+			math.floor(v3.R * 255),
+			math.floor(v3.G * 255),
+			math.floor(v3.B * 255),
+			tbl3.__properties.__peak_velocity
+		)
+	end
+
+	ballStatsSection:AddToggle("AerisBallVelocity", {
+		Title = "Show Ball Velocity",
+		Description = "Display ball velocity stats",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__ball_velocity_enabled = value
+			if value then
+				tbl3.create_ball_velocity_gui()
+
+				if not tbl3.__properties.__connections.__ball_velocity then
+					tbl3.__properties.__connections.__ball_velocity = v4.RenderStepped:Connect(tbl3.update_ball_velocity)
+				end
+
+				module:Notify({Title = "Ball Stats", Content = "Activated", Duration = 2})
+			else
+				if tbl3.__properties.__ball_velocity_gui then
+					tbl3.__properties.__ball_velocity_gui.gui:Destroy()
+					tbl3.__properties.__ball_velocity_gui = nil
+				end
+
+				if tbl3.__properties.__connections.__ball_velocity then
+					tbl3.__properties.__connections.__ball_velocity:Disconnect()
+					tbl3.__properties.__connections.__ball_velocity = nil
+				end
+
+				tbl3.__properties.__peak_velocity = 0
+				tbl3.__properties.__last_ball_id = nil
+				module:Notify({Title = "Ball Stats", Content = "Deactivated", Duration = 2})
+			end
+		end,
+	})
+
+	local screenGui1 = Instance.new("ScreenGui", v8)
+	screenGui1.Name = "AerisRealPing"
+	screenGui1.ResetOnSpawn = false
+	screenGui1.IgnoreGuiInset = true
+	screenGui1.DisplayOrder = 999
+	screenGui1.Enabled = false
+	local frame = Instance.new("Frame", screenGui1)
+	frame.Size = UDim2.new(0, 110, 0, 35)
+	frame.Position = UDim2.new(0, 15, 0.88, 0)
+	frame.BackgroundColor3 = Color3.fromRGB(40, 20, 68)
+	frame.BackgroundTransparency = 0.3
+	frame.BorderSizePixel = 0
+	frame.Active = true
+	frame.Draggable = true
+	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+	func1(frame, 1.5)
+	local textLabel = Instance.new("TextLabel", frame)
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.Text = "Ping: 0ms"
+	textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	textLabel.BackgroundTransparency = 1
+	textLabel.Font = Enum.Font.GothamBold
+	textLabel.TextSize = 14
+	textLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+	ballStatsSection:AddToggle("AerisShowPing", {
+		Title = "Show Real Ping",
+		Description = "Shows your current ping",
+		Default = false,
+		Callback = function(value)
+			screenGui1.Enabled = value
+			if value then
+				module:Notify({Title = "Real Ping", Content = "Activated", Duration = 2})
+				task.spawn(function()
+					while screenGui1.Enabled do
+						task.wait(0.5)
+						if screenGui1.Enabled and textLabel then
+							local Value = v6.Network.ServerStatsItem["Data Ping"]:GetValue()
+							local v1 = Color3.fromRGB(190, 140, 255)
+
+							if Value > 150 then
+								v1 = Color3.fromRGB(255, 165, 0)
+							elseif Value > 300 then
+								v1 = Color3.fromRGB(255, 0, 0)
+							end
+
+							textLabel.Text = string.format(
+								"Ping: <font color='#%02x%02x%02x'>%dms</font>",
+								math.floor(v1.R * 255),
+								math.floor(v1.G * 255),
+								math.floor(v1.B * 255),
+								Value
+							)
+
+							textLabel.RichText = true
+						end
+					end
+				end)
+			else
+				module:Notify({Title = "Real Ping", Content = "Deactivated", Duration = 2})
+			end
+		end,
+	})
+
+	local flag8 = false
+	local flag9 = false
+
+	Tabs.Misc:AddSection("Auto Jump", "arrow-up"):AddToggle("AerisAutoJump", {
+		Title = "Auto Jump",
+		Description = "Automatically jumps when grounded",
+		Default = false,
+		Callback = function(value)
+			local v1 = not value
+			flag8 = value
+
+			if v1 then
+				flag9 = false
+			end
+
+			module:Notify({Title = "Auto Jump", Content = value and "Enabled" or "Disabled", Duration = 2})
+		end,
+	})
+
+	v4.Heartbeat:Connect(function()
+		if flag8 then
+			local Character = LocalPlayer.Character
+			local v1 = Character and Character:FindFirstChildOfClass("Humanoid")
+
+			if v1 then
+				local v2 = v1.FloorMaterial ~= Enum.Material.Air
+
+				if v2 and not flag9 then
+					v1:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+
+				flag9 = v2
+			end
+		else
+			flag9 = false
+		end
+	end)
+
+	local Section = Tabs.Misc:AddSection("Headless & Korblox", "user")
+
+	Section:AddToggle("AerisHeadlessToggle", {
+		Title = "Headless",
+		Description = "Makes your character headless",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__headless_enabled = value
+			local Character = LocalPlayer.Character
+
+			if Character then
+				if value then
+					tbl9.Headless(Character)
+				else
+					tbl9.Restore_Head(Character)
+				end
+			end
+
+			module:Notify({Title = "Headless", Content = value and "Enabled" or "Disabled", Duration = 2})
+		end,
+	})
+
+	Section:AddToggle("AerisKorbloxToggle", {
+		Title = "Korblox",
+		Description = "Gives you Korblox leg",
+		Default = false,
+		Callback = function(value)
+			tbl3.__properties.__korblox_enabled = value
+			local Character = LocalPlayer.Character
+
+			if Character then
+				if value then
+					tbl9.Korblox(Character)
+				else
+					tbl9.Restore_Leg(Character)
+				end
+			end
+
+			module:Notify({Title = "Korblox", Content = value and "Enabled" or "Disabled", Duration = 2})
+		end,
+	})
+
+	Tabs.Misc:AddSection("Thunder Dash", "zap"):AddToggle("AerisThunderDashToggle", {
+		Title = "Thunder Dash",
+		Description = "Removes all ability cooldowns (Infinite Thunder Dash)",
+		Default = false,
+		Callback = function(value)
+			if value then
+				tbl8:Enable()
+				module:Notify({Title = "Thunder Dash", Content = "Enabled - Infinite Abilities!", Duration = 3})
+			else
+				tbl8:Disable()
+				module:Notify({Title = "Thunder Dash", Content = "Disabled", Duration = 2})
+			end
+		end,
+	})
+
+	local skinChangerSection = Tabs.Misc:AddSection("Skin Changer", "sword")
+
+	local aerisSkinChangerToggle = skinChangerSection:AddToggle("AerisSkinChanger", {
+		Title = "Skin Changer",
+		Description = "Changes your sword skin",
+		Default = false,
+		Callback = function(value)
+			getgenv().skinChanger = value
+			getgenv().skinChangerEnabled = value
+
+			if value and getgenv().swordModel ~= "" then
+				if getgenv().updateSword then
+					pcall(getgenv().updateSword)
+				end
+				module:Notify({Title = "Skin Changer", Content = "Enabled", Duration = 2})
+			elseif not value then
+				module:Notify({Title = "Skin Changer", Content = "Disabled", Duration = 2})
+			end
+		end,
+	})
+
+	getgenv().setSkinChangerToggleUI = function(skinChangerEnabled)
+		if aerisSkinChangerToggle and aerisSkinChangerToggle.Value ~= skinChangerEnabled then
+			aerisSkinChangerToggle:SetValue(skinChangerEnabled)
+			getgenv().skinChanger = skinChangerEnabled
+			getgenv().skinChangerEnabled = skinChangerEnabled
+		end
+	end
+
+	skinChangerSection:AddInput("AerisSwordName", {
+		Title = "Sword Name",
+		Placeholder = "Enter sword name (e.g. DualPrince)...",
+		Default = "",
+		Callback = function(value)
+			getgenv().swordModel = value
+			getgenv().swordAnimations = value
+			getgenv().swordFX = value
+
+			if getgenv().skinChanger and value ~= "" and getgenv().updateSword then
+				pcall(getgenv().updateSword)
+			end
+
+			if getgenv().saveLastEquippedSword then
+				pcall(getgenv().saveLastEquippedSword, value)
+			end
+		end,
+	})
+
+	skinChangerSection:AddToggle("AerisSaveLastSword", {
+		Title = "Save Last Equipped Sword",
+		Description = "Auto-loads your last sword on inject",
+		Default = true,
+		Callback = function(value)
+			getgenv().autoLoadLastSword = value
+		end,
+	})
+
+	local noRenderSection = Tabs.Misc:AddSection("No Render", "eye-off")
+	local tbl11 = {}
+
+	noRenderSection:AddToggle("AerisNoRender", {
+		Title = "No Render",
+		Default = false,
+		Callback = function(value)
+			local EffectScripts = LocalPlayer.PlayerScripts:FindFirstChild("EffectScripts")
+
+			if EffectScripts then
+				local ClientFX = EffectScripts:FindFirstChild("ClientFX")
+				if ClientFX then
+					ClientFX.Disabled = value
+				end
+			end
+
+			if value then
+				tbl11["No Render"] = v10.Runtime.ChildAdded:Connect(function(child)
+					v7:AddItem(child, 0)
+				end)
+			elseif tbl11["No Render"] then
+				tbl11["No Render"]:Disconnect()
+				tbl11["No Render"] = nil
+			end
+		end,
+	})
+
+	local keybindsSection = Tabs.Settings:AddSection("Keybinds", "keyboard")
+
+	keybindsSection:AddKeybind("AerisAutoParryKeybind", {
+		Title = "Auto Parry Key",
+		Description = "Toggle Auto Parry",
+		Default = "LeftShift",
+		Callback = function() end,
+		ChangedCallback = function(arg1)
+			local str = tostring(arg1)
+			if str and str ~= "" then
+				local v1 = str:match("Enum%.KeyCode%.(.+)") or str
+				local v2 = Enum.KeyCode[v1]
+
+				if v2 then
+					tbl10.autoParryKeyCode = v2
+					module:Notify({Title = "Auto Parry Key", Content = v1, Duration = 2})
+				end
+			end
+		end,
+	})
+
+	keybindsSection:AddKeybind("AerisAutoSpamKeybind", {
+		Title = "Auto Spam Key",
+		Description = "Toggle Auto Spam",
+		Default = "V",
+		Callback = function() end,
+		ChangedCallback = function(arg1)
+			local str = tostring(arg1)
+			if str and str ~= "" then
+				local v1 = str:match("Enum%.KeyCode%.(.+)") or str
+				local v2 = Enum.KeyCode[v1]
+
+				if v2 then
+					tbl10.autoSpamKeyCode = v2
+					module:Notify({Title = "Auto Spam Key", Content = v1, Duration = 2})
+				end
+			end
+		end,
+	})
+
+	keybindsSection:AddKeybind("AerisManualSpamKeybind", {
+		Title = "Manual Spam Key",
+		Description = "Toggle Manual Spam",
+		Default = "E",
+		Callback = function() end,
+		ChangedCallback = function(arg1)
+			local str = tostring(arg1)
+			if str and str ~= "" then
+				local v1 = str:match("Enum%.KeyCode%.(.+)") or str
+				local v2 = Enum.KeyCode[v1]
+
+				if v2 then
+					tbl10.manualSpamKeyCode = v2
+					module:Notify({Title = "Manual Spam Key", Content = v1, Duration = 2})
+				end
+			end
+		end,
+	})
+
+	keybindsSection:AddKeybind("AerisTriggerKeybind", {
+		Title = "Trigger Key",
+		Description = "Toggle Triggerbot",
+		Default = "R",
+		Callback = function() end,
+		ChangedCallback = function(arg1)
+			local str = tostring(arg1)
+			if str and str ~= "" then
+				local v1 = str:match("Enum%.KeyCode%.(.+)") or str
+				local v2 = Enum.KeyCode[v1]
+
+				if v2 then
+					tbl10.trigKeyCode = v2
+					module:Notify({Title = "Trigger Key", Content = v1, Duration = 2})
+				end
+			end
+		end,
+	})
+
+	keybindsSection:AddKeybind("AerisAutoJumpKeybind", {
+		Title = "Auto Jump Key",
+		Description = "Toggle Auto Jump",
+		Default = "J",
+		Callback = function() end,
+		ChangedCallback = function(arg1)
+			local str = tostring(arg1)
+			if str and str ~= "" then
+				local v1 = str:match("Enum%.KeyCode%.(.+)") or str
+				local v2 = Enum.KeyCode[v1]
+
+				if v2 then
+					tbl10.autoJumpKeyCode = v2
+					module:Notify({Title = "Auto Jump Key", Content = v1, Duration = 2})
+				end
+			end
+		end,
+	})
+
+	v3.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then
+			return
+		end
+
+		local tbl = {}
+		local KeyCode = input.KeyCode
+		tbl[Enum.KeyCode.One] = "Camera"
+		tbl[Enum.KeyCode.Two] = "Random"
+		tbl[Enum.KeyCode.Three] = "Accelerated"
+		tbl[Enum.KeyCode.Four] = "Backwards"
+		tbl[Enum.KeyCode.Five] = "Slow"
+		tbl[Enum.KeyCode.Six] = "High"
+		tbl[Enum.KeyCode.Seven] = "Normal"
+		tbl[Enum.KeyCode.Eight] = "Speed"
+		tbl[Enum.KeyCode.Nine] = "Down"
+
+		if tbl[KeyCode] then
+			str = tbl[KeyCode]
+			str1 = tbl[KeyCode]
+
+			if getgenv().AutoCurveHotkeyNotify then
+				module:Notify({Title = "Curve Mode", Content = tbl[KeyCode], Duration = 1})
+			end
+		end
+
+		if KeyCode == tbl10.autoSpamKeyCode then
+			tbl3.__properties.__auto_spam_enabled = not tbl3.__properties.__auto_spam_enabled
+
+			if tbl3.__properties.__auto_spam_enabled then
+				tbl3.auto_spam.start()
+			else
+				tbl3.auto_spam.stop()
+			end
+
+			if getgenv().AutoSpamNotify then
+				module:Notify({
+					Title = "Auto Spam",
+					Content = tbl3.__properties.__auto_spam_enabled and "ON" or "OFF",
+					Duration = 1,
+				})
+			end
+		end
+
+		if KeyCode == tbl10.manualSpamKeyCode then
+			tbl3.__properties.__manual_spam_enabled = not tbl3.__properties.__manual_spam_enabled
+			flag6 = tbl3.__properties.__manual_spam_enabled
+
+			if flag6 then
+				tbl3.manual_spam.start()
+			else
+				tbl3.manual_spam.stop()
+			end
+
+			if getgenv().ManualSpamNotify then
+				module:Notify({Title = "Manual Spam", Content = flag6 and "ON" or "OFF", Duration = 1})
+			end
+		end
+
+		if KeyCode == tbl10.trigKeyCode then
+			local v1 = not tbl3.__properties.__triggerbot_enabled
+			tbl3.__properties.__triggerbot_enabled = v1
+			tbl3.triggerbot.enable(v1)
+
+			if getgenv().TriggerbotNotify then
+				module:Notify({Title = "Triggerbot", Content = v1 and "ON" or "OFF", Duration = 1})
+			end
+		end
+
+		if KeyCode == tbl10.autoParryKeyCode then
+			tbl3.__properties.__autoparry_enabled = not tbl3.__properties.__autoparry_enabled
+			tbl3.__properties.__play_animation = tbl3.__properties.__autoparry_enabled
+
+			if tbl3.__properties.__autoparry_enabled then
+				tbl3.autoparry.start()
+			else
+				tbl3.autoparry.stop()
+			end
+
+			if getgenv().AutoParryNotify then
+				module:Notify({
+					Title = "Auto Parry",
+					Content = tbl3.__properties.__autoparry_enabled and "ON" or "OFF",
+					Duration = 1,
+				})
+			end
+		end
+
+		if KeyCode == tbl10.autoJumpKeyCode then
+			flag8 = not flag8
+
+			if not flag8 then
+				flag9 = false
+			end
+
+			module:Notify({Title = "Auto Jump", Content = flag8 and "ON" or "OFF", Duration = 1})
+		end
+	end)
+
+	if tbl3.__properties.__is_mobile then
+		task.spawn(function()
+			task.wait(2)
+			func13()
+		end)
+	end
+
+	module:Notify({Title = "Aeris Hub", Content = "Loaded successfully! Block once manually first.", Duration = 8})
+	print("Aeris Hub Loaded!")
+end)
 
 -- https://lua-x.online
